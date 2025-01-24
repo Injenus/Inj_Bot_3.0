@@ -23,7 +23,8 @@ while True:
             break
         try:
             el = int(el)
-            angles[i] = el
+            if 100 <= el <= 170:
+                angles[i] = el
         except:
             pass
 
