@@ -52,6 +52,8 @@ void setup(){
       servo[i].setAccel(360);
     }
   }
+
+  pinMode(13, OUTPUT);
   
 }
 
@@ -71,13 +73,16 @@ void loop(){
     // Если это первый байт и он равен 'A', начинаем запись в буфер
     if (index == 0 && byteReceived == 'A') {
       rBuffer[index++] = byteReceived;
+      Serial.println("Got A");
     }
     // Если уже начали запись, продолжаем добавлять байты в буфер
     else if (index > 0 && index < 16) {
+      Serial.println("Inc indx");
       rBuffer[index++] = byteReceived;
   
       // Если буфер заполнен, проверяем данные
       if (index == 16) {
+        Serial.println("Got all");
         // Вычисляем контрольную сумму для первых 15 байт
         uint16_t receivedChecksum = (rBuffer[14] | (rBuffer[15] << 8));
         uint16_t calculatedChecksum = fletcher16(rBuffer, 15);
@@ -111,6 +116,7 @@ void loop(){
     } else {
       // Если байт первый, но не равен 'A', сбрасываем индекс
       index = 0;
+      //Serial.println("Set 0");
     }
   }
 

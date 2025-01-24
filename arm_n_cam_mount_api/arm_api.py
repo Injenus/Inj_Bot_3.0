@@ -1,5 +1,4 @@
 import struct
-import serial
 
 def fletcher16(data):
     """Рассчитывает контрольную сумму по методу Флетчера-16"""
@@ -26,16 +25,13 @@ def create_byte_array(angles):
     
     return data
 
-def send_to_serial(port, angles):
+def send_to_serial(ser, angles):
     """Отправляет данные по указанному COM-порту"""
     data = create_byte_array(angles)
-    with serial.Serial(port, baudrate=115200, timeout=1) as ser:
-        ser.write(data)
-        print(f"Данные отправлены: {data}")
+    #print(f"Отправляемые данные: {data}")
+    ser.write(data)
+    ser.flush()  # Очистка буфера для отправки
+    #print(f"Receive: {ser.readline()}")
 
-if __name__ == "__main__":
-    com_port = 'COM5'            
-    angles = [130, 140, 120, 145, 125, 130, 150]
-    
-    while 1:
-        send_to_serial(com_port, angles)
+
+
