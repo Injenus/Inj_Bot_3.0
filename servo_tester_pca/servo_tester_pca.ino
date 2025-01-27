@@ -89,7 +89,7 @@ void loop() {
     mcs = map(analogRead(14), 0, 1023, min_m, max_m);
     Serial.println(mcs);
     servo.writeMicroseconds(mcs);
-    servo_0.writeMicroseconds(mcs);
+   // servo_0.writeMicroseconds(mcs);
 
 
 

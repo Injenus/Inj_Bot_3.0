@@ -14,8 +14,8 @@ const uint16_t addr = 42;
 ServoDriverSmooth servo[servoNum];
 
 struct ServoSettings {
-  int minMcs[servoNum] = {84, 116, 116, 116, 300, 135, 150};
-  int maxMcs[servoNum] = {582, 542, 542, 542, 492, 525, 467};
+  int minMcs[servoNum] = {84, 116, 116, 116, 251, 135, 150};
+  int maxMcs[servoNum] = {582, 542, 542, 542, 440, 525, 467};
   int minAngles[servoNum] = {0, 0, 0, 0, 0, 0, 0};
   int maxAngles[servoNum] = {270, 270, 270, 270, 100, 180, 100};
   int armAcc = 80;
