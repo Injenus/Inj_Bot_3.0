@@ -1,6 +1,4 @@
 #include <HardwareSerial.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 
 // Параметры энкодеров
 #define STEPS_PER_REV 234.3   // Шагов на один оборот вала редуктора
@@ -16,9 +14,6 @@
 #define ENC4_A 23
 #define ENC4_B 25
 
-// UART настройки
-#define UART_BAUD_RATE 115200
-
 // Глобальные переменные
 volatile long encPositions[4] = {0, 0, 0, 0}; // Позиции для 4 энкодеров
 float rpms[4] = {0.0, 0.0, 0.0, 0.0};         // Скорости в RPM
@@ -29,96 +24,171 @@ volatile bool lastStates[4][2] = {
   {0, 0}, {0, 0}, {0, 0}, {0, 0}
 };
 
-// UART
-HardwareSerial serialPort(1);
 
-// Функция отправки данных (работает на втором ядре)
-void sendTask(void *param) {
-  while (true) {
-    // Создаём пакет
-    uint8_t packet[19];
-    packet[0] = 'S'; // Заголовок
-
-    // Копируем скорости в пакет
-    for (int i = 0; i < 4; i++) {
-      float speed = rpms[i];
-      memcpy(&packet[1 + i * 4], &speed, 4);
-    }
-
-    // Рассчитываем контрольную сумму Флетчер-16
-    uint16_t checksum = 0xFFFF; // Инициализация
-    for (int i = 0; i < 17; i++) {
-      checksum = (checksum & 0xFF) + packet[i];
-      checksum = (checksum >> 8) + (checksum & 0xFF);
-    }
-    checksum = (checksum >> 8) + (checksum & 0xFF);
-    checksum &= 0xFF; // Окончательный результат
-    checksum |= (checksum << 8); // 16-битная контрольная сумма
-
-    // Добавляем контрольную сумму в пакет
-    packet[17] = checksum & 0xFF;
-    packet[18] = (checksum >> 8) & 0xFF;
-
-    // Отправляем пакет
-    serialPort.write(packet, sizeof(packet));
-
-    // Задержка для заданной частоты (периода)
-    vTaskDelay(pdMS_TO_TICKS(UPDATE_INTERVAL));
-  }
-}
+// Прототипы функций
+void setupEncoder(uint8_t pinA, uint8_t pinB, int index);
+void IRAM_ATTR handleEncoder1();
+void IRAM_ATTR handleEncoder2();
+void IRAM_ATTR handleEncoder3();
+void IRAM_ATTR handleEncoder4();
+void calculateSpeed(void *param);
+void sendSpeedData(void *param);
+uint16_t calculateFletcher16(const uint8_t *data, size_t len);
 
 void setup() {
-  // Инициализация последовательного порта
   Serial.begin(115200);
-  serialPort.begin(UART_BAUD_RATE, SERIAL_8N1, -1, -1); // UART1, TX/RX не указаны (по умолчанию)
+  Serial2.begin(115200, SERIAL_8N1, 22, 21); // UART2 на пинах GPIO22 (TX), GPIO21 (RX)
 
-  // Настройка пинов энкодеров
+  // Настройка энкодеров
   setupEncoder(ENC1_A, ENC1_B, 0);
   setupEncoder(ENC2_A, ENC2_B, 1);
   setupEncoder(ENC3_A, ENC3_B, 2);
   setupEncoder(ENC4_A, ENC4_B, 3);
 
-  // Запуск задачи отправки на втором ядре
-  xTaskCreatePinnedToCore(sendTask, "SendTask", 4096, NULL, 1, NULL, 1);
+  // Задачи для FreeRTOS
+  xTaskCreatePinnedToCore(calculateSpeed, "CalculateSpeed", 2048, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(sendSpeedData, "SendSpeedData", 2048, NULL, 1, NULL, 1);
 }
 
 void loop() {
-  unsigned long currentTime = millis();
-
-  // Обновляем скорости каждые UPDATE_INTERVAL мс
-  if (currentTime - lastTime >= UPDATE_INTERVAL) {
-    noInterrupts(); // Отключаем прерывания временно
-    for (int i = 0; i < 4; i++) {
-      long position = encPositions[i]; // Копируем положение
-      encPositions[i] = 0;            // Сбрасываем положение
-      rpms[i] = (position / float(STEPS_PER_REV)) * (60000.0 / UPDATE_INTERVAL);
-    }
-    interrupts(); // Включаем прерывания обратно
-    lastTime = currentTime; // Обновляем время последнего расчёта
-  }
+  // Основной цикл пуст, так как вся логика вынесена в задачи
 }
 
 // Настройка пинов энкодеров и прерываний
 void setupEncoder(uint8_t pinA, uint8_t pinB, int index) {
   pinMode(pinA, INPUT_PULLUP);
   pinMode(pinB, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(pinA), [=]() { handleEncoder(pinA, pinB, index); }, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(pinB), [=]() { handleEncoder(pinA, pinB, index); }, CHANGE);
+  
+  switch (index) {
+    case 0:
+      attachInterrupt(digitalPinToInterrupt(pinA), handleEncoder1, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(pinB), handleEncoder1, CHANGE);
+      break;
+    case 1:
+      attachInterrupt(digitalPinToInterrupt(pinA), handleEncoder2, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(pinB), handleEncoder2, CHANGE);
+      break;
+    case 2:
+      attachInterrupt(digitalPinToInterrupt(pinA), handleEncoder3, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(pinB), handleEncoder3, CHANGE);
+      break;
+    case 3:
+      attachInterrupt(digitalPinToInterrupt(pinA), handleEncoder4, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(pinB), handleEncoder4, CHANGE);
+      break;
+  }
 }
 
-// Обработчик прерываний для энкодеров
-void handleEncoder(uint8_t pinA, uint8_t pinB, int index) {
-  bool currentA = digitalRead(pinA);
-  bool currentB = digitalRead(pinB);
+// Обработчики прерываний
+void IRAM_ATTR handleEncoder1() {
+  bool currentA = digitalRead(ENC1_A);
+  bool currentB = digitalRead(ENC1_B);
 
-  if (lastStates[index][0] != currentA || lastStates[index][1] != currentB) {
-    if (lastStates[index][0] == currentB) {
-      encPositions[index]++;
-    } else {
-      encPositions[index]--;
-    }
+  if (lastStates[0][0] != currentA || lastStates[0][1] != currentB) {
+    encPositions[0] += (lastStates[0][0] == currentB) ? 1 : -1;
   }
 
-  lastStates[index][0] = currentA;
-  lastStates[index][1] = currentB;
+  lastStates[0][0] = currentA;
+  lastStates[0][1] = currentB;
+}
+
+void IRAM_ATTR handleEncoder2() {
+  bool currentA = digitalRead(ENC2_A);
+  bool currentB = digitalRead(ENC2_B);
+
+  if (lastStates[1][0] != currentA || lastStates[1][1] != currentB) {
+    encPositions[1] += (lastStates[1][0] == currentB) ? 1 : -1;
+  }
+
+  lastStates[1][0] = currentA;
+  lastStates[1][1] = currentB;
+}
+
+void IRAM_ATTR handleEncoder3() {
+  bool currentA = digitalRead(ENC3_A);
+  bool currentB = digitalRead(ENC3_B);
+
+  if (lastStates[2][0] != currentA || lastStates[2][1] != currentB) {
+    encPositions[2] += (lastStates[2][0] == currentB) ? 1 : -1;
+  }
+
+  lastStates[2][0] = currentA;
+  lastStates[2][1] = currentB;
+}
+
+void IRAM_ATTR handleEncoder4() {
+  bool currentA = digitalRead(ENC4_A);
+  bool currentB = digitalRead(ENC4_B);
+
+  if (lastStates[3][0] != currentA || lastStates[3][1] != currentB) {
+    encPositions[3] += (lastStates[3][0] == currentB) ? 1 : -1;
+  }
+
+  lastStates[3][0] = currentA;
+  lastStates[3][1] = currentB;
+}
+
+void calculateSpeed(void *param) {
+  while (true) {
+    unsigned long currentTime = millis();
+
+    if (currentTime - lastTime >= UPDATE_INTERVAL) {
+      noInterrupts();
+      for (int i = 0; i < 4; i++) {
+        long position = encPositions[i];
+        encPositions[i] = 0;
+        rpms[i] = (position / float(STEPS_PER_REV)) * (60000.0 / UPDATE_INTERVAL);
+      }
+      interrupts();
+
+      lastTime = currentTime;
+    }
+    vTaskDelay(1);
+  }
+}
+
+// Задача отправки данных
+void sendSpeedData(void *param) {
+  while (true) {
+    uint8_t packet[19]; // Полный пакет данных
+    packet[0] = 'S';    // Символ начала
+
+    // Копируем скорости в пакет
+    memcpy(&packet[1], &rpms[0], 4);
+    memcpy(&packet[5], &rpms[1], 4);
+    memcpy(&packet[9], &rpms[2], 4);
+    memcpy(&packet[13], &rpms[3], 4);
+
+    // Расчёт контрольной суммы
+    uint16_t checksum = calculateFletcher16(packet, 17);
+    packet[17] = checksum & 0xFF;
+    packet[18] = (checksum >> 8) & 0xFF;
+
+    Serial2.write(packet, 19);
+
+    vTaskDelay(20);
+  }
+}
+
+// Расчёт контрольной суммы Флетчер-16
+uint16_t calculateFletcher16(const uint8_t *data, size_t len) {
+  uint16_t sum1 = 0xFF, sum2 = 0xFF;
+
+  while (len) {
+    size_t tlen = (len > 20) ? 20 : len;
+    len -= tlen;
+
+    do {
+      sum1 += *data++;
+      sum2 += sum1;
+    } while (--tlen);
+
+    sum1 = (sum1 & 0xFF) + (sum1 >> 8);
+    sum2 = (sum2 & 0xFF) + (sum2 >> 8);
+  }
+
+  sum1 = (sum1 & 0xFF) + (sum1 >> 8);
+  sum2 = (sum2 & 0xFF) + (sum2 >> 8);
+
+  return (sum2 << 8) | sum1;
 }
