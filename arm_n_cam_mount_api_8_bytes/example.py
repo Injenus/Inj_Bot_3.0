@@ -1,5 +1,5 @@
 import serial
-import arm_api
+import arm_n_cam_mount_api_8_bytes.send_data as send_data
 
 port = "COM5"
 baud_rate = 115200
@@ -27,6 +27,6 @@ while True:
         except:
             print("Exc")
 
-    arm_api.send_to_serial(ser, angles)
+    send_data.send_to_serial(ser, angles)
 
 ser.close()

@@ -1,5 +1,15 @@
+От контроллера (фактические скорости):
 <S><speed_f_l><speed_f_l><speed_f_l><speed_f_l><speed_b_l><speed_b_l><speed_b_l><speed_b_l><speed_f_r><speed_f_r><speed_f_r><speed_f_r><speed_b_r><speed_b_r><speed_b_r><speed_b_r><SUM><SUM>
+Последовательность сообщения:
+    символ S
+    4 байта float для скорости левого переднего колеса
+    4 байта float для скорости левого заднего колеса
+    4 байта float для скорости правого переднего колеса
+    4 байта float для скорости правого заднего колеса
+    2 байта контрольной суммы Флетчер-16
 
+От хоста (целевые скорости):
+<S><speed_f_l><speed_f_l><speed_f_l><speed_f_l><speed_b_l><speed_b_l><speed_b_l><speed_b_l><speed_f_r><speed_f_r><speed_f_r><speed_f_r><speed_b_r><speed_b_r><speed_b_r><speed_b_r><SUM><SUM>
 Последовательность сообщения:
     символ S
     4 байта float для скорости левого переднего колеса

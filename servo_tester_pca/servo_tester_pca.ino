@@ -8,13 +8,12 @@
 //ServoDriverSmooth servo;
 ServoDriverSmooth servo(0x40);      // с указанием адреса драйвера
 //ServoDriverSmooth servo(0x40, 270); // с указанием адреса и макс. угла
-ServoDriverSmooth servo_0(0x40);
 
 uint32_t tmr;
 boolean flag;
 
-int min_m = 60;
-int max_m = 640;
+int min_m = 116;
+int max_m = 542;
 
 int mcs;
 
@@ -22,17 +21,12 @@ void setup() {
   Serial.begin(115200);
   //servo.start();
   Serial.println("setup");
-  servo.attach(0, min_m, max_m);     // подключить
-  servo_0.attach(1, min_m, max_m);
+  servo.attach(9, min_m, max_m);     // подключить
   //servo.smoothStart();
   servo.setAutoDetach(false);
-  servo.setSpeed(90); // ограничить скорость
-  servo.setAccel(1.0);   // установить ускорение (разгон и торможение)
+  servo.setSpeed(480); // ограничить скорость
+  servo.setAccel(360);   // установить ускорение (разгон и торможение)
   
-  servo_0.setAutoDetach(false);
-  servo_0.setSpeed(90); // ограничить скорость
-  servo_0.setAccel(1.0);   // установить ускорение (разгон и торможение)
-
   Serial.println("end setup");
   pinMode(14, INPUT);
 }
