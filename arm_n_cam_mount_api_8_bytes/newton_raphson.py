@@ -1,12 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.optimize import differential_evolution
+import json
+import random
+
+import dkp
+
+with open('config_arm.json', 'r') as file:
+    config = json.load(file)
 
 # Константы (длины звеньев)
-l1, l2, l3 = 124, 63, 149
+l1, l2, l3 = config['length']
+ang_range = config['ang_range']  # [[min_q, max_q], [min_a, max_a], [min_b, max_b], [min_c, max_c]]
 
-# Заданные координаты
-x_target, y_target = 100, 100
+# Заданные локальные координаты в вертикальной плоскости
+x_p, y_p = 1, 100
 
 # Проверка на достижимость
 def is_reachable(x, y):
@@ -15,11 +24,34 @@ def is_reachable(x, y):
     R_min = abs(l1 - l2 - l3)
     return R_min <= distance <= R_max
 
+def is_collision(angles):
+    a, b, c = angles
+    points = [
+        (0, 0),
+        (l1 * np.sin(a), l1 * np.cos(a)),
+        (l1 * np.sin(a) + l2 * np.sin(a + b), l1 * np.cos(a) + l2 * np.cos(a + b)),
+        (l1 * np.sin(a) + l2 * np.sin(a + b) + l3 * np.sin(a + b + c), 
+         l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c))
+    ]
+    
+    # Проверка всех возможных пар звеньев
+    return (
+        segments_intersect(points[0], points[1], points[1], points[2]) or  # Звено 1 и Звено 2
+        segments_intersect(points[1], points[2], points[2], points[3]) or  # Звено 2 и Звено 3
+        segments_intersect(points[0], points[1], points[2], points[3])     # Звено 1 и Звено 3
+    )
+
+def segments_intersect(p1, p2, p3, p4):
+    def ccw(A, B, C):
+        return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
+    # Основная проверка на пересечение отрезков
+    return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
+
 # Функции системы с углами относительно предыдущих звеньев
 def f(angles):
     a, b, c = angles
-    f1 = l1 * np.sin(a) + l2 * np.sin(a + b) + l3 * np.sin(a + b + c) - x_target
-    f2 = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c) - y_target
+    f1 = l1 * np.sin(a) + l2 * np.sin(a + b) + l3 * np.sin(a + b + c) - x_p
+    f2 = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c) - y_p
     return np.array([f1, f2])
 
 # Якобиан для новых уравнений
@@ -40,7 +72,7 @@ def jacobian(angles):
     return J
 
 # Метод Ньютона-Рафсона
-def newton_raphson(initial_guess, tol=1e-4, max_iter=100):
+def newton_raphson(initial_guess, tol=0.001, max_iter=1000):
     angles = np.radians(initial_guess)
     for _ in range(max_iter):
         J = jacobian(angles)
@@ -55,14 +87,6 @@ def newton_raphson(initial_guess, tol=1e-4, max_iter=100):
     # Ограничение углов от -128° до 127°
     #angles = np.clip(angles, np.radians(-128), np.radians(127))
     return np.degrees(angles)
-
-# Основной блок
-if is_reachable(x_target, y_target):
-    initial_guess = [-90, -45, -30]  # Начальная догадка с отрицательными углами
-    angles_deg = newton_raphson(initial_guess)
-    print(f"Оптимальные углы (в градусах): a = {angles_deg[0]:.2f}°, b = {angles_deg[1]:.2f}°, c = {angles_deg[2]:.2f}°")
-else:
-    print(f"Точка ({x_target}, {y_target}) недостижима для манипулятора.")
 
 
 def plot_manipulator(angles_deg):
@@ -130,10 +154,27 @@ def plot_manipulator(angles_deg):
     ax.set_title('Положение манипулятора с осями координат')
 
     # Одинаковый масштаб для осей
-    ax.set_box_aspect([1, 1, 0.1])  # XY равны, Z сжат для плоского вида
+    ax.set_box_aspect([1, 1, 0.01])  # XY равны, Z сжат для плоского вида
 
     plt.legend()
     plt.show()
 
-plot_manipulator(angles_deg)
-#plot_manipulator(np.array([0,45,45]))
+
+if __name__ == '__main__':
+    if is_reachable(x_p, y_p):
+        init_ang = [0,0,0]
+        solution = newton_raphson(init_ang)
+        a_min, a_max = ang_range[1][0], ang_range[1][1]
+        b_min, b_max = ang_range[2][0], ang_range[2][1]
+        c_min, c_max = ang_range[3][0], ang_range[3][1]
+        while is_collision(solution):
+            init_ang = [random.randint(a_min, a_max),random.randint(b_min, b_max),random.randint(c_min, c_max)]
+            solution = newton_raphson(init_ang)
+        if solution is not None:
+            print(f"Углы решения: {solution}")
+            print(f'Итоговое положение схвата: {dkp.dkp_2d([l1, l2, l3], solution)}')
+            plot_manipulator(solution)
+        else:
+            print(f"Точка ({x_p}, {y_p}) недостижима.")
+    else:
+        print(f"Точка ({x_p}, {y_p}) вне зоны досягаемости.")
