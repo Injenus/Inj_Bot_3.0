@@ -4,19 +4,28 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import differential_evolution
 import json
 import random
+from matplotlib.path import Path
 
 import dkp
 
 
 # Проверка на достижимость
-def is_reachable(x, y):
+def is_reachable(x, y, lengths):
+    l1,l2,l3 = lengths
     distance = np.sqrt(x**2 + y**2)
     R_max = l1 + l2 + l3
-    R_min = abs(l1 - l2 - l3)
-    return R_min <= distance <= R_max
+    R_min = 10
+    is_r_valid = (R_min <= distance <= R_max)
 
-def is_collision(angles):
+    polygon = np.array([[-50, 0], [0, 15], [50, 0]])
+    path = Path(polygon)
+    is_inside_polyg = path.contains_point((x,y), radius=-1e-9)
+
+    return is_r_valid and not is_inside_polyg
+
+def is_collision(angles, lengths):
     a, b, c = angles
+    l1,l2,l3 = lengths
     points = [
         (0, 0),
         (l1 * np.sin(a), l1 * np.cos(a)),
@@ -39,14 +48,16 @@ def segments_intersect(p1, p2, p3, p4):
     return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
 
 # Функции системы с углами относительно предыдущих звеньев
-def f(angles, x, y):
+def f(angles, x, y, lengths):
+    l1,l2,l3 = lengths
     a, b, c = angles
     f1 = l1 * np.sin(a) + l2 * np.sin(a + b) + l3 * np.sin(a + b + c) - x
     f2 = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c) - y
     return np.array([f1, f2])
 
 # Якобиан для новых уравнений
-def jacobian(angles):
+def jacobian(lengths, angles):
+    l1, l2, l3 = lengths
     a, b, c = angles
     J = np.zeros((2, 3))
 
@@ -63,11 +74,11 @@ def jacobian(angles):
     return J
 
 # Метод Ньютона-Рафсона
-def newton_raphson(initial_guess, x, y, tol=0.001, max_iter=1000):
+def newton_raphson(initial_guess, x, y, lengths, tol=0.001, max_iter=1000):
     angles = np.radians(initial_guess)
     for _ in range(max_iter):
-        J = jacobian(angles)
-        F = f(angles, x, y)
+        J = jacobian(lengths,angles)
+        F = f(angles, x, y, lengths)
         delta = np.linalg.lstsq(J.T @ J, -J.T @ F, rcond=None)[0]
         angles += delta
 
@@ -155,11 +166,11 @@ def plot_manipulator(angles_deg):
     plt.legend()
     plt.show()
 
-def get_solution(x, y, ang_range):
+def get_solution(x, y, ang_range, lengths):
     init_ang = [0, 0, 0]
-    solution = newton_raphson(init_ang, x, y)
+    solution = newton_raphson(init_ang, x, y, lengths)
 
-    if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution):
+    if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
         return solution
     else:
         # Попытки с другими начальными условиями
@@ -171,11 +182,11 @@ def get_solution(x, y, ang_range):
                 random.uniform(*ang_range[2]),
                 random.uniform(*ang_range[3])
             ]
-            solution = newton_raphson(init_ang, x, y)
-            if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution):
+            solution = newton_raphson(init_ang, x, y, lengths)
+            if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
                 return solution
             attempts += 1
-    return None  # Если не удалось найти решение
+    return None, None, None  # Если не удалось найти решение
 
 
 if __name__ == '__main__':
@@ -185,7 +196,7 @@ if __name__ == '__main__':
     l1, l2, l3 = config['length']
     ang_range = config['ang_range']  # [[min_q, max_q], [min_a, max_a], [min_b, max_b], [min_c, max_c]]
     # Заданные локальные координаты в вертикальной плоскости
-    x_p, y_p = 102, 100
+    x_p, y_p = 154, 10
     inp = input()
     if inp != 'd':
         try:
@@ -193,8 +204,8 @@ if __name__ == '__main__':
         except:
             print(f'invalid input, def values are using ({x_p}, {y_p})')
 
-    if is_reachable(x_p, y_p):
-        solution = get_solution(x_p, y_p, ang_range)
+    if is_reachable(x_p, y_p, (l1,l2,l3)):
+        solution = get_solution(x_p, y_p, ang_range, (l1,l2,l3))
         if solution is not None:
             print(f"Углы решения: {solution}")
             print(f'Итоговое положение схвата: {dkp.dkp_2d([l1, l2, l3], solution)}')
