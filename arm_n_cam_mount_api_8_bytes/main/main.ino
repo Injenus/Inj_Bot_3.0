@@ -4,6 +4,14 @@
    4 - схват
    5 - основание камеры
    6 - высота камеры
+
+   Ораничения по мкс и углам указаны фактические (реальные).
+   При этом на вход должны подаваться углы из дипазона со смещением,
+   чтобы корректно переводить в мкс.
+   Например у нулеового звена фактичсекий диапазон от 0 до 284,
+   но используем только центральные 255 градусов,
+   тогда подаём на вход от 15 до 270 град.
+
 */
 #include <ServoDriverSmooth.h>
 #include <EEPROM.h>
@@ -17,7 +25,7 @@ struct ServoSettings {
   int minMcs[servoNum] = {84, 116, 116, 116, 251, 135, 150};
   int maxMcs[servoNum] = {582, 542, 542, 542, 440, 525, 467};
   int minAngles[servoNum] = {0, 0, 0, 0, 0, 0, 0};
-  int maxAngles[servoNum] = {270, 270, 270, 270, 100, 180, 100};
+  int maxAngles[servoNum] = {284, 266, 260, 264, 1, 174, 120};
   int armAcc = 80;
   int armSpeed = 1080;
   int camAcc = 480;
@@ -27,7 +35,7 @@ ServoSettings servoSettings;
 
 struct ServoPosAng {
   //int pos[servoNum];
-  int pos[servoNum] = {135, 135, 135, 135, 120, 135, 100};
+  int pos[servoNum] = {128, 128, 128, 128, 0, 87, 90};
 };
 ServoPosAng servoPosAng;
 
