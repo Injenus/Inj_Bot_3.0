@@ -13,15 +13,7 @@ ser = serial.Serial(port, baud_rate, timeout=1)
 #     print(f'Failed to open {port} port!')
 #     exit(-42)
 
-with open('config_arm.json', 'r') as file:
-        config = json.load(file)
-        arm_offet = config['offset']
 
-with open('config_cam.json', 'r') as file:
-        config = json.load(file)
-        cam_offet = config['offset']
-
-offset = arm_offet + cam_offet
 while True:
     user_angles = [45, 10, 0, -100, 1, 0, 0] # Дефолтные
     
@@ -42,7 +34,7 @@ while True:
         except:
             print("Exc")
 
-    angles = [ang + offset[i] for i, ang in enumerate(user_angles)]
+    angles = [ang + 128 for ang in user_angles]
     send_data.send_to_serial(ser, angles)
 
 ser.close()

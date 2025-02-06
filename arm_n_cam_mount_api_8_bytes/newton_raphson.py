@@ -175,7 +175,7 @@ def get_solution(x, y, ang_range, lengths):
     else:
         # Попытки с другими начальными условиями
         attempts = 0
-        max_attempts = 1000  # Ограничим количество попыток
+        max_attempts = 100  # Ограничим количество попыток
         while attempts < max_attempts:
             init_ang = [
                 random.uniform(*ang_range[1]),

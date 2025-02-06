@@ -152,9 +152,9 @@ if __name__ == '__main__':
     # x,y,z = -20, -150, 50
     # main(x,y,z)
 
-    x = [i for i in range(0,330,10)]
-    y = [i for i in range(0,330,10)]
-    z = [i for i in range(0,330,10)]
+    x = [i for i in range(-330,330,10)]
+    y = [i for i in range(-330,330,10)]
+    z = [i for i in range(-330,330,10)]
 
     i = 0
     for x_ in x:

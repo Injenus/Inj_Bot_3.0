@@ -6,13 +6,21 @@
    6 - высота камеры
 
    Ораничения по мкс и углам указаны фактические (реальные).
-   При этом на вход должны подаваться углы из дипазона со смещением,
-   чтобы корректно переводить в мкс.
-   Например у нулеового звена фактичсекий диапазон от 0 до 284,
-   но используем только центральные 255 градусов,
-   тогда подаём на вход от 15 до 270 град.
+   При этом на вход должны подаваться углы из дипазона без смещениея (0-255),
+   а здесь добавляем смещение и корреткно переводим в мкс.
 
+   Например у нулеового звена фактичсекий диапазон от 0 до 284,
+   но принимаем 0-255 и добавляем оффсет 15 согласно таблице.
+   Получем, например, для переданного угла 128 значение 143 - действительное среднее положение сервопривода.
+
+   Для сервоприводов камеры всё немного иначе.
+   Для сервпривода базы имеем диапазон от -87 до 87, а передам от 0 до 174
+
+   Для отправки углов сначала получаем реальный угол переводом мкс,
+   затем вычитаем из угла оффсет и переводим в byte.
+   Проверка на байтовый диапазон фактически не трубется, так как мы не можем изначально подать угол больше байта.
 */
+
 #include <ServoDriverSmooth.h>
 #include <EEPROM.h>
 
@@ -22,10 +30,11 @@ const uint16_t addr = 42;
 ServoDriverSmooth servo[servoNum];
 
 struct ServoSettings {
-  int minMcs[servoNum] = {84, 116, 116, 116, 251, 135, 150};
-  int maxMcs[servoNum] = {582, 542, 542, 542, 440, 525, 467};
-  int minAngles[servoNum] = {0, 0, 0, 0, 0, 0, 0};
-  int maxAngles[servoNum] = {284, 266, 260, 264, 1, 174, 120};
+  int minMcs[servoNum] = {84, 116, 116, 116, 260, 135, 150};
+  int maxMcs[servoNum] = {582, 542, 542, 542, 430, 525, 467};
+  int minAng[servoNum] = {0, 0, 0, 0, 0, 0, 0};
+  int maxAng[servoNum] = {284, 266, 260, 264, 1, 174, 120};
+  int offsetAng[servoNum] = {15, 6, 3, 5, 0, 0, 0};
   int armAcc = 80;
   int armSpeed = 1080;
   int camAcc = 480;
@@ -34,12 +43,13 @@ struct ServoSettings {
 ServoSettings servoSettings;
 
 struct ServoPosAng {
-  //int pos[servoNum];
   int pos[servoNum] = {128, 128, 128, 128, 0, 87, 90};
+  byte currPos[servoNum] = {0,0,0,0,0,0,0};
 };
 ServoPosAng servoPosAng;
 
-uint32_t timer = 0;
+uint32_t sendTimer = 0;
+const uint32_t sendPeriod = 20;
 
 
 uint8_t fletcher8(uint8_t *data, size_t len) {
@@ -48,16 +58,25 @@ uint8_t fletcher8(uint8_t *data, size_t len) {
   for (size_t i = 0; i < len; i++) {
     sum1 = (sum1 + data[i]) % 255;
     sum2 = (sum2 + sum1) % 255;
+    //Serial.println(data[i]);
   }
   return (sum1 + sum2) % 255;
 }
 
 int anglesToMcs(int angles, byte idx) {
-  int from_a_min = servoSettings.minAngles[idx];
-  int from_a_max = servoSettings.maxAngles[idx];
+  int from_a_min = servoSettings.minAng[idx];
+  int from_a_max = servoSettings.maxAng[idx];
   int to_mcs_min = servoSettings.minMcs[idx];
   int to_mcs_max = servoSettings.maxMcs[idx];
   return map(angles, from_a_min, from_a_max, to_mcs_min, to_mcs_max);
+}
+
+int mcsToAngle(int mcs, byte idx){
+  int from_mcs_min = servoSettings.minMcs[idx];
+  int from_mcs_max = servoSettings.maxMcs[idx];
+  int to_a_min = servoSettings.minAng[idx];
+  int to_a_max = servoSettings.maxAng[idx];
+  return map(mcs, from_mcs_min, from_mcs_max, to_a_min, to_a_max);
 }
 
 void setup() {
@@ -95,13 +114,13 @@ void setup() {
   servo[4].setSpeed(servoSettings.armSpeed);
   servo[4].setAccel(servoSettings.armAcc);
 
-  servo[5].attach(5, servoSettings.minMcs[5], servoSettings.maxMcs[5]);
+  servo[5].attach(8, servoSettings.minMcs[5], servoSettings.maxMcs[5]);
   servo[5].writeMicroseconds(anglesToMcs(servoPosAng.pos[5], 5));
   servo[5].setAutoDetach(false);
   servo[5].setSpeed(servoSettings.camSpeed);
   servo[5].setAccel(servoSettings.camAcc);
 
-  servo[6].attach(6, servoSettings.minMcs[6], servoSettings.maxMcs[6]);
+  servo[6].attach(9, servoSettings.minMcs[6], servoSettings.maxMcs[6]);
   servo[6].writeMicroseconds(anglesToMcs(servoPosAng.pos[6], 6));
   servo[6].setAutoDetach(false);
   servo[6].setSpeed(servoSettings.camSpeed);
@@ -110,12 +129,10 @@ void setup() {
 }
 
 void loop() {
-  static uint8_t rBuffer[16]; // Массив для хранения данных
-  static size_t index = 0;   // Индекс для записи в буфер
+  static uint8_t rBuffer[9]; // Массив для хранения принятых данных
+  static size_t rIndex = 0;   // Индекс для записи в буфер
+  static uint8_t sBuffer[9]; // Массив для хранения отправленных данных
 
-//  for (byte i = 0; i++; i < servoNum) {
-//    servo[i].tick(); //tick()
-//  }
   servo[0].tick();
   servo[1].tick();
   servo[2].tick();
@@ -124,42 +141,20 @@ void loop() {
   servo[5].tick();
   servo[6].tick();
 
-//  if (servo[0].tick()){
-//    servo[0].writeMicroseconds(servo[0].getTarget());
-//  }
-//  if (servo[1].tick()){
-//    servo[1].writeMicroseconds(servo[1].getTarget());
-//  }
-//  if (servo[2].tick()){
-//    servo[2].writeMicroseconds(servo[2].getTarget());
-//  }
-//  if (servo[3].tick()){
-//    servo[3].writeMicroseconds(servo[3].getTarget());
-//  }
-//  if (servo[4].tick()){
-//    servo[4].writeMicroseconds(servo[4].getTarget());
-//  }
-//  if (servo[5].tick()){
-//    servo[5].writeMicroseconds(servo[5].getTarget());
-//  }
-//  if (servo[6].tick()){
-//    servo[6].writeMicroseconds(servo[6].getTarget());
-//  }
-
   while (Serial.available() > 0) {
     uint8_t byteReceived = Serial.read();
 
     // Если это первый байт и он равен 'A', начинаем запись в буфер
-    if (index == 0 && byteReceived == 'A') {
-      rBuffer[index++] = byteReceived;
+    if (rIndex == 0 && byteReceived == 'A') {
+      rBuffer[rIndex++] = byteReceived;
 //      Serial.println("Got A");
     }
     // Если уже начали запись, продолжаем добавлять байты в буфер
-    else if (index > 0 && index < 9) {
-      rBuffer[index++] = byteReceived;
+    else if (rIndex > 0 && rIndex < 9) {
+      rBuffer[rIndex++] = byteReceived;
     
       // Если буфер заполнен, проверяем данные
-      if (index == 9) {
+      if (rIndex == 9) {
 //        Serial.println("Got all");
         // Вычисляем контрольную сумму для первых 8 байт
         uint8_t receivedChecksum = rBuffer[8];
@@ -189,13 +184,25 @@ void loop() {
 //          Serial.println(" Error");
         }
         // Сбрасываем индекс буфера для следующего сообщения
-        index = 0;
+        rIndex = 0;
       }
     } else {
       // Если байт первый, но не равен 'A', сбрасываем индекс
-      index = 0;
+      rIndex = 0;
     }
 
+  }
+
+  if(millis() - sendTimer > sendPeriod){
+    sendTimer = millis();
+    sBuffer[0] = 'A';
+    for(byte i=0;i < 7;i++){
+      servoPosAng.currPos[i] = (byte)(mcsToAngle(servo[i].getCurrent(), i) - servoSettings.offsetAng[i]);
+      sBuffer[i+1] = servoPosAng.currPos[i];
+    }
+    sBuffer[8] = fletcher8(sBuffer, 8);
+    Serial.write(sBuffer, 9);
+    //Serial.println(sBuffer[8]);
   }
 
 }

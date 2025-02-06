@@ -27,7 +27,7 @@ struct ServoPosMcs {
 };
 ServoPosMcs servoPosMcs;
 
-uint32_t timer = 0;
+uint32_t send_timer = 0;
 
 
 int anglesToMcs(int angles, byte idx) {
