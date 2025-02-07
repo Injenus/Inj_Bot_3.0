@@ -17,11 +17,12 @@ def is_reachable(x, y, lengths):
     R_min = 10
     is_r_valid = (R_min <= distance <= R_max)
 
-    polygon = np.array([[-50, 0], [0, 15], [50, 0]])
-    path = Path(polygon)
-    is_inside_polyg = path.contains_point((x,y), radius=-1e-9)
+    is_inside_polyg = is_inside_polygon(x,y)
 
     return is_r_valid and not is_inside_polyg
+
+def is_inside_polygon(x,y,path=Path(np.array([[-np.inf, -np.inf], [-np.inf, 0], [-50, 0], [0, 15], [50, 0], [np.inf, 0], [np.inf, -np.inf]]))):
+    return path.contains_point((x,y), radius=-1e-9)
 
 def is_collision(angles, lengths):
     a, b, c = angles
@@ -86,7 +87,7 @@ def newton_raphson(initial_guess, x, y, lengths, tol=0.001, max_iter=1000):
         if np.linalg.norm(delta) < tol:
             break
 
-    return np.degrees(angles)
+    return np.degrees(angles).tolist()
 
 def is_within_limits(angles, ang_range):
     a, b, c = angles
@@ -166,7 +167,7 @@ def plot_manipulator(angles_deg):
     plt.legend()
     plt.show()
 
-def get_solution(x, y, ang_range, lengths):
+def get_solution(x, y, ang_range, lengths, q0=None):
     init_ang = [0, 0, 0]
     solution = newton_raphson(init_ang, x, y, lengths)
 
@@ -184,7 +185,14 @@ def get_solution(x, y, ang_range, lengths):
             ]
             solution = newton_raphson(init_ang, x, y, lengths)
             if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
-                return solution
+                xs,ys,zs = dkp.arm_unit_coords_3d(lengths, [q0]+solution)
+                valid = True
+                for i in range(1, len(xs)):
+                    if is_inside_polygon((xs[i]**2+ys[i]**2)**0.5, zs[i]):
+                        valid = False
+                        break
+                if valid:
+                    return solution
             attempts += 1
     return None, None, None  # Если не удалось найти решение
 

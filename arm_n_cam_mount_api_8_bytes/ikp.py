@@ -10,40 +10,9 @@ import dkp
 import newton_raphson
 
 def view(lengths, angles, name='Положение манипулятора с осями координат'):
-    l1,l2,l3 = lengths
-    q0,q1,q2,q3 = angles
-
     total_length = sum(lengths)
 
-    x0, y0, z0, r0 = 0, 0, 0, 0
-
-    # Первая точка (после первого звена)
-    r1 = r0 + l1*np.sin(q1)
-    x1 = x0 + r1 * np.sin(q0)
-    y1 = y0 + r1 * np.cos(q0)
-    z1 = z0 + l1*np.cos(q1) 
-
-    # Вторая точка (после второго звена)
-    r2 = r1 + l2*np.sin(q1+q2)
-    x2 = r2 * np.sin(q0)
-    y2 = r2 * np.cos(q0)
-    z2 = z1 + l2*np.cos(q1+q2)
-
-    # Третья точка (после третьего звена — конец манипулятора)
-    r3 = r2 + l3*np.sin(q1+q2+q3)
-    x3 = r3 * np.sin(q0)
-    y3 = r3 * np.cos(q0)
-    z3 = z2 + l3*np.cos(q1+q2+q3)
-
-    print(f'z3 {z3}')
-    print(f'l1={np.linalg.norm(np.array([x1,y1,z1]) - np.array([x0,y0,z0]))}')
-    print(f'l2={np.linalg.norm(np.array([x2,y2,z2]) - np.array([x1,y1,z1]))}')
-    print(f'l3={np.linalg.norm(np.array([x3,y3,z3]) - np.array([x2,y2,z2]))}')
-
-    # Координаты для отрисовки
-    xs = [x0, x1, x2, x3]
-    ys = [y0, y1, y2, y3]
-    zs = [z0, z1, z2, z3]
+    xs,ys,zs = dkp.arm_unit_coords_3d(lengths, angles)
 
     # Визуализация
     fig = plt.figure()
@@ -109,8 +78,9 @@ def limit_angle(theta_deg, range):
             return limit_angle(mirrored_angle, range)
 
 def main(x,y,z, name='def'):
-    dir = 'ikp_log'
+    dir = 'ikp_log_Path'
     os.makedirs(dir, exist_ok=True)
+    
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
     theta = limit_angle(np.degrees(theta), ang_range[0])
     if np.degrees(theta) < ang_range[0][0] or np.degrees(theta) > ang_range[0][1]:
@@ -123,7 +93,7 @@ def main(x,y,z, name='def'):
     print(f'В локальной плоскости точка ({x_p}, {y_p})')
     print(f'Угол базового звена {np.degrees(theta)}')
     if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
-        deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3))
+        deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0)
         if all(x is not None for x in deg_ang):
             q1,q2,q3 = np.radians(deg_ang)
             a,b,c = deg_ang
@@ -149,18 +119,18 @@ if __name__ == '__main__':
         l1, l2, l3 = config['length']
         ang_range = config['ang_range']
 
-    # x,y,z = -20, -150, 50
-    # main(x,y,z)
+    x,y,z = -20, -150, 50
+    main(x,y,z)
 
     x = [i for i in range(-330,330,10)]
     y = [i for i in range(-330,330,10)]
     z = [i for i in range(-330,330,10)]
 
-    i = 0
-    for x_ in x:
-        for y_ in y:
-            for z_ in z:
-                main(x_,y_,z_, i)
-                i += 1
+    # i = 0
+    # for x_ in x:
+    #     for y_ in y:
+    #         for z_ in z:
+    #             main(x_,y_,z_, i)
+    #             i += 1
 
     
