@@ -5,6 +5,7 @@ from scipy.optimize import differential_evolution
 import json
 import random
 import os
+import time
 
 import dkp
 import newton_raphson
@@ -78,7 +79,7 @@ def limit_angle(theta_deg, range):
             return limit_angle(mirrored_angle, range)
 
 def main(x,y,z, name='def'):
-    dir = 'ikp_log_Path'
+    dir = 'ikp_log_Path_segments_1000_random'
     os.makedirs(dir, exist_ok=True)
     
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
@@ -92,22 +93,25 @@ def main(x,y,z, name='def'):
     q0 = theta
     print(f'В локальной плоскости точка ({x_p}, {y_p})')
     print(f'Угол базового звена {np.degrees(theta)}')
+    sol_time = time.time()
     if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
         deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0)
+        sol_time = time.time() - sol_time
         if all(x is not None for x in deg_ang):
             q1,q2,q3 = np.radians(deg_ang)
             a,b,c = deg_ang
             print(f"Углы в локальной плоскости: {deg_ang}")
             print(f'Угол theta = {np.degrees(theta)}')
             print(f"Реальное положение схвата: {dkp.dkp_3d((l1,l2,l3),(np.degrees(theta),a,b,c))}")
-            view((l1, l2, l3), (q0,q1,q2,q3), f'{dir}/{name} x={x}, y={y}, z={z}')
+            view((l1, l2, l3), (q0,q1,q2,q3), f'{dir}/{name} x={x}, y={y}, z={z}, time={sol_time}')
         else:
             print(f"Точка ({x_p}, {y_p}) в локальной плоскости недостижима.")
-            with open(f"{dir}/Недостиж {name} x={x}, y={y}, z={z}.txt", "w") as file:
+            with open(f"{dir}/Недостиж {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
                 file.write("")
     else:
+        sol_time = time.time() - sol_time
         print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
-        with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}.txt", "w") as file:
+        with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
                 file.write("")
 
 
@@ -119,18 +123,18 @@ if __name__ == '__main__':
         l1, l2, l3 = config['length']
         ang_range = config['ang_range']
 
-    x,y,z = -20, -150, 50
+    x,y,z = 1, 1, 10
     main(x,y,z)
 
     x = [i for i in range(-330,330,10)]
     y = [i for i in range(-330,330,10)]
     z = [i for i in range(-330,330,10)]
 
-    # i = 0
-    # for x_ in x:
-    #     for y_ in y:
-    #         for z_ in z:
-    #             main(x_,y_,z_, i)
-    #             i += 1
+    i = 0
+    for x_ in x:
+        for y_ in y:
+            for z_ in z:
+                main(x_,y_,z_, i)
+                i += 1
 
     

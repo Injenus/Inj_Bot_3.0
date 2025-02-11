@@ -5,9 +5,35 @@ from scipy.optimize import differential_evolution
 import json
 import random
 from matplotlib.path import Path
+import bisect
 
 import dkp
 
+loaded_data = np.load('valid_area_data.npz')
+# Извлекаем основной массив в список
+main_loaded = loaded_data['main'].tolist()
+# Восстанавливаем список массивов, сохраняя порядок
+arrays_loaded = [loaded_data[f'array_{i}'] for i in range(len(main_loaded))]
+
+
+def find_closest_index(arr, target):
+    # Используем bisect_left для нахождения позиции, куда можно вставить target
+    pos = bisect.bisect_left(arr, target)
+    
+    # Если target меньше всех элементов в массиве, возвращаем индекс первого элемента
+    if pos == 0:
+        return 0
+    # Если target больше всех элементов в массиве, возвращаем индекс последнего элемента
+    if pos == len(arr):
+        return len(arr) - 1
+    
+    # Сравниваем элемент на позиции pos и pos-1, чтобы найти ближайший
+    before = arr[pos - 1]
+    after = arr[pos]
+    if after - target < target - before:
+        return pos
+    else:
+        return pos - 1
 
 # Проверка на достижимость
 def is_reachable(x, y, lengths):
@@ -21,8 +47,25 @@ def is_reachable(x, y, lengths):
 
     return is_r_valid and not is_inside_polyg
 
-def is_inside_polygon(x,y,path=Path(np.array([[-np.inf, -np.inf], [-np.inf, 0], [-50, 0], [0, 15], [50, 0], [np.inf, 0], [np.inf, -np.inf]]))):
+def is_inside_polygon(x,y,path=Path(np.array([[-np.inf, -np.inf], [-np.inf, -170], [-210, -170], [-210, 0], [0, 0], [210, 0], [210, -170], [np.inf, -170], [np.inf, -np.inf]]))):
     return path.contains_point((x,y), radius=-1e-9)
+
+def is_segment_intersects_polygon(x1,y1,x2,y2, path):
+    # Получаем вершины полигона
+    vertices = path.vertices
+    n = len(vertices)
+
+    # Функция проверки пересечения двух отрезков
+    def segments_intersect(a, b, c, d):
+        def ccw(p1, p2, p3):
+            return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0])
+        return ccw(a, c, d) != ccw(b, c, d) and ccw(a, b, c) != ccw(a, b, d)
+
+    # Проверяем пересечения с каждым ребром полигона
+    for i in range(n - 1):
+        if segments_intersect((x1, y1), (x2, y2), vertices[i], vertices[i + 1]):
+            return True
+    return False
 
 def is_collision(angles, lengths):
     a, b, c = angles
@@ -176,7 +219,7 @@ def get_solution(x, y, ang_range, lengths, q0=None):
     else:
         # Попытки с другими начальными условиями
         attempts = 0
-        max_attempts = 100  # Ограничим количество попыток
+        max_attempts = 1000  # Ограничим количество попыток
         while attempts < max_attempts:
             init_ang = [
                 random.uniform(*ang_range[1]),
@@ -185,12 +228,23 @@ def get_solution(x, y, ang_range, lengths, q0=None):
             ]
             solution = newton_raphson(init_ang, x, y, lengths)
             if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
-                xs,ys,zs = dkp.arm_unit_coords_3d(lengths, [q0]+solution)
                 valid = True
-                for i in range(1, len(xs)):
-                    if is_inside_polygon((xs[i]**2+ys[i]**2)**0.5, zs[i]):
+
+                # это старый способ, учитывающий только вхождение концов звеньев внутрь полигона
+                # xs,ys,zs = dkp.arm_unit_coords_3d(lengths, [q0]+solution)
+                # for i in range(1, len(xs)):
+                #     if is_inside_polygon((xs[i]**2+ys[i]**2)**0.5, zs[i]):
+                #         valid = False
+                #         break
+
+                actual_surface_idx = find_closest_index(main_loaded, q0)
+                xs, ys = dkp.arm_unit_coord_2d(lengths, solution)
+                for i in range(len(xs)-1):
+                    if is_segment_intersects_polygon(xs[i], ys[i], xs[i+1], ys[i+1],
+                                                  Path(arrays_loaded[actual_surface_idx])):
                         valid = False
                         break
+
                 if valid:
                     return solution
             attempts += 1

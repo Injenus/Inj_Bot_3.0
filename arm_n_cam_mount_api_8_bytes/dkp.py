@@ -21,6 +21,28 @@ def dkp_3d(lengths, angles):
 
     return x,y,z
 
+def arm_unit_coord_2d(lengths, angles):
+    # углы передаются реальные (thetа не передаётся), в 3д, но они фактичсеки в плокскости 2д
+    # функция возвращает координаты звеньев в плокости звеньев
+    l1,l2,l3 = lengths
+    q1,q2,q3 = angles
+
+    x0,y0 = 0,0
+
+    x1 = x0 + l1*np.cos(q1)
+    y1 = y0 + l1*np.sin(q1)
+
+    x2 = x1 + l2*np.cos(q2)
+    y2 = y1 + l2*np.sin(q2)
+
+    x3 = x2 + l3*np.cos(q3)
+    y3 = y2 + l3*np.sin(q3)
+
+    xs = [x0,x1,x2,x3]
+    ys = [y0,y1,y2,y3]
+
+    return xs, ys
+
 def arm_unit_coords_3d(lengths, angles):
     l1,l2,l3 = lengths
     q0,q1,q2,q3 = angles
