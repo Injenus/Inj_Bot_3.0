@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import differential_evolution
 import json
-import random
 import os
 import time
+import gc
 
 import dkp
 import newton_raphson
@@ -78,8 +78,8 @@ def limit_angle(theta_deg, range):
             # Если снова выходит за диапазон, повторить зеркалирование
             return limit_angle(mirrored_angle, range)
 
-def main(x,y,z, name='def'):
-    dir = 'ikp_log_Path_segments_1000_random'
+def main(x,y,z, init_ang, name='def'):
+    dir = 'ikp_log_Path_segments_100_prev'
     os.makedirs(dir, exist_ok=True)
     
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
@@ -95,7 +95,7 @@ def main(x,y,z, name='def'):
     print(f'Угол базового звена {np.degrees(theta)}')
     sol_time = time.time()
     if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
-        deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0)
+        deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0, init_ang)
         sol_time = time.time() - sol_time
         if all(x is not None for x in deg_ang):
             q1,q2,q3 = np.radians(deg_ang)
@@ -104,15 +104,18 @@ def main(x,y,z, name='def'):
             print(f'Угол theta = {np.degrees(theta)}')
             print(f"Реальное положение схвата: {dkp.dkp_3d((l1,l2,l3),(np.degrees(theta),a,b,c))}")
             view((l1, l2, l3), (q0,q1,q2,q3), f'{dir}/{name} x={x}, y={y}, z={z}, time={sol_time}')
+            return q1,q2,q3
         else:
             print(f"Точка ({x_p}, {y_p}) в локальной плоскости недостижима.")
             with open(f"{dir}/Недостиж {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
                 file.write("")
+            return None, None, None
     else:
         sol_time = time.time() - sol_time
         print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
         with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
-                file.write("")
+            file.write("")
+        return None, None, None
 
 
 if __name__ == '__main__':
@@ -130,11 +133,18 @@ if __name__ == '__main__':
     y = [i for i in range(-330,330,10)]
     z = [i for i in range(-330,330,10)]
 
+    q1,q2,q3 = 0,0,0
     i = 0
     for x_ in x:
         for y_ in y:
             for z_ in z:
-                main(x_,y_,z_, i)
+                if i < 207420:
+                    i += 1
+                    continue
+                q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+                if q1_ is not None:
+                    q1, q2, q3 = q1_, q2_, q3_
                 i += 1
+                gc.collect()
 
     
