@@ -8,7 +8,9 @@ import serial
 
 current_script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(current_script_path)
-receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', 'arm_n_cam_mount_api_8_bytes'))
+# print(script_dir)
+receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'arm_n_cam_mount_api_8_bytes'))
+# print(receive_data_path)
 if receive_data_path not in sys.path:
     sys.path.append(receive_data_path)
 
