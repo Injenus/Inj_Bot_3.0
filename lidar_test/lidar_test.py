@@ -2,7 +2,7 @@ import time
 from rplidar import RPLidar
 
 # Укажите порт, к которому подключен ваш лидар (например, '/dev/ttyUSB0')
-PORT_NAME = "/dev/ttyUSB0"
+PORT_NAME = "COM7"
 
 def check_lidar(frequency):
     """Функция включает лидар, записывает данные и выключает его."""
