@@ -127,7 +127,7 @@ if __name__ == '__main__':
         ang_range = config['ang_range']
 
     x,y,z = 1, 1, 10
-    main(x,y,z)
+    main(x,y,z, [0,0,0], 'def')
 
     x = [i for i in range(-330,330,10)]
     y = [i for i in range(-330,330,10)]
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     for x_ in x:
         for y_ in y:
             for z_ in z:
-                if i < 207420:
+                if i < 68479:
                     i += 1
                     continue
                 q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
