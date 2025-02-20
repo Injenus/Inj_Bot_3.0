@@ -4,7 +4,7 @@ import numpy as np
 import time
 import math
 
-from delta_pid import PID
+from _delta_pid import PID
 
 print('Run cpicam2')
 class Rpi_Camera():
@@ -30,15 +30,15 @@ class Rpi_Camera():
         self.red_gain = 1.49
         self.blue_gain = 1.22
         self.gain = 1.22
-        self.cam.set_controls({
-                "AwbEnable": 0,  # Отключение автоматического баланса белого
-                "ColourGains": (self.red_gain,self.blue_gain),
-                "AeEnable": 0,  # Отключение автоматической экспозиции
-                "AnalogueGain": self.gain,
-                "ExposureTime": 5000  # Установка выдержки в микросекундах (например, 20000 = 20мс)
-            })
-        if self.hard_roi is not None:
-            self.cam.set_controls({"ScalerCrop": self.hard_roi})
+        # self.cam.set_controls({
+        #         "AwbEnable": 0,  # Отключение автоматического баланса белого
+        #         "ColourGains": (self.red_gain,self.blue_gain),
+        #         "AeEnable": 0,  # Отключение автоматической экспозиции
+        #         "AnalogueGain": self.gain,
+        #         "ExposureTime": 5000  # Установка выдержки в микросекундах (например, 20000 = 20мс)
+        #     })
+        # if self.hard_roi is not None:
+        #     self.cam.set_controls({"ScalerCrop": self.hard_roi})
         self.name = name
         self.target_green = 190
         self.rotate = rotate
