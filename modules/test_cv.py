@@ -7,6 +7,10 @@ def capture_frame(device_index, filename):
         return
     ret, frame = cap.read()
     if ret:
+        i = 0
+        while i < 60:
+            ret, frame = cap.read()
+            i += 1
         cv2.imwrite(filename, frame)
         print(f"Снимок сохранен в {filename}")
     else:
