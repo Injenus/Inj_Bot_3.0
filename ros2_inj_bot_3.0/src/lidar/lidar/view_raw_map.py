@@ -75,9 +75,7 @@ def main(args=None):
 
     try:
         rclpy.spin(visualizer)
-    except KeyboardInterrupt:
-        pass
-    finally:
+    except:
         visualizer.destroy_node()
         rclpy.shutdown()
         plt.close('all')
