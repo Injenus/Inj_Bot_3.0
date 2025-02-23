@@ -33,6 +33,7 @@ void IRAM_ATTR handleEncoder3();
 void IRAM_ATTR handleEncoder4();
 void calculateSpeed(void *param);
 void sendSpeedData(void *param);
+void printSpeedsToSerial(void *param);
 uint16_t calculateFletcher16(const uint8_t *data, size_t len);
 
 void setup() {
@@ -44,6 +45,8 @@ void setup() {
   setupEncoder(ENC2_A, ENC2_B, 1);
   setupEncoder(ENC3_A, ENC3_B, 2);
   setupEncoder(ENC4_A, ENC4_B, 3);
+
+  Serial.println("TEST___");
 
   // Задачи для FreeRTOS
   xTaskCreatePinnedToCore(calculateSpeed, "CalculateSpeed", 2048, NULL, 1, NULL, 0);
@@ -164,9 +167,26 @@ void sendSpeedData(void *param) {
     packet[17] = checksum & 0xFF;
     packet[18] = (checksum >> 8) & 0xFF;
 
-    Serial2.write(packet, 19);
+     Serial2.write(packet, 19);
 
     vTaskDelay(20);
+  }
+}
+
+// ✅ Новая задача: вывод скоростей в Serial
+void printSpeedsToSerial(void *param) {
+  while (true) {
+    noInterrupts();
+    float speeds[4] = {rpms[0], rpms[1], rpms[2], rpms[3]};
+    interrupts();
+
+    for(byte i; i<4; i++){
+      Serial.print(speeds[i]);
+      Serial.print(',');
+    }
+    Serial.println('.');
+//    Serial.printf("%.2f\t%.2f\t%.2f\t%.2f;\n", speeds[0], speeds[1], speeds[2], speeds[3]);
+    vTaskDelay(20);  // Интервал обновления совпадает с вычислениями
   }
 }
 
