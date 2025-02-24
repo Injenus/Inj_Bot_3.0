@@ -26,7 +26,7 @@ class SerialReaderNode(Node):
         
         try:
             self.serial_port = serial.Serial(
-                port='/dev/ttyUSB0',
+                port='/dev/servo_arduino',
                 baudrate=115200,
                 timeout=1
             )
@@ -48,7 +48,7 @@ class SerialReaderNode(Node):
                 while self.serial_port.in_waiting:
                     byte = self.serial_port.read(1)
                     buffer.append(byte[0])  # Добавляем байт в буфер
-                    print("Буфер:", list(buffer))
+                    #print("Буфер:", list(buffer))
 
                     # Проверяем наличие стартового байта и достаточной длины
                     if len(buffer) >= PACKET_LENGTH:
