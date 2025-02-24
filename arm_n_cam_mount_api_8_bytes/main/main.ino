@@ -46,7 +46,7 @@ struct ServoPosAng {
   int pos[servoNum] = {128, 128, 128, 128, 0, 87, 90};
   byte currPos[servoNum] = {0,0,0,0,0,0,0};
 };
-ServoPosAng servoPosAng;
+ServoPosAng servoPosAng, prevServoPosAng;
 
 uint32_t sendTimer = 0;
 const uint32_t sendPeriod = 20;
@@ -81,47 +81,47 @@ int mcsToAngle(int mcs, byte idx){
 
 void setup() {
   Serial.begin(115200);
-  EEPROM.get(addr, servoPosAng);
-  Serial.println(servoPosAng.pos[0]);
+  EEPROM.get(addr, prevServoPosAng);
+  Serial.println(prevServoPosAng.pos[0]);
 
   servo[0].attach(0, servoSettings.minMcs[0], servoSettings.maxMcs[0]);
-  servo[0].writeMicroseconds(anglesToMcs(servoPosAng.pos[0], 0));
+  servo[0].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[0], 0));
   servo[0].setAutoDetach(false);
   servo[0].setSpeed(servoSettings.armSpeed);
   servo[0].setAccel(servoSettings.armAcc);
 
   servo[1].attach(1, servoSettings.minMcs[1], servoSettings.maxMcs[1]);
-  servo[1].writeMicroseconds(anglesToMcs(servoPosAng.pos[1], 1));
+  servo[1].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[1], 1));
   servo[1].setAutoDetach(false);
   servo[1].setSpeed(servoSettings.armSpeed);
   servo[1].setAccel(servoSettings.armAcc);
 
   servo[2].attach(2, servoSettings.minMcs[2], servoSettings.maxMcs[2]);
-  servo[2].writeMicroseconds(anglesToMcs(servoPosAng.pos[2], 2));
+  servo[2].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[2], 2));
   servo[2].setAutoDetach(false);
   servo[2].setSpeed(servoSettings.armSpeed);
   servo[2].setAccel(servoSettings.armAcc);
 
   servo[3].attach(3, servoSettings.minMcs[3], servoSettings.maxMcs[3]);
-  servo[3].writeMicroseconds(anglesToMcs(servoPosAng.pos[3], 3));
+  servo[3].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[3], 3));
   servo[3].setAutoDetach(false);
   servo[3].setSpeed(servoSettings.armSpeed);
   servo[3].setAccel(servoSettings.armAcc);
 
   servo[4].attach(4, servoSettings.minMcs[4], servoSettings.maxMcs[4]);
-  servo[4].writeMicroseconds(anglesToMcs(servoPosAng.pos[4], 4));
+  servo[4].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[4], 4));
   servo[4].setAutoDetach(false);
   servo[4].setSpeed(servoSettings.armSpeed);
   servo[4].setAccel(servoSettings.armAcc);
 
   servo[5].attach(8, servoSettings.minMcs[5], servoSettings.maxMcs[5]);
-  servo[5].writeMicroseconds(anglesToMcs(servoPosAng.pos[5], 5));
+  servo[5].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[5], 5));
   servo[5].setAutoDetach(false);
   servo[5].setSpeed(servoSettings.camSpeed);
   servo[5].setAccel(servoSettings.camAcc);
 
   servo[6].attach(9, servoSettings.minMcs[6], servoSettings.maxMcs[6]);
-  servo[6].writeMicroseconds(anglesToMcs(servoPosAng.pos[6], 6));
+  servo[6].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[6], 6));
   servo[6].setAutoDetach(false);
   servo[6].setSpeed(servoSettings.camSpeed);
   servo[6].setAccel(servoSettings.camAcc);
@@ -176,7 +176,11 @@ void loop() {
             //servo[i].writeMicroseconds(anglesToMcs(servoPosAng.pos[i], i));
             servo[i].setTarget(anglesToMcs(servoPosAng.pos[i], i));
           }
-          EEPROM.put(addr, servoPosAng);
+          if (memcmp(&servoPosAng, &prevServoPosAng, sizeof(ServoPosAng)) != 0){
+              EEPROM.put(addr, servoPosAng);
+              memcmp(&prevServoPosAng, &servoPosAng, sizeof(ServoPosAng));
+          }
+          
         } else {
 //          Serial.print(receivedChecksum);
 //          Serial.print("  ");
