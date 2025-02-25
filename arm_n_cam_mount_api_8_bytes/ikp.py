@@ -79,7 +79,7 @@ def limit_angle(theta_deg, range):
             return limit_angle(mirrored_angle, range)
 
 def main(x,y,z, init_ang, name='def'):
-    dir = 'ikp_log_Path_segments_100_prev'
+    dir = 'ikp_log_Path_segments_1000_random'
     os.makedirs(dir, exist_ok=True)
     
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
@@ -138,13 +138,13 @@ if __name__ == '__main__':
     for x_ in x:
         for y_ in y:
             for z_ in z:
-                if i < 68479:
+                if i < 274989:
                     i += 1
                     continue
-                q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+                q1_,q2_,q3_ = main(x_,y_,z_, None, i)
                 if q1_ is not None:
                     q1, q2, q3 = q1_, q2_, q3_
                 i += 1
-                gc.collect()
+                #gc.collect()
 
     
