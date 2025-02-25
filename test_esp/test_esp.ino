@@ -27,7 +27,7 @@
 #define PWM_DEF 5
 
 #define PWM_FREQ 16000
-#define PWM_RESOL 12
+#define PWM_RESOL 12  // 4096
 
 volatile long encoderPositions[4] = {0, 0, 0, 0};
 
@@ -77,7 +77,20 @@ void setup() {
   setupPWM(PWM4_A);
   setupPWM(PWM4_B);
 
-  Serial.println("Система с 4 энкодерами и 8 ШИМ-пинами запущена");
+  ledcWrite(PWM1_A, 0);
+  ledcWrite(PWM1_B, 256);
+
+  ledcWrite(PWM2_A, 0);
+  ledcWrite(PWM2_B, 768);
+
+  ledcWrite(PWM3_A, 0);
+  ledcWrite(PWM3_B, 1536);
+
+  ledcWrite(PWM4_A, 0);
+  ledcWrite(PWM4_B, 3328);
+
+
+  Serial.println("Система с 4 энкодерами и 4 парами ШИМ-пинами запущена");
 }
 
 void loop() {
