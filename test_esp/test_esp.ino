@@ -12,14 +12,18 @@
 #define ENC1_B 2   // безопасный пин для второго канала
 
 // --- Назначение ШИМ-пинов ---
-#define PWM1 4
-#define PWM2 16
-#define PWM3 17
-#define PWM4 18
-#define PWM5 19
-#define PWM6 21
-#define PWM7 22
-#define PWM8 23
+#define PWM1_A 4
+#define PWM1_B 16
+
+#define PWM2_A 17
+#define PWM2_B 18
+
+#define PWM3_A 19
+#define PWM3_B 21
+
+#define PWM4_A 22
+#define PWM4_B 23
+
 #define PWM_DEF 5
 
 #define PWM_FREQ 16000
@@ -49,7 +53,7 @@ void setupEncoder(uint8_t pinA, uint8_t pinB, void (*isrA)(), void (*isrB)()) {
 
 void setupPWM(uint8_t pin) {
     ledcAttach(pin, PWM_FREQ, PWM_RESOL);
-    ledcWrite(pin, 3000);
+    ledcWrite(pin, 0);
 }
 
 void setup() {
@@ -64,14 +68,14 @@ void setup() {
 
   // --- Настройка ШИМ (каналы с 0 по 7) ---
   setupPWM(PWM_DEF);
-  setupPWM(PWM1);
-  setupPWM(PWM2);
-  setupPWM(PWM3);
-  setupPWM(PWM4);
-  setupPWM(PWM5);
-  setupPWM(PWM6);
-  setupPWM(PWM7);
-  setupPWM(PWM8);
+  setupPWM(PWM1_A);
+  setupPWM(PWM1_B);
+  setupPWM(PWM2_A);
+  setupPWM(PWM2_B);
+  setupPWM(PWM3_A);
+  setupPWM(PWM3_B);
+  setupPWM(PWM4_A);
+  setupPWM(PWM4_B);
 
   Serial.println("Система с 4 энкодерами и 8 ШИМ-пинами запущена");
 }
