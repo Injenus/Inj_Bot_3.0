@@ -1,12 +1,15 @@
 // --- Назначение пинов энкодеров ---
-#define ENC1_A 32
-#define ENC1_B 33
-#define ENC2_A 25
-#define ENC2_B 26
-#define ENC3_A 27
-#define ENC3_B 14
-#define ENC4_A 15  // заменили с 12 на 15 для безопасности
-#define ENC4_B 2   // безопасный пин для второго канала
+#define ENC3_A 32
+#define ENC3_B 33
+
+#define ENC4_A 25
+#define ENC4_B 26
+
+#define ENC2_A 27
+#define ENC2_B 14
+
+#define ENC1_A 15  // заменили с 12 на 15 для безопасности
+#define ENC1_B 2   // безопасный пин для второго канала
 
 // --- Назначение ШИМ-пинов ---
 #define PWM1 4
