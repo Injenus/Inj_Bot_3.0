@@ -35,7 +35,7 @@ class BinocularSavingVideo(Node):
         self.get_logger().info(f"Path is {self.video_path}")
 
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.frame_rate = 10
+        self.frame_rate = 30
         self.out = None
         self.timer = time.time()
 
@@ -48,10 +48,10 @@ class BinocularSavingVideo(Node):
 
         self.out.write(frame)
 
-        cv2.imshow("Binocular", resize(2, frame))
-        cv2.waitKey(1)
-        print(round(1/(time.time()-self.timer),2))
-        self.timer = time.time()
+        # cv2.imshow("Binocular", resize(2, frame))
+        # cv2.waitKey(1)
+
+        self.get_logger().info("Got binocular frame")
 
     def destroy_node(self):
         if self.out:

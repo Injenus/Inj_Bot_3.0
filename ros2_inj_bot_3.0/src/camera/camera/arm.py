@@ -8,12 +8,13 @@ from cv_bridge import CvBridge
 current_script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(current_script_path)
 print(script_dir)
-modules_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'modules'))
-print(modules_data_path)
-if modules_data_path not in sys.path:
-    sys.path.append(modules_data_path)
+receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'modules'))
+print(receive_data_path)
+if receive_data_path not in sys.path:
+    sys.path.append(receive_data_path)
 
 from _custom_picamera2 import *
+from _tools import *
 
 class ArmCameraPublisher(Node):
     def __init__(self):
@@ -21,7 +22,7 @@ class ArmCameraPublisher(Node):
         self.bridge = CvBridge()
 
         self.publisher = self.create_publisher(Image, 'cam/arm', 1)
-        # 2591 x 1944  / 2.5
+        # 2591 x 1944  / 2.5 = 1036 x 778
         self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=2.5, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
         
         self.timer = self.create_timer(0.05, self.publish_imge)
@@ -29,6 +30,7 @@ class ArmCameraPublisher(Node):
     def publish_imge(self):
         self.cam.get_frame()
         if self.cam.frame is not None:
+            #self.cam.frame = resize(2, self.cam.frame)
             image_msg = self.bridge.cv2_to_imgmsg(self.cam.frame, encoding='bgr8')
             self.publisher.publish(image_msg)
             self.get_logger().info('Published frame from Arm_Cam')
