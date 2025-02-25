@@ -22,6 +22,7 @@ class BinocularCameraPublisher(Node):
         self.bridge = CvBridge()
 
         self.publisher = self.create_publisher(Image, 'cam/binocular', 1)
+        # 2560 X 720
         cam_num = 8
         self.cam = cv2.VideoCapture(cam_num)
 
