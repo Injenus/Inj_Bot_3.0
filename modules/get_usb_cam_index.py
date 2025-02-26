@@ -13,9 +13,13 @@ def capture_frame(device_index, filename):
             i += 1
         cv2.imwrite(filename, frame)
         print(f"Снимок сохранен в {filename}")
+        return int(filename[:-4])
     else:
         print(f"Не удалось получить кадр с камеры {device_index}")
     cap.release()
 
 for i in range(36):
-    capture_frame(i, f'{i}_.jpg')
+    id = capture_frame(i, f'{i}.jpg')
+    if id is not None:
+        print(id)
+        break

@@ -22,12 +22,16 @@ class BinocularCameraPublisher(Node):
         self.bridge = CvBridge()
 
         self.publisher = self.create_publisher(Image, 'cam/binocular', 1)
-        # 2560 X 720
-        cam_num = 8
-        self.cam = cv2.VideoCapture(cam_num)
+
+        generated_value = self._get_cam_index()
+        self.declare_parameter('cam_idx', generated_value)
+        cam_index = self.get_parameter('cam_idx').value
+        self.get_logger().info(f"Определён индекс: {cam_index}")
+
+        self.cam = cv2.VideoCapture(cam_index) # 2560 X 720
 
         if not self.cam.isOpened():
-            self.get_logger().info(f"Не удалось открыть камеру {cam_num} :(")
+            self.get_logger().info(f"Не удалось открыть камеру {cam_index} :(")
             self.destroy_node()
             rclpy.try_shutdown() 
             sys.exit(0) 
@@ -42,6 +46,28 @@ class BinocularCameraPublisher(Node):
             image_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
             self.publisher.publish(image_msg)
             self.get_logger().info('Published frame from Binocular_Cam')
+
+    def _get_cam_index(self):
+
+        def try_open(id):
+            cap = cv2.VideoCapture(i)
+            if not cap.isOpened():
+                print(f"Не удалось открыть камеру с индексом {i}")
+            else:
+                ret, frame = cap.read()
+                if ret:
+                    return i
+                else:
+                    None
+
+        i = 0
+        while i < 42:
+            idx = try_open(i)
+            if idx is not None:
+                return idx
+            else:
+                i += 1
+
 
     
 def main(args=None):

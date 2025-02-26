@@ -48,8 +48,8 @@ class BinocularSavingVideo(Node):
 
         self.out.write(frame)
 
-        # cv2.imshow("Binocular", resize(2, frame))
-        # cv2.waitKey(1)
+        cv2.imshow("Binocular", resize(2, frame))
+        cv2.waitKey(1)
 
         self.get_logger().info("Got binocular frame")
 
