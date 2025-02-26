@@ -4,89 +4,97 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# Директория с файлами
-directory = "ikp_log_Path_segments_100_random"
+def main(directory):
 
-# Регулярные выражения для парсинга файлов
-jpg_pattern = re.compile(r"(?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.jpg")
-txt_unreachable_pattern = re.compile(r"Недостиж (?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
-txt_outzone_pattern = re.compile(r"Вне з (?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
+    # Регулярные выражения для парсинга файлов
+    jpg_pattern = re.compile(r"(?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.jpg")
+    txt_unreachable_pattern = re.compile(r"Недостиж (?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
+    txt_outzone_pattern = re.compile(r"Вне з (?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
 
-# Списки координат
-jpg_points = []
-unreachable_points = []
-outzone_points = []
+    # Списки координат
+    jpg_points = []
+    unreachable_points = []
+    outzone_points = []
 
-# Списки времен
-jpg_times = []
-unreachable_times = []
-outzone_times = []
+    # Списки времен
+    jpg_times = []
+    unreachable_times = []
+    outzone_times = []
 
-# Проходим по всем файлам в директории
-for filename in os.listdir(directory):
-    jpg_match = jpg_pattern.match(filename)
-    unreachable_match = txt_unreachable_pattern.match(filename)
-    outzone_match = txt_outzone_pattern.match(filename)
+    # Проходим по всем файлам в директории
+    for filename in os.listdir(directory):
+        jpg_match = jpg_pattern.match(filename)
+        unreachable_match = txt_unreachable_pattern.match(filename)
+        outzone_match = txt_outzone_pattern.match(filename)
 
-    if jpg_match:
-        x, y, z = map(int, [jpg_match.group("x"), jpg_match.group("y"), jpg_match.group("z")])
-        sol_time = float(jpg_match.group("time"))
-        jpg_points.append((x, y, z))
-        jpg_times.append(sol_time)
+        if jpg_match:
+            x, y, z = map(int, [jpg_match.group("x"), jpg_match.group("y"), jpg_match.group("z")])
+            sol_time = float(jpg_match.group("time"))
+            jpg_points.append((x, y, z))
+            jpg_times.append(sol_time)
 
-    elif unreachable_match:
-        x, y, z = map(int, [unreachable_match.group("x"), unreachable_match.group("y"), unreachable_match.group("z")])
-        sol_time = float(unreachable_match.group("time"))
-        unreachable_points.append((x, y, z))
-        unreachable_times.append(sol_time)
+        elif unreachable_match:
+            x, y, z = map(int, [unreachable_match.group("x"), unreachable_match.group("y"), unreachable_match.group("z")])
+            sol_time = float(unreachable_match.group("time"))
+            unreachable_points.append((x, y, z))
+            unreachable_times.append(sol_time)
 
-    elif outzone_match:
-        x, y, z = map(int, [outzone_match.group("x"), outzone_match.group("y"), outzone_match.group("z")])
-        sol_time = float(outzone_match.group("time"))
-        outzone_points.append((x, y, z))
-        outzone_times.append(sol_time)
+        elif outzone_match:
+            x, y, z = map(int, [outzone_match.group("x"), outzone_match.group("y"), outzone_match.group("z")])
+            sol_time = float(outzone_match.group("time"))
+            outzone_points.append((x, y, z))
+            outzone_times.append(sol_time)
 
-# Функция для вычисления min, max и среднего времени
-def calc_time_stats(times):
-    return round(min(times), 2) if times else None, round(max(times), 2) if times else None, round(np.mean(times), 2) if times else None
+    # Функция для вычисления min, max и среднего времени
+    def calc_time_stats(times):
+        return round(min(times), 2) if times else None, round(max(times), 2) if times else None, round(np.mean(times), 2) if times else None
 
-# Вычисляем статистику времени
-jpg_time_stats = calc_time_stats(jpg_times)
-unreachable_time_stats = calc_time_stats(unreachable_times)
-outzone_time_stats = calc_time_stats(outzone_times)
+    # Вычисляем статистику времени
+    jpg_time_stats = calc_time_stats(jpg_times)
+    unreachable_time_stats = calc_time_stats(unreachable_times)
+    outzone_time_stats = calc_time_stats(outzone_times)
 
-# Вывод статистики
-jpg_num = len(jpg_points)
-unreachable_num = len(unreachable_points)
-outzone_num = len(outzone_points)
-all_num = jpg_num + unreachable_num + outzone_num
+    print(f'{directory}:')
+    # Вывод статистики
+    jpg_num = len(jpg_points)
+    unreachable_num = len(unreachable_points)
+    outzone_num = len(outzone_points)
+    all_num = jpg_num + unreachable_num + outzone_num
 
-print(f"JPG файлы {round(100*jpg_num/all_num,2)}% (основные):", jpg_time_stats)
-print(f"Недостижимые точки {round(100*unreachable_num/all_num,2)}%:", unreachable_time_stats)
-print(f"Вне зоны {round(100*outzone_num/all_num,2)}%:", outzone_time_stats)
+    print(f"JPG файлы {round(100*jpg_num/all_num,2)}% (основные):", jpg_time_stats)
+    print(f"Недостижимые точки {round(100*unreachable_num/all_num,2)}%:", unreachable_time_stats)
+    print(f"Вне зоны {round(100*outzone_num/all_num,2)}%:", outzone_time_stats)
+    print()
+
+if __name__ == '__main__':
+    main('ikp_log_Path_segments_100_random')
+    main('ikp_log_Path_segments_100_prev')
+    main('ikp_log_Path_segments_1000_random')
+
+
 
 # Визуализация в 3D
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
+# fig = plt.figure(figsize=(10, 8))
+# ax = fig.add_subplot(111, projection='3d')
 
-# Функция для нанесения точек
-def plot_points(ax, points, color, size, label):
-    if points:
-        x, y, z = zip(*points)
-        ax.scatter(x, y, z, c=color, s=size, label=label)
+# # Функция для нанесения точек
+# def plot_points(ax, points, color, size, label):
+#     if points:
+#         x, y, z = zip(*points)
+#         ax.scatter(x, y, z, c=color, s=size, label=label)
 
-# Наносим точки
-plot_points(ax, jpg_points, "blue", 1, "Основные (jpg)")
-plot_points(ax, outzone_points, "red", 3, "Вне зоны (txt)")
-plot_points(ax, unreachable_points, "yellow", 3, "Недостижимые (txt)")
+# # Наносим точки
+# plot_points(ax, jpg_points, "blue", 1, "Основные (jpg)")
+# plot_points(ax, outzone_points, "red", 3, "Вне зоны (txt)")
+# plot_points(ax, unreachable_points, "yellow", 3, "Недостижимые (txt)")
 
-# Настройки графика
-ax.set_xlabel("X координата")
-ax.set_ylabel("Y координата")
-ax.set_zlabel("Z координата")
-ax.set_title(directory)
-ax.legend()
-#plt.show()
+# # Настройки графика
+# ax.set_xlabel("X координата")
+# ax.set_ylabel("Y координата")
+# ax.set_zlabel("Z координата")
+# ax.set_title(directory)
+# ax.legend()
+# #plt.show()
 
 def save_ply():
     output_file = f"{directory}_point_cloud.ply"
