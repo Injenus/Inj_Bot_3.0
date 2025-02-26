@@ -3,8 +3,18 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
-import time
 import os
+import sys
+
+current_script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(current_script_path)
+print(script_dir)
+receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'modules'))
+print(receive_data_path)
+if receive_data_path not in sys.path:
+    sys.path.append(receive_data_path)
+
+from _tools import *
 
 class CamerasSubscriber(Node):
     def __init__(self):
@@ -24,12 +34,14 @@ class CamerasSubscriber(Node):
     
     def arm_display(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-        cv2.imwrite(os.path.join(self.save_dir, 'arm_frame.jpg'), frame)
+        #cv2.imwrite(os.path.join(self.save_dir, 'arm_frame.jpg'), frame)
+        cv2.imshow('Arm', resize(2, frame))
         self.get_logger().info(f'Get Arm frame {frame.shape}')
 
     def binocular_display(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-        cv2.imwrite(os.path.join(self.save_dir, 'binocular_frame.jpg'), frame)
+        #cv2.imwrite(os.path.join(self.save_dir, 'binocular_frame.jpg'), frame)
+        cv2.imshow('Binocular', resize(2, frame))
         self.get_logger().info(f'Get Binocular frame {frame.shape}')
 
 def main(args=None):
