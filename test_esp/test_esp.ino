@@ -89,24 +89,65 @@ void setup() {
   ledcWrite(PWM4_A, 0);
   ledcWrite(PWM4_B, 3328);
 
-
   Serial.println("Система с 4 энкодерами и 4 парами ШИМ-пинами запущена");
 }
 
+// Структура для конвертации float в байты
+union FloatConverter {
+  float value;
+  uint8_t bytes[4];
+};
+
+// Вычисление контрольной суммы Флетчера-16
+void fletcher16(uint8_t *data, size_t len, uint8_t *sum1, uint8_t *sum2) {
+  *sum1 = 0;
+  *sum2 = 0;
+  for(size_t i = 0; i < len; ++i) {
+      *sum1 += data[i];
+      *sum2 += *sum1;
+  }
+}
+
 void loop() {
-  static unsigned long lastPrintTime = 0;
+  static unsigned long lastRPMTime = 0;
+  static long prevPositions[4] = {0};
   unsigned long currentTime = millis();
 
-  if (currentTime - lastPrintTime >= 10) {  // 100 Гц обновление
-    lastPrintTime = currentTime;
+  if (currentTime - lastRPMTime >= 100) {
+      unsigned long interval = currentTime - lastRPMTime;
+      lastRPMTime = currentTime;
 
-    noInterrupts();
-    long positions[4] = {encoderPositions[0], encoderPositions[1], encoderPositions[2], encoderPositions[3]};
-    interrupts();
+      noInterrupts();
+      long currentPositions[4] = {encoderPositions[0], encoderPositions[1], 
+                                 encoderPositions[2], encoderPositions[3]};
+      interrupts();
 
-    char buffer[100];
-    snprintf(buffer, sizeof(buffer), "E1:%ld E2:%ld E3:%ld E4:%ld", positions[0], positions[1], positions[2], positions[3]);
-    Serial.println(buffer);
-    Serial2.println(buffer);
+      // Расчет RPM
+      float rpm[4];
+      for (int i = 0; i < 4; i++) {
+          long delta = currentPositions[i] - prevPositions[i];
+          rpm[i] = (delta * 60000.0) / (234.3 * interval);
+          prevPositions[i] = currentPositions[i];
+      }
+
+      // Подготовка буфера данных
+      uint8_t buffer[17]; // 1(S) + 4*4(float) = 17 байт
+      buffer[0] = 'S';    // Стартовый байт
+      
+      // Заполнение данных (порядок: левый передний, левый задний, правый передний, правый задний)
+      FloatConverter conv;
+      for(int i = 0; i < 4; i++) {
+          conv.value = rpm[i];
+          memcpy(&buffer[1 + i*4], conv.bytes, 4);
+      }
+
+      // Расчет контрольной суммы
+      uint8_t sum1, sum2;
+      fletcher16(buffer, sizeof(buffer), &sum1, &sum2);
+      
+      // Отправка данных (S + данные + сумма)
+      Serial.write(buffer, sizeof(buffer));
+      Serial.write(sum1);
+      Serial.write(sum2);
   }
 }

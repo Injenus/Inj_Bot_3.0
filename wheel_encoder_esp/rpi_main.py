@@ -1,10 +1,9 @@
 import serial
 import struct
 
-SERIAL_PORT = "COM5"
+SERIAL_PORT = "/dev/ttyUSB0"  # Пример для Linux, для Windows используйте "COMx"
 BAUD_RATE = 115200
 
-# Функция для вычисления Fletcher-16
 def fletcher16(data):
     sum1 = 0
     sum2 = 0
@@ -13,64 +12,67 @@ def fletcher16(data):
         sum2 = (sum2 + sum1) % 255
     return (sum2 << 8) | sum1
 
-# Функция для обработки данных
-def process_message(data):
-    if len(data) != 19:
-        print("Ошибка: некорректная длина сообщения")
-        return None
-
-    if data[0] != ord('S'):
-        print("Ошибка: неверный стартовый символ")
-        return None
-
-    received_checksum = struct.unpack('H', data[17:19])[0]
-
-    if fletcher16(data[:17]) != received_checksum:
-        print("Ошибка: контрольная сумма не совпадает")
-        return None
-
-    # Извлекаем скорости (4 float значения по 4 байта)
-    speeds = struct.unpack('ffff', data[1:17])
-    return speeds
-
 try:
     ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.1)
-    print(f"Подключено к {SERIAL_PORT} со скоростью {BAUD_RATE} бод")
-except serial.SerialException as e:
-    print(f"Не удалось открыть порт: {e}")
+    print(f"Connected to {SERIAL_PORT}")
+except Exception as e:
+    print(f"Port error: {e}")
     exit()
 
-# Основной цикл с синхронизацией
-print("Ожидание данных...")
-buffer = bytearray()  # Буфер для хранения входящих данных
+buffer = bytearray()
+STATE_SEARCH = 0
+STATE_READ_DATA = 1
+state = STATE_SEARCH
+expected_length = 19  # 1 (S) + 16 (4 float) + 2 (checksum)
 
 while True:
     try:
-        # Читаем байты из порта
-        if ser.in_waiting > 0:
-            buffer.extend(ser.read(ser.in_waiting))
+        # Чтение данных порциями
+        data = ser.read(1)
+        if data:
+            buffer.extend(data)
+        
+        # Обработка буфера
+        while True:
+            if state == STATE_SEARCH:
+                # Поиск стартового байта 'S' (0x53)
+                start_pos = buffer.find(b'S')
+                if start_pos == -1:
+                    buffer.clear()  # Нет 'S' - очистка буфера
+                    break
+                
+                # Переходим в режим чтения данных
+                buffer = buffer[start_pos:]  # Обрезаем все до 'S'
+                state = STATE_READ_DATA
 
-        # Проверяем, есть ли в буфере стартовый символ
-        while len(buffer) >= 19:
-            # Ищем стартовый символ
-            if buffer[0] != ord('S'):
-                buffer.pop(0)  # Удаляем лишние данные до символа 'S'
-                continue
+            elif state == STATE_READ_DATA:
+                if len(buffer) < expected_length:
+                    break  # Ждем больше данных
+                
+                # Извлекаем пакет
+                packet = buffer[:expected_length]
+                buffer = buffer[expected_length:]
+                
+                # Проверка контрольной суммы
+                calc_csum = fletcher16(packet[:17])
+                recv_csum = struct.unpack_from('<H', packet, 17)[0]
+                
+                if calc_csum != recv_csum:
+                    print("Checksum error! Resyncing...")
+                    state = STATE_SEARCH
+                    continue
+                
+                # Распаковка данных (little-endian)
+                speeds = struct.unpack_from('<4f', packet, 1)
+                print(f"Speeds (FL, RL, FR, RR): {speeds}")
+                
+                state = STATE_SEARCH  # Возврат к поиску
 
-            # Если в буфере меньше 19 байт, ждём следующих данных
-            if len(buffer) < 19:
-                break
-
-            # Извлекаем потенциальное сообщение
-            message = buffer[:19]
-            buffer = buffer[19:]  # Удаляем обработанное сообщение из буфера
-
-            # Обрабатываем сообщение
-            speeds = process_message(message)
-            if speeds:
-                print(f"Скорости (об/мин): {speeds}")
     except KeyboardInterrupt:
-        print("\nЗавершение работы")
+        print("\nExiting...")
         break
     except Exception as e:
-        print(f"Ошибка: {e}")
+        print(f"Error: {e}")
+        state = STATE_SEARCH  # Сброс состояния при ошибке
+
+ser.close()

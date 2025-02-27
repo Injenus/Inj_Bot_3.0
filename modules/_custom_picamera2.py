@@ -39,6 +39,7 @@ class Rpi_Camera():
         #     })
         # if self.hard_roi is not None:
         #     self.cam.set_controls({"ScalerCrop": self.hard_roi})
+
         self.name = name
         self.target_green = 190
         self.rotate = rotate
@@ -69,7 +70,7 @@ class Rpi_Camera():
 
         self.start()
 
-    
+
     def start(self):
         try:
             self.cam.start()
