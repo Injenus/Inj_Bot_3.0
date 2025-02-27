@@ -70,6 +70,7 @@ if __name__ == '__main__':
     main('ikp_log_Path_segments_100_random')
     main('ikp_log_Path_segments_100_prev')
     main('ikp_log_Path_segments_1000_random')
+    main('ikp_log_Path_segments_1000_prev')
 
 
 
