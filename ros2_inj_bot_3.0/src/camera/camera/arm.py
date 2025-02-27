@@ -23,7 +23,7 @@ class ArmCameraPublisher(Node):
 
         self.publisher = self.create_publisher(Image, 'cam/arm', 1)
         # 2591 x 1944  / 2.5 = 1036 x 778
-        self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=2.5, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
+        self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=0.0, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
         
         self.timer = self.create_timer(0.05, self.publish_imge)
 
