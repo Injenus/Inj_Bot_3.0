@@ -1,6 +1,18 @@
 import os
+from tqdm import tqdm
+import argparse
+
+from pipeline import *
 
 if __name__ == "__main__":
+    # 1. Инициализация парсера
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--src_dir", type=str, default="src_data")
+    parser.add_argument("--output_dir", type=str, default="augmented_data")
+    parser.add_argument("--start_idx", type=int, default=0)
+    parser.add_argument("--end_idx", type=int, default=None)
+    args = parser.parse_args()
+
     # Создание выходных папок
     os.makedirs(f"{args.output_dir}/images", exist_ok=True)
     os.makedirs(f"{args.output_dir}/labels", exist_ok=True)

@@ -1,6 +1,6 @@
 import cv2
 
-import methods
+from methods import *
 
 def process_image(image_path, label_path, output_dir, img_idx):
     # [1] Загрузка и Letterbox

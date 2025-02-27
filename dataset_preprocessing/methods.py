@@ -1,11 +1,8 @@
 import os
 import cv2
 import numpy as np
-import math
 import random
 from tqdm import tqdm
-import argparse
-
 
 def read_yolo_annotation(label_path, orig_w, orig_h):
     boxes = []
