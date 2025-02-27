@@ -133,19 +133,19 @@ if __name__ == '__main__':
     y = [i for i in range(-330,330,10)]
     z = [i for i in range(-330,330,10)]
 
-    q1,q2,q3 = 0,0,0
-    i = 0
-    for x_ in x:
-        for y_ in y:
-            for z_ in z:
-                if i < 193800:
-                    i += 1
-                    continue
-                q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
-                if q1_ is not None:
-                    q1, q2, q3 = q1_, q2_, q3_
-                i += 1
-                if not (i % 100):
-                    gc.collect()
+    # q1,q2,q3 = 0,0,0
+    # i = 0
+    # for x_ in x:
+    #     for y_ in y:
+    #         for z_ in z:
+    #             if i < 285400:
+    #                 i += 1
+    #                 continue
+    #             q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+    #             if q1_ is not None:
+    #                 q1, q2, q3 = q1_, q2_, q3_
+    #             i += 1
+    #             if not (i % 100):
+    #                 gc.collect()
 
     

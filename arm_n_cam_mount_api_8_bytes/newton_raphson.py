@@ -212,12 +212,12 @@ def plot_manipulator(angles_deg):
 
 def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
     if init_ang is None:
-        init_ang = [0, 0, 0]
-        # init_ang = [
-        #         random.uniform(*ang_range[1]),
-        #         random.uniform(*ang_range[2]),
-        #         random.uniform(*ang_range[3])
-        #     ]
+        #init_ang = [0, 0, 0]
+        init_ang = [
+                random.uniform(*ang_range[1]),
+                random.uniform(*ang_range[2]),
+                random.uniform(*ang_range[3])
+            ]
     solution = newton_raphson(init_ang, x, y, lengths)
 
     if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
