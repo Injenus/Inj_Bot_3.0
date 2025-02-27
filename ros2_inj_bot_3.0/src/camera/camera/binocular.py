@@ -29,6 +29,7 @@ class BinocularCameraPublisher(Node):
         self.get_logger().info(f"Определён индекс: {cam_index}")
 
         self.cam = cv2.VideoCapture(cam_index) # 2560 X 720
+        self.cam.set(cv2.CAP_PROP_FPS, 30)
 
         if not self.cam.isOpened():
             self.get_logger().info(f"Не удалось открыть камеру {cam_index} :(")
@@ -42,7 +43,7 @@ class BinocularCameraPublisher(Node):
         ret, frame = self.cam.read()
 
         if ret:
-            #rame = resize(2, frame)
+            #frame = resize(4, frame)
             image_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
             self.publisher.publish(image_msg)
             self.get_logger().info('Published frame from Binocular_Cam')

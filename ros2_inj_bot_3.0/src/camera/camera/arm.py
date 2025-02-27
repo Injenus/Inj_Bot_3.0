@@ -30,7 +30,7 @@ class ArmCameraPublisher(Node):
     def publish_imge(self):
         self.cam.get_frame()
         if self.cam.frame is not None:
-            #self.cam.frame = resize(2, self.cam.frame)
+            #self.cam.frame = resize(4, self.cam.frame)
             image_msg = self.bridge.cv2_to_imgmsg(self.cam.frame, encoding='bgr8')
             self.publisher.publish(image_msg)
             self.get_logger().info('Published frame from Arm_Cam')
