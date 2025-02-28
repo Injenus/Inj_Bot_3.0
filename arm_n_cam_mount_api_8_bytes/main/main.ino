@@ -32,9 +32,9 @@ ServoDriverSmooth servo[servoNum];
 struct ServoSettings {
   int minMcs[servoNum] = {84, 116, 116, 116, 260, 135, 150};
   int maxMcs[servoNum] = {582, 542, 542, 542, 430, 525, 467};
-  int minAng[servoNum] = {0, 0, 0, 0, 0, 0, 0};
-  int maxAng[servoNum] = {284, 266, 260, 264, 1, 174, 120};
-  int offsetAng[servoNum] = {15, 6, 3, 5, 0, 0, 0};
+  int minAng[servoNum] = {0, 0, 0, 0, 0, 42, 98};
+  int maxAng[servoNum] = {284, 266, 260, 264, 1, 215, 218};
+  // int offsetAng[servoNum] = {15, 6, 3, 5, 0, 0, 0};
   int armAcc = 80;
   int armSpeed = 1080;
   int camAcc = 480;
@@ -76,7 +76,7 @@ int mcsToAngle(int mcs, byte idx){
   int from_mcs_max = servoSettings.maxMcs[idx];
   int to_a_min = servoSettings.minAng[idx];
   int to_a_max = servoSettings.maxAng[idx];
-  return map(mcs, from_mcs_min, from_mcs_max, to_a_min, to_a_max);
+  return constrain(map(mcs, from_mcs_min, from_mcs_max, to_a_min, to_a_max), 0, 255);
 }
 
 void setup() {
@@ -201,7 +201,7 @@ void loop() {
     sendTimer = millis();
     sBuffer[0] = 'A';
     for(byte i=0;i < 7;i++){
-      servoPosAng.currPos[i] = (byte)(mcsToAngle(servo[i].getCurrent(), i) - servoSettings.offsetAng[i]);
+      servoPosAng.currPos[i] = (byte)(mcsToAngle(servo[i].getCurrent(), i));
       sBuffer[i+1] = servoPosAng.currPos[i];
     }
     sBuffer[8] = fletcher8(sBuffer, 8);

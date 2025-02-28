@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 import threading
 from geometry_msgs.msg import Twist
+from std_msgs.msg import UInt8MultiArray
 
 class KeyboardNode(Node):
     def __init__(self):
@@ -15,6 +16,19 @@ class KeyboardNode(Node):
         self.ANGULAR_SPEED = 0.5 # рад/с
         
         self.twist_pub = self.create_publisher(Twist, 'cmd_vel', 1)
+
+        self.keys_of_interest.update({
+            ecodes.KEY_UP: 'up',
+            ecodes.KEY_DOWN: 'down',
+            ecodes.KEY_LEFT: 'left',
+            ecodes.KEY_RIGHT: 'right'
+        })
+        
+        # Публикатор для сервоприводов
+        self.servo_pub = self.create_publisher(UInt8MultiArray, 'servo/to_write', 1)
+        
+        self.SERVO_MAX = 255
+        self.SERVO_MIN = 0
 
         self.keys_of_interest = {
             ecodes.KEY_Q: 'q',
@@ -35,7 +49,7 @@ class KeyboardNode(Node):
             ecodes.KEY_ESC: 'Esc'
         }
         
-        self.device = self._find_keyboard_device()
+        self.device = self.find_keyboard_device()
         if not self.device:
             self.get_logger().error('Keyboard not found. Exiting.')
             raise RuntimeError("Keyboard device not found")
@@ -48,13 +62,13 @@ class KeyboardNode(Node):
         self.stop_event = threading.Event()
         
         # Поток для чтения событий клавиатуры
-        self.read_thread = threading.Thread(target=self._read_events)
+        self.read_thread = threading.Thread(target=self.read_events)
         self.read_thread.start()
         
         # Таймер для обработки нажатий
-        self.timer = self.create_timer(0.005, self._process_keys)  # 200 Hz
+        self.timer = self.create_timer(0.005, self.process_keys)  # 200 Hz
 
-    def _find_keyboard_device(self):
+    def find_keyboard_device(self):
         """Находит устройство клавиатуры, поддерживающее нужные клавиши."""
         devices = [InputDevice(path) for path in evdev.list_devices()]
         for device in devices:
@@ -68,7 +82,7 @@ class KeyboardNode(Node):
                 continue
         return None
 
-    def _read_events(self):
+    def read_events(self):
         """Читает события клавиатуры в отдельном потоке."""
         try:
             for event in self.device.read_loop():
@@ -85,7 +99,7 @@ class KeyboardNode(Node):
             self.get_logger().error(f"Error reading events: {str(e)}")
             self.stop_event.set()
     
-    def _process_keys(self):
+    def process_keys(self):
         """Обрабатывает текущее состояние клавиш."""
         if self.stop_event.is_set():
             return

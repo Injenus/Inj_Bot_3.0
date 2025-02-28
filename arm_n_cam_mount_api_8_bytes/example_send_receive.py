@@ -11,7 +11,8 @@ import send_data
 
 def main():
     ser = serial.Serial('COM5', 115200, timeout=1)
-    user_angles = [45, 10, 0, -100, 1, 0, 0] # Дефолтные
+    user_angles = [142, 133, 130, 132, 1, 0, 0] # Дефолтные
+    ang_range = {0:[]}
     START_BYTE = ord('A')
     PACKET_LENGTH = 9
     buffer = bytearray()
@@ -55,8 +56,7 @@ def main():
         if time.time() - timer > period:
             timer = time.time() 
             user_angles = [random.randint(-ang_range,ang_range),random.randint(-ang_range,ang_range), random.randint(-ang_range,ang_range), random.randint(-ang_range,ang_range), random.randint(0,1), random.randint(-87,87), random.randint(-90, 30)]
-            angles = [ang + 128 if i <= 3 else (ang if i == 4 else (ang + 87 if i==5 else ang + 90)) for i, ang in enumerate(user_angles)]
-            send_data.send_to_serial(ser, angles)
+            send_data.send_to_serial(ser, user_angles)
 
 
 if __name__ == "__main__":
