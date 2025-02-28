@@ -2,20 +2,40 @@ import cv2
 
 from methods import *
 
-def process_image(image_path, label_path, output_dir, img_idx):
-    # [1] Загрузка и Letterbox
+def process_image(image_path, label_path, output_dir, img_idx, label_to_id):
     orig_image = cv2.imread(image_path)
-    image, scale, (dw, dh) = letterbox(orig_image)
-    orig_boxes = read_yolo_annotation(label_path, orig_image.shape[1], orig_image.shape[0])
+    if orig_image is None:
+        print(f"Error loading image: {image_path}")
+        return
     
-    # Конвертация боксов в Letterbox-координаты
+    orig_h, orig_w = orig_image.shape[:2]
+    
+    if not os.path.exists(label_path):
+        print(f"Missing annotation: {label_path}")
+        return
+    
+    if label_path.endswith('.json'):
+        orig_boxes = read_labelstudio_annotation(label_path, orig_w, orig_h, label_to_id)
+    else:
+        orig_boxes = read_yolo_annotation(label_path, orig_w, orig_h)
+    
+    # Letterbox преобразование
+    image, scale, (dw, dh) = letterbox(orig_image)
+    new_h, new_w = 320, 320  # Размер после Letterbox
+    
+    # Конвертация боксов
     boxes = []
     for box in orig_boxes:
         class_id, x1, y1, x2, y2 = box
+        # Масштабирование и смещение
         x1 = x1 * scale + dw / 2
         y1 = y1 * scale + dh / 2
         x2 = x2 * scale + dw / 2
         y2 = y2 * scale + dh / 2
+        
+        if x2 <= x1 or y2 <= y1:  # Фильтрация невалидных боксов
+            continue
+        
         boxes.append([class_id, x1, y1, x2, y2])
     
     # [2] Аугментации
@@ -49,5 +69,13 @@ def process_image(image_path, label_path, output_dir, img_idx):
             
             # [5] Сохранение финальных данных
             img_name = f"aug_{img_idx}_rot{angle}_dir{direction}_scale{scale_aug}_bright{brightness}_h{hsv_factors['h']}s{hsv_factors['s']}v{hsv_factors['v']}.jpg"
+            
             cv2.imwrite(f"{output_dir}/images/{img_name}", noisy_img)
-            save_yolo_annotation(valid_boxes, 320, 320, f"{output_dir}/labels/{img_name.replace('.jpg', '.txt')}")
+            
+            # YOLO-аннотации
+            save_yolo_annotation(
+                boxes=valid_boxes,          # Обработанные боксы
+                img_w=320,                  # Ширина после letterbox
+                img_h=320,                  # Высота после letterbox
+                save_path=f"{output_dir}/labels/{img_name.replace('.jpg', '.txt')}"
+            )

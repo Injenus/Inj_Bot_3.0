@@ -3,6 +3,79 @@ import cv2
 import numpy as np
 import random
 from tqdm import tqdm
+import json
+from pathlib import Path
+import yaml
+
+
+
+def load_classes(config_path="classes.yaml"):
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    classes = config.get('classes', [])
+    return {name: idx for idx, name in enumerate(classes)}, len(classes)
+
+def read_labelstudio_annotation(json_path, orig_w, orig_h, label_to_id):
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+    
+    boxes = []
+    unknown_labels = set()
+    
+    for annotation in data:
+        for result in annotation.get('result', []):
+            if result.get('type') != 'rectanglelabels':
+                continue
+                
+            value = result.get('value', {})
+            label = value.get('rectanglelabels', [None])[0]
+            if not label:
+                continue
+                
+            if label not in label_to_id:
+                unknown_labels.add(label)
+                continue
+            
+            class_id = label_to_id[label]
+            
+            x_pct = value.get('x', 0)
+            y_pct = value.get('y', 0)
+            width_pct = value.get('width', 0)
+            height_pct = value.get('height', 0)
+            
+            x1 = (x_pct / 100) * orig_w
+            y1 = (y_pct / 100) * orig_h
+            x2 = x1 + (width_pct / 100) * orig_w
+            y2 = y1 + (height_pct / 100) * orig_h
+            
+            boxes.append([class_id, x1, y1, x2, y2])
+    
+    if unknown_labels:
+        print(f"Unknown labels: {unknown_labels} in {json_path}")
+    
+    return boxes
+
+def validate_all_labels(src_dir, label_to_id):
+    all_labels = set()
+    
+    for json_file in os.listdir(f"{src_dir}/labels"):
+        if not json_file.endswith('.json'):
+            continue
+            
+        with open(f"{src_dir}/labels/{json_file}", 'r') as f:
+            data = json.load(f)
+            
+        for annotation in data:
+            for result in annotation.get('result', []):
+                if result.get('type') != 'rectanglelabels':
+                    continue
+                label = result['value']['rectanglelabels'][0]
+                all_labels.add(label)
+    
+    missing_labels = all_labels - set(label_to_id.keys())
+    if missing_labels:
+        raise ValueError(f"Missing labels in config: {missing_labels}")
+
 
 def read_yolo_annotation(label_path, orig_w, orig_h):
     boxes = []
@@ -27,6 +100,53 @@ def save_yolo_annotation(boxes, img_w, img_h, save_path):
             bw = (x2 - x1) / img_w
             bh = (y2 - y1) / img_h
             f.write(f"{class_id} {xc:.6f} {yc:.6f} {bw:.6f} {bh:.6f}\n")
+
+
+def save_labelstudio_annotation(boxes, img_w, img_h, save_path, class_names):
+    """
+    Сохраняет аннотации в формате Label Studio JSON
+    class_names: список имен классов (например, {0: 'cat', 1: 'dog'})
+    """
+    annotation_template = {
+        "version": "v1.0",
+        "data": {
+            "image": Path(save_path).name
+        },
+        "annotations": [{
+            "result": []
+        }]
+    }
+    
+    for box in boxes:
+        class_id, x1, y1, x2, y2 = box
+        
+        # Конвертация в проценты
+        width = x2 - x1
+        height = y2 - y1
+        x_center = x1 + width/2
+        y_center = y1 + height/2
+        
+        x_pct = (x_center / img_w) * 100
+        y_pct = (y_center / img_h) * 100
+        width_pct = (width / img_w) * 100
+        height_pct = (height / img_h) * 100
+        
+        annotation = {
+            "id": f"rect_{len(annotation_template['annotations'][0]['result'])}",
+            "type": "rectanglelabels",
+            "value": {
+                "x": x_pct,
+                "y": y_pct,
+                "width": width_pct,
+                "height": height_pct,
+                "rectanglelabels": [class_names[class_id]]
+            }
+        }
+        annotation_template['annotations'][0]['result'].append(annotation)
+    
+    with open(save_path, 'w') as f:
+        json.dump(annotation_template, f, indent=2)
+
 
 def is_valid_box(box, img_w, img_h, min_size=5):
     _, x1, y1, x2, y2 = box
@@ -193,6 +313,7 @@ def letterbox(image, target_size=320, pad_value=114):
         value=(pad_value, pad_value, pad_value))
     
     return padded, scale, (dw, dh)
+
 
 #-------------------------------------------------------------------------------------------
 
