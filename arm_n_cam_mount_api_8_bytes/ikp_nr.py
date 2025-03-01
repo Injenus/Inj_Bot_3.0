@@ -116,22 +116,21 @@ def main(x,y,z, init_ang, name='def'):
                 file.write("")
             return -1, -1, -1
     else:
-
-        if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
-            sol_time = time.time() - sol_time
-            print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
-            with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
-                file.write(f"Точка ({x_p}, {y_p}) наебала детерминированный метод.")
-            with open(f'{dir}_log.txt', 'a'):
-                file.write()
-            return -2, -2, -2
+        for k in range(42):
+            if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
+                sol_time = time.time() - sol_time
+                print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
+                with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+                    file.write(f"Точка ({x_p}, {y_p}) наебала детерминированный метод.")
+                with open(f'{dir}_log.txt', 'a'):
+                    file.write(f'Точка {name} ({x_p}, {y_p}), наёбка произошла с {k+1} попытки.')
+                return -2, -2, -2
             
-        else:
-            sol_time = time.time() - sol_time
-            print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
-            with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
-                file.write("")
-            return -2, -2, -2
+        sol_time = time.time() - sol_time
+        print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
+        with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+            file.write("")
+        return -2, -2, -2
 
 
 if __name__ == '__main__':

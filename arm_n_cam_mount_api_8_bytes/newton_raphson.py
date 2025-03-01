@@ -118,7 +118,7 @@ def jacobian(lengths, angles):
     return J
 
 # Метод Ньютона-Рафсона
-def newton_raphson(initial_guess, x, y, lengths, tol=1.0, max_iter=42):
+def newton_raphson(initial_guess, x, y, lengths, ang_range, tol=1.0, max_iter=42):
     angles = np.radians(initial_guess)
     for _ in range(max_iter):
         J = jacobian(lengths,angles)
@@ -129,8 +129,13 @@ def newton_raphson(initial_guess, x, y, lengths, tol=1.0, max_iter=42):
         # Проверка сходимости
         if np.linalg.norm(delta) <= tol:
             break
+    
+    solution = np.degrees(angles).tolist()
+    solution[0] = np.clip(solution[0], ang_range[1][0], ang_range[1][1])
+    solution[1] = np.clip(solution[1], ang_range[2][0], ang_range[2][1])
+    solution[2] = np.clip(solution[2], ang_range[3][0], ang_range[3][1])
 
-    return np.degrees(angles).tolist()
+    return solution
 
 def is_within_limits(angles, ang_range):
     a, b, c = angles
@@ -219,14 +224,14 @@ def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
                 random.uniform(*ang_range[2]),
                 random.uniform(*ang_range[3])
             ]
-    solution = newton_raphson(init_ang, x, y, lengths)
+    solution = newton_raphson(init_ang, x, y, lengths, ang_range)
 
-    if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
+    if solution is not None and not is_collision(solution, lengths):
         return solution
     else:
         # Попытки с другими начальными условиями
         attempts = 0
-        max_attempts = 420  # Ограничим количество попыток
+        max_attempts = 42  # Ограничим количество попыток
         while attempts < max_attempts:
             # init_ang = [
             #     random.uniform(*ang_range[1]),
@@ -234,7 +239,7 @@ def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
             #     random.uniform(*ang_range[3])
             # ]
             solution = newton_raphson(init_ang, x, y, lengths)
-            if solution is not None and is_within_limits(solution, ang_range) and not is_collision(solution, lengths):
+            if solution is not None and not is_collision(solution, lengths):
                 valid = True
 
                 # это старый способ, учитывающий только вхождение концов звеньев внутрь полигона
