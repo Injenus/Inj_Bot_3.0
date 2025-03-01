@@ -83,7 +83,7 @@ def cylindrical_to_cartesian(theta, r, h, degrees=False):
     return (r * np.sin(theta_rad), r * np.cos(theta_rad), h)
 
 def main(x,y,z, init_ang, name='def'):
-    dir = 'ikp_log_Path_segments_420_rand_tol_0.5'
+    dir = 'ikp_log_Path_segments_42_real_prev_tol_1.0'
     os.makedirs(dir, exist_ok=True)
     
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
@@ -116,11 +116,22 @@ def main(x,y,z, init_ang, name='def'):
                 file.write("")
             return -1, -1, -1
     else:
-        sol_time = time.time() - sol_time
-        print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
-        with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
-            file.write("")
-        return -2, -2, -2
+
+        if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
+            sol_time = time.time() - sol_time
+            print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
+            with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+                file.write(f"Точка ({x_p}, {y_p}) наебала детерминированный метод.")
+            with open(f'{dir}_log.txt', 'a'):
+                file.write()
+            return -2, -2, -2
+            
+        else:
+            sol_time = time.time() - sol_time
+            print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
+            with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+                file.write("")
+            return -2, -2, -2
 
 
 if __name__ == '__main__':
@@ -152,10 +163,10 @@ if __name__ == '__main__':
                 # if i < 285400:
                 #     i += 1
                 #     continue
-                # q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
-                # if not (q1_==-1 and q2_==-1 and q3_==-1) and not (q1_==-2 and q2_==-2 and q3_==-2):
-                #     q1, q2, q3 = q1_, q2_, q3_
-                main(x_,y_,z_, None, i)
+                q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+                if not (q1_==-1 and q2_==-1 and q3_==-1) and not (q1_==-2 and q2_==-2 and q3_==-2):
+                    q1, q2, q3 = q1_, q2_, q3_
+                #main(x_,y_,z_, None, i)
                 i += 1
                 if not (i % 100):
                     gc.collect()
