@@ -17,3 +17,4 @@ resource
 *.jpg
 test_dataset
 path_to_save.txt
+photo

@@ -118,7 +118,7 @@ def jacobian(lengths, angles):
     return J
 
 # Метод Ньютона-Рафсона
-def newton_raphson(initial_guess, x, y, lengths, tol=0.001, max_iter=1000):
+def newton_raphson(initial_guess, x, y, lengths, tol=0.5, max_iter=420):
     angles = np.radians(initial_guess)
     for _ in range(max_iter):
         J = jacobian(lengths,angles)
@@ -127,7 +127,7 @@ def newton_raphson(initial_guess, x, y, lengths, tol=0.001, max_iter=1000):
         angles += delta
 
         # Проверка сходимости
-        if np.linalg.norm(delta) < tol:
+        if np.linalg.norm(delta) <= tol:
             break
 
     return np.degrees(angles).tolist()
@@ -225,7 +225,7 @@ def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
     else:
         # Попытки с другими начальными условиями
         attempts = 0
-        max_attempts = 1000  # Ограничим количество попыток
+        max_attempts = 420  # Ограничим количество попыток
         while attempts < max_attempts:
             init_ang = [
                 random.uniform(*ang_range[1]),

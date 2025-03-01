@@ -77,9 +77,13 @@ def limit_angle(theta_deg, range):
         else:
             # Если снова выходит за диапазон, повторить зеркалирование
             return limit_angle(mirrored_angle, range)
+        
+def cylindrical_to_cartesian(theta, r, h, degrees=False):
+    theta_rad = np.radians(theta) if degrees else theta
+    return (r * np.sin(theta_rad), r * np.cos(theta_rad), h)
 
 def main(x,y,z, init_ang, name='def'):
-    dir = 'ikp_log_Path_segments_1000_prev'
+    dir = 'ikp_log_Path_segments_420_rand_tol_0.5'
     os.makedirs(dir, exist_ok=True)
     
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
@@ -95,6 +99,7 @@ def main(x,y,z, init_ang, name='def'):
     print(f'Угол базового звена {np.degrees(theta)}')
     sol_time = time.time()
     if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
+        print('ar',ang_range)
         deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0, init_ang)
         sol_time = time.time() - sol_time
         if all(x is not None for x in deg_ang):
@@ -109,13 +114,13 @@ def main(x,y,z, init_ang, name='def'):
             print(f"Точка ({x_p}, {y_p}) в локальной плоскости недостижима.")
             with open(f"{dir}/Недостиж {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
                 file.write("")
-            return None, None, None
+            return -1, -1, -1
     else:
         sol_time = time.time() - sol_time
         print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
         with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
             file.write("")
-        return None, None, None
+        return -2, -2, -2
 
 
 if __name__ == '__main__':
@@ -125,6 +130,12 @@ if __name__ == '__main__':
         # Константы (длины звеньев)
         l1, l2, l3 = config['length']
         ang_range = config['ang_range']
+        ang_offset = config['offset']
+
+    ang_range = [
+        [a - off, b - off] 
+        for (a, b), off in zip(ang_range, ang_offset)
+    ]
 
     x,y,z = 1, 1, 10
     main(x,y,z, [0,0,0], 'def')
@@ -133,19 +144,20 @@ if __name__ == '__main__':
     y = [i for i in range(-330,330,10)]
     z = [i for i in range(-330,330,10)]
 
-    # q1,q2,q3 = 0,0,0
-    # i = 0
-    # for x_ in x:
-    #     for y_ in y:
-    #         for z_ in z:
-    #             if i < 285400:
-    #                 i += 1
-    #                 continue
-    #             q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
-    #             if q1_ is not None:
-    #                 q1, q2, q3 = q1_, q2_, q3_
-    #             i += 1
-    #             if not (i % 100):
-    #                 gc.collect()
+    q1,q2,q3 = 0,0,0
+    i = 0
+    for x_ in x:
+        for y_ in y:
+            for z_ in z:
+                # if i < 285400:
+                #     i += 1
+                #     continue
+                # q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+                # if not (q1_==-1 and q2_==-1 and q3_==-1) and not (q1_==-2 and q2_==-2 and q3_==-2):
+                #     q1, q2, q3 = q1_, q2_, q3_
+                main(x_,y_,z_, None, i)
+                i += 1
+                if not (i % 100):
+                    gc.collect()
 
     

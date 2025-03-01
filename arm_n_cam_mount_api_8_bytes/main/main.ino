@@ -49,7 +49,7 @@ struct ServoPosAng {
 ServoPosAng servoPosAng, prevServoPosAng;
 
 uint32_t sendTimer = 0;
-const uint32_t sendPeriod = 20;
+const uint32_t sendPeriod = 50;
 
 
 uint8_t fletcher8(uint8_t *data, size_t len) {
@@ -205,7 +205,9 @@ void loop() {
       sBuffer[i+1] = servoPosAng.currPos[i];
     }
     sBuffer[8] = fletcher8(sBuffer, 8);
-    Serial.write(sBuffer, 9);
+    for(byte i=0; i<5; i++){  // чтобы исключить повдреждение и потерю данных
+      Serial.write(sBuffer, 9);
+    }    
     //Serial.println(sBuffer[8]);
   }
 
