@@ -18,3 +18,5 @@ resource
 test_dataset
 path_to_save.txt
 photo
+*.zip
+*.f3d

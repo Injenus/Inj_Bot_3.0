@@ -78,3 +78,18 @@ def arm_unit_coords_3d(lengths, angles):
     zs = [z0, z1, z2, z3]
 
     return xs, ys, zs
+
+def polar_to_cartesian(polar): # polar = [theta, r, h]
+    theta, r, h = polar # deg, mm, mm
+    theta = np.deg2rad(theta)
+    x = r * np.sin(theta)
+    y = r * np.cos(theta)
+    z = h
+    return x, y, z # mm, mm, mm
+
+def cartesian_to_polar(cartesian):
+    x,y,z = cartesian # mm, mm, mm
+    h = z
+    r = np.hypot(x, y)
+    theta = np.rad2deg(np.arsin(x/r))
+    return theta, r, h

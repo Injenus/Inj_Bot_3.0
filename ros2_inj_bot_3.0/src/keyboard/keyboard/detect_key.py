@@ -7,6 +7,18 @@ import json
 from geometry_msgs.msg import Twist
 from std_msgs.msg import UInt8MultiArray
 import copy
+import sys
+import os
+import numpy as np
+
+current_script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(current_script_path)
+receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'arm_n_cam_mount_api_8_bytes'))
+if receive_data_path not in sys.path:
+    sys.path.append(receive_data_path)
+
+import dkp
+import main_ikp
 
 class KeyboardNode(Node):
     def __init__(self):
@@ -26,19 +38,44 @@ class KeyboardNode(Node):
             # l1, l2, l3 = config['length']
             # ang_range_arm = config['ang_range']
 
+        with open('../../../../arm_n_cam_mount_api_8_bytes/config_grip.json', 'r') as file:
+            self.config_grip = json.load(file)
+
         self.SERVO_FREQ = 50
+        self.SERVO_MIN_LINEAR_STEP = 10 # мм, всё что меньше НЕ считается изменением текущих линейных (xyz, rh) координат
+        self.SERVO_MIN_ANG_STEP = 3 # град., всё что меньше НЕ считается изменениеми текущих угловых координат (theta)
+
         self.SERVO_DEG_PER_SEC = 15
         self.SERVO_ANG_STEP = self.SERVO_DEG_PER_SEC / self.SERVO_FREQ
+
         self.SERVO_MM_PER_SEC = 40
         self.SERVO_LINEAR_STEP = self.SERVO_MM_PER_SEC / self.SERVO_FREQ
 
-        self.SERVO_RANGE = [self.config_arm['ang_range']] + [self.config_cam['ang_range']]
-        self.SERVO_OFFSET = self.config_arm['offset'] + self.config_cam['offset']
-    
-        self.last_servo_pos = copy.deepcopy(self.SERVO_OFFSET)
+        self.ARM_RANGE = self.config_arm['ang_range']
+        self.ARM_OFFSET = self.config_arm['offset']
 
-        self.current_gener_coord = copy.deepcopy(self.last_servo_pos)
+        self.GRIP_RANGE = self.config_grip['ang_range']
+        self.GRIP_STATE = self.config_grip['ang_range']
+
+        self.CAM_RANGE = self.config_cam['ang_range']
+        self.CAM_OFFSET = self.config_cam['offset']
+    
+        self.last_arm_pos = copy.deepcopy(self.ARM_OFFSET) # это в реальных (-..+) углах каждого сервопривода! - обобщённые координаты, напрямую использующиеся в ОЗК и ПЗК
+        self.current_gener_coord = copy.deepcopy(self.last_arm_pos) # инициализация текущих обобщ. координат - изменются вследствие тиков узла
+
         self.is_polar = True
+
+        self.last_xyz = dkp.dkp_3d(self.config_arm['length'], self.last_arm_pos)
+        self.last_polar = dkp.cartesian_to_polar(self.last_xyz) # theta, r, h
+
+        self.last_grip = None
+        self.last_cam = [None, None]
+
+        self.current_xyz = copy.deepcopy(self.last_xyz)
+        self.currnet_polar = copy.deepcopy(self.last_polar) # theta, r, h
+
+        self.current_grip = copy.deepcopy(self.last_grip)
+        self.current_cam = copy.deepcopy(self.last_cam)
         
         self.twist_pub = self.create_publisher(Twist, 'cmd_vel', 1)
         self.servo_pub = self.create_publisher(UInt8MultiArray, 'servo/to_write', 1)
@@ -58,13 +95,7 @@ class KeyboardNode(Node):
             ecodes.KEY_S: 's',
             ecodes.KEY_D: 'd'
         }
-        """
-        4-6 theta или x
-        2-8 h или z
-        1-7 r или y
-        3-9 захват
-        0-5 цилиндрические или декартовые 
-        """
+        
         self.arm_keys = {
             ecodes.KEY_KP0: '0',
             ecodes.KEY_KP1: '1',
@@ -99,8 +130,35 @@ class KeyboardNode(Node):
         self.timer = self.create_timer(1/self.SERVO_FREQ, self.process_keys)
 
     def get_last_servo_pos(self, msg):
-        self.last_servo_pos = [x - y for x, y in zip(list(msg.data), self.SERVO_OFFSET)] # приводим к отрицательному виду (полному виду, реальный дипазон грудсов)
-        self.current_gener_coord = copy.deepcopy(self.last_servo_pos)
+        all_data = list(msg.data)
+        # получаем актуальные координаты от драйвера - самые актуальные реальные данные, а значит, неважно, что мы там нассчитали с текущими, они тоже становятся здесь равны актуальным
+        self.last_arm_pos = [x - y for x, y in zip(all_data[:4], self.ARM_OFFSET)] # приводим к отрицательному виду (полному виду, реальный дипазон грудсов)
+        self.last_xyz = dkp.dkp_3d(self.config_arm['length'], self.last_arm_pos)
+        self.last_polar = dkp.cartesian_to_polar(self.last_xyz)
+        self.last_grip = all_data[4]
+        self.last_cam = [x-y for x, y in zip(all_data[5:], self.CAM_OFFSET)]
+        # необходимо использовать текущие координаты вместе с последнирми, потому что в общем случае скорость измения текущих вследжии тиков узла может бьть достаточно большой, чтобы текущие координаты зщначительно отличались от послшдених
+        self.current_gener_coord = copy.deepcopy(self.last_arm_pos)
+        self.current_xyz = copy.deepcopy(self.last_xyz)
+        self.currnet_polar = copy.deepcopy(self.last_polar)
+        self.current_grip = copy.deepcopy(self.last_grip)
+        self.current_cam = copy.deepcopy(self.last_cam)
+
+
+    def check_difference(self):
+        self.polar_is_diff =  abs(self.currnet_polar[0] - self.last_polar[0]) > self.SERVO_MIN_ANG_STEP or\
+        abs(self.currnet_polar[1] - self.last_polar[1]) > self.SERVO_MIN_LINEAR_STEP or\
+        abs(self.currnet_polar[2] - self.last_polar[2]) > self.SERVO_MIN_LINEAR_STEP
+
+        self.cartesian_is_diff = abs(self.current_xyz[0] - self.last_xyz[0]) > self.SERVO_MIN_LINEAR_STEP or\
+        abs(self.current_xyz[1] - self.last_xyz[1]) > self.SERVO_MIN_LINEAR_STEP or\
+        abs(self.current_xyz[2] - self.last_xyz[2]) > self.SERVO_MIN_LINEAR_STEP
+
+        self.grip_is_diff = self.current_grip != self.last_grip
+
+        self.cam_is_diff = abs(self.current_cam[0] - self.last_cam[0]) > self.SERVO_MIN_ANG_STEP or\
+        abs(self.current_cam[1] - self.last_cam[1]) > self.SERVO_MIN_ANG_STEP
+
 
     def find_keyboard_device(self):
         """Находит устройство клавиатуры, поддерживающее нужные клавиши."""
@@ -187,19 +245,6 @@ class KeyboardNode(Node):
             angular_z = self.ANGULAR_SPEED
         elif 'e' in current_keys and 'q' not in current_keys:
             angular_z = -self.ANGULAR_SPEED
-        #-----------------------------------------------------
-        # переключение типа координат
-        if '0' in current_keys and '5' not in current_keys:
-            self.is_polar = True
-        elif '5' in current_keys and '5' not in current_keys:
-            self.is_polar = False
-
-        if self.is_polar:
-            # вращение базы манипулятора
-            if '4' in current_keys and '6' not in current_keys:
-                self.current_gener_coord[0] -= self.SERVO_ANG_STEP
-            elif '6' in current_keys and '4' not in current_keys:
-                self.current_gener_coord[0] += self.SERVO_ANG_STEP
 
         twist_msg = Twist()
         twist_msg.linear.x = linear_x
@@ -211,16 +256,106 @@ class KeyboardNode(Node):
             f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={angular_z}",
             throttle_duration_sec=0.2
         )
-        for i, el in enumerate(self.current_gener_coord):
-            self.current_gener_coord[i] = round(el) + self.SERVO_OFFSET[i] # приводи к положиетльному виду
+        #-----------------------------------------------------
+        """
+        4-6 theta или x
+        2-8 h или z
+        1-7 r или y
+        3-9 захват
+        0-5 цилиндрические или декартовые 
+        """
+        # переключение типа координат
+        if '0' in current_keys and '5' not in current_keys:
+            self.is_polar = True
+        elif '5' in current_keys and '5' not in current_keys:
+            self.is_polar = False
 
-        servo_msg = UInt8MultiArray()
-        servo_msg.data = bytes(self.last_servo_pos)
-        self.servo_pub.publish(servo_msg)
-        self.get_logger().debug(
-            f"PUB: {servo_msg.data}",
-            throttle_duration_sec=0.2
-        )
+        if self.is_polar:
+            # вращение базы манипулятора
+            if '4' in current_keys and '6' not in current_keys:
+                self.currnet_polar[0] -= self.SERVO_ANG_STEP
+            elif '6' in current_keys and '4' not in current_keys:
+                self.currnet_polar[0] += self.SERVO_ANG_STEP
+            # изменение высоты
+            if '2' in current_keys and '8' not in current_keys:
+                self.currnet_polar[2] -= self.SERVO_LINEAR_STEP
+            elif '8' in current_keys and '2' not in current_keys:
+                self.currnet_polar[2] += self.SERVO_LINEAR_STEP
+            # изменение расстояния
+            if '1' in current_keys and '7' not in current_keys:
+                self.currnet_polar[1] -= self.SERVO_LINEAR_STEP
+            elif '7' in current_keys and '1' not in current_keys:
+                self.currnet_polar[1] += self.SERVO_LINEAR_STEP
+        else:
+            # x
+            if '4' in current_keys and '6' not in current_keys:
+                self.current_xyz[0] -= self.SERVO_LINEAR_STEP
+            elif '6' in current_keys and '4' not in current_keys:
+                self.currnet_polar[0] += self.SERVO_ANG_STEP
+            # z
+            if '2' in current_keys and '8' not in current_keys:
+                self.currnet_polar[2] -= self.SERVO_LINEAR_STEP
+            elif '8' in current_keys and '2' not in current_keys:
+                self.currnet_polar[2] += self.SERVO_LINEAR_STEP
+            # y
+            if '1' in current_keys and '7' not in current_keys:
+                self.currnet_polar[1] -= self.SERVO_LINEAR_STEP
+            elif '7' in current_keys and '1' not in current_keys:
+                self.currnet_polar[1] += self.SERVO_LINEAR_STEP
+
+
+        if '3' in current_keys and '9' not in current_keys:
+            self.current_grip = 1
+        elif '9' in current_keys and '3' not in current_keys:
+            self.current_grip = 0
+
+
+        if 'left' in current_keys and 'right' not in current_keys:
+            self.current_cam[0] -= self.SERVO_MIN_ANG_STEP
+        elif 'right' in current_keys and 'left' not in current_keys:
+            self.current_cam[0] += self.SERVO_MIN_ANG_STEP
+
+        if 'up' in current_keys and 'down' not in current_keys:
+            self.current_cam[1] -= self.SERVO_MIN_ANG_STEP
+        elif 'down' in current_keys and 'up' not in current_keys:
+            self.current_cam[1] += self.SERVO_MIN_ANG_STEP
+
+
+        self.check_difference()
+        msg_data = []
+
+        arm_success = False
+        if self.polar_is_diff:
+            result = main_ikp.solution(dkp.polar_to_cartesian(self.currnet_polar))
+            arm_success = result is not None
+        elif self.cartesian_is_diff:
+            result = main_ikp.solution(self.current_xyz)
+            arm_success = result is not None
+
+        if arm_success:
+            self.current_gener_coord = result
+            msg_data = [round(el) + self.ARM_OFFSET[i] for i, el in enumerate(self.current_gener_coord)]
+        else:
+            msg_data = self.last_arm_pos
+
+        msg_data += [self.current_grip]
+
+        if self.cam_is_diff:
+            msg_data += [round(el) + self.CAM_OFFSET[i] for i, el in enumerate(self.current_cam)]
+        else:
+            msg_data += self.last_cam
+
+        if arm_success or self.grip_is_diff or self.cam_is_diff:
+            clipper = self.ARM_RANGE + self.GRIP_RANGE + self.CAM_RANGE
+            msg_data = np.clip(msg_data, [c[0] for c in clipper], [c[1] for c in clipper]).tolist()
+
+            servo_msg = UInt8MultiArray()
+            servo_msg.data = bytes(self.current_gener_coord + [self.current_grip] + self.current_cam)
+            self.servo_pub.publish(servo_msg)
+            self.get_logger().debug(
+                f"PUB: {servo_msg.data}",
+                throttle_duration_sec=0.2
+            )
 
     def destroy_node(self):
         self.stop_event.set()

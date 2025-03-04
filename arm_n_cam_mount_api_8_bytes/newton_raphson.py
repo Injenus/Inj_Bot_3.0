@@ -6,8 +6,11 @@ import json
 import random
 from matplotlib.path import Path
 import bisect
+import copy
 
 import dkp
+
+random.seed(42)
 
 loaded_data = np.load('valid_area_data.npz')
 # Извлекаем основной массив в список
@@ -40,7 +43,7 @@ def is_reachable(x, y, lengths):
     l1,l2,l3 = lengths
     distance = np.sqrt(x**2 + y**2)
     R_max = l1 + l2 + l3
-    R_min = 10
+    R_min = max(0, l1 - l2 - l3, l2 - l1 - l3, l3 - l1 - l2)
     is_r_valid = (R_min <= distance <= R_max)
 
     is_inside_polyg = is_inside_polygon(x,y)
@@ -68,7 +71,7 @@ def is_segment_intersects_polygon(x1,y1,x2,y2, path):
     return False
 
 def is_collision(angles, lengths):
-    a, b, c = angles
+    a, b, c = np.deg2rad(angles)
     l1,l2,l3 = lengths
     points = [
         (0, 0),
@@ -91,51 +94,129 @@ def segments_intersect(p1, p2, p3, p4):
     # Основная проверка на пересечение отрезков
     return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
 
-# Функции системы с углами относительно предыдущих звеньев
-def f(angles, x, y, lengths):
-    l1,l2,l3 = lengths
-    a, b, c = angles
-    f1 = l1 * np.sin(a) + l2 * np.sin(a + b) + l3 * np.sin(a + b + c) - x
-    f2 = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c) - y
+
+def f(angles, x_target, y_target, lengths):
+    l1, l2, l3 = lengths
+    a, b, c = angles  # Углы в радианах
+    
+    # Координаты по вашей системе:
+    # x = сумма проекций на "горизонталь" (ось X) через sin(θ)
+    # y = сумма проекций на "вертикаль" (ось Y) через cos(θ)
+    x = l1 * np.sin(a) + l2 * np.sin(a + b) + l3 * np.sin(a + b + c)
+    y = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    
+    # Невязка между текущими координатами и целевыми
+    f1 = x - x_target
+    f2 = y - y_target
+    
     return np.array([f1, f2])
 
-# Якобиан для новых уравнений
 def jacobian(lengths, angles):
     l1, l2, l3 = lengths
-    a, b, c = angles
-    J = np.zeros((2, 3))
-
-    # Частные производные для x
-    J[0, 0] = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
-    J[0, 1] = l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
-    J[0, 2] = l3 * np.cos(a + b + c)
-
-    # Частные производные для y
-    J[1, 0] = -l1 * np.sin(a) - l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
-    J[1, 1] = -l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
-    J[1, 2] = -l3 * np.sin(a + b + c)
-
+    a, b, c = angles  # Углы в радианах
+    J = np.zeros((2, 3))  # Матрица 2x3
+    
+    # Производные для f1 (по x):
+    # df1/da = l1*cos(a) + l2*cos(a+b) + l3*cos(a+b+c)
+    # df1/db = l2*cos(a+b) + l3*cos(a+b+c)
+    # df1/dc = l3*cos(a+b+c)
+    J[1, 0] = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    J[1, 1] = l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    J[1, 2] = l3 * np.cos(a + b + c)
+    
+    # Производные для f2 (по y):
+    # df2/da = -l1*sin(a) - l2*sin(a+b) - l3*sin(a+b+c)
+    # df2/db = -l2*sin(a+b) - l3*sin(a+b+c)
+    # df2/dc = -l3*sin(a+b+c)
+    J[0, 0] = -l1 * np.sin(a) - l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
+    J[0, 1] = -l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
+    J[0, 2] = -l3 * np.sin(a + b + c)
+    
     return J
 
 # Метод Ньютона-Рафсона
-def newton_raphson(initial_guess, x, y, lengths, ang_range, tol=1.0, max_iter=42):
-    angles = np.radians(initial_guess)
-    for _ in range(max_iter):
-        J = jacobian(lengths,angles)
-        F = f(angles, x, y, lengths)
-        delta = np.linalg.lstsq(J.T @ J, -J.T @ F, rcond=None)[0]
-        angles += delta
+# def newton_raphson(initial_guess, x, y, lengths, ang_range, tol=1.0, max_iter=100000):
+#     angles = np.radians(initial_guess)
+#     lower_bounds = np.radians([ang[0] for ang in ang_range[1:]])
+#     upper_bounds = np.radians([ang[1] for ang in ang_range[1:]])
+#     for _ in range(max_iter):
+#         J = jacobian(lengths, angles)
+#         F = f(angles, x, y, lengths)
+        
+#         # Решение с псевдоинверсией
+#         delta = -np.linalg.pinv(J) @ F
+#         angles = np.clip(angles + delta, lower_bounds, upper_bounds)
 
-        # Проверка сходимости
-        if np.linalg.norm(delta) <= tol:
-            break
+#         # Проверка сходимости
+#         if np.linalg.norm(delta) <= tol and np.linalg.norm(F) <= tol:
+#             break
     
-    solution = np.degrees(angles).tolist()
-    solution[0] = np.clip(solution[0], ang_range[1][0], ang_range[1][1])
-    solution[1] = np.clip(solution[1], ang_range[2][0], ang_range[2][1])
-    solution[2] = np.clip(solution[2], ang_range[3][0], ang_range[3][1])
+#     solution = np.degrees(angles).tolist()
+#     solution[0] = np.clip(solution[0], ang_range[1][0], ang_range[1][1])
+#     solution[1] = np.clip(solution[1], ang_range[2][0], ang_range[2][1])
+#     solution[2] = np.clip(solution[2], ang_range[3][0], ang_range[3][1])
 
-    return solution
+#     return solution
+
+# def newton_raphson(initial_guess, x_target, y_target, lengths, ang_range, tol=0.5, max_iter=100000):
+#     angles = np.radians(initial_guess)  # Градусы -> радианы
+#     lower_bounds = np.radians([ang[0] for ang in ang_range[1:]])
+#     upper_bounds = np.radians([ang[1] for ang in ang_range[1:]])
+    
+#     for _ in range(max_iter):
+#         J = jacobian(lengths, angles)
+#         F = f(angles, x_target, y_target, lengths)
+        
+#         # Решение методом Гаусса-Ньютона
+#         delta = np.linalg.lstsq(J, -F, rcond=None)[0]
+#         angles += delta
+        
+#         # Ограничение углов в процессе итераций
+#         angles = np.clip(angles, lower_bounds, upper_bounds)
+        
+#         # Проверка сходимости
+#         if np.linalg.norm(delta) < tol and np.linalg.norm(F) < tol:
+#             break
+    
+#     return np.degrees(angles).tolist()
+
+def newton_raphson(initial_guess, x_target, y_target, lengths, ang_range, tol=1e-1, max_iter=10000, lambda_=0.01):
+    angles = np.radians(initial_guess)
+    lower_bounds = np.radians([ang[0] for ang in ang_range[1:]])
+    upper_bounds = np.radians([ang[1] for ang in ang_range[1:]])
+    
+    for _ in range(max_iter):
+        J = jacobian(lengths, angles)
+        F = f(angles, x_target, y_target, lengths)
+        
+        # Решение методом Левенберга-Марквардта: (J^T J + λI) δ = -J^T F
+        I = np.eye(3)
+        delta = np.linalg.lstsq(J.T @ J + lambda_ * I, -J.T @ F, rcond=None)[0]
+        
+        # Линейный поиск с адаптивным шагом
+        alpha = 1.0
+        for _ in range(10):  # Максимум 10 попыток шага
+            new_angles = angles + alpha * delta
+            new_angles = np.clip(new_angles, lower_bounds, upper_bounds)
+            new_F = f(new_angles, x_target, y_target, lengths)
+            
+            if np.linalg.norm(new_F) < np.linalg.norm(F):
+                angles = new_angles
+                lambda_ *= 0.5  # Уменьшаем λ при успешном шаге
+                break
+            else:
+                alpha *= 0.5  # Уменьшаем шаг
+                lambda_ *= 2.0  # Увеличиваем λ
+        else:
+            break  # Не удалось найти подходящий шаг
+        
+        # Критерий остановки
+        if (np.linalg.norm(F) < tol and 
+            np.linalg.norm(delta) < tol and 
+            np.linalg.norm(alpha * delta) < 0.1 * tol):
+            break
+            
+    return np.degrees(angles).tolist()
 
 def is_within_limits(angles, ang_range):
     a, b, c = angles
@@ -215,14 +296,12 @@ def plot_manipulator(angles_deg):
     plt.legend()
     plt.show()
 
-def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
+def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None, range_koeff=4):
     if init_ang is None:
-        #init_ang = [0, 0, 0]
-        raise ValueError("LOOOOOOOOOL")
         init_ang = [
-                random.uniform(*ang_range[1]),
-                random.uniform(*ang_range[2]),
-                random.uniform(*ang_range[3])
+                random.uniform(*(x/range_koeff for x in ang_range[1])),
+                random.uniform(*(x/range_koeff for x in ang_range[2])),
+                random.uniform(*(x/range_koeff for x in ang_range[3]))
             ]
     solution = newton_raphson(init_ang, x, y, lengths, ang_range)
 
@@ -231,14 +310,14 @@ def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
     else:
         # Попытки с другими начальными условиями
         attempts = 0
-        max_attempts = 42  # Ограничим количество попыток
+        max_attempts = 100  # Ограничим количество попыток
         while attempts < max_attempts:
-            # init_ang = [
-            #     random.uniform(*ang_range[1]),
-            #     random.uniform(*ang_range[2]),
-            #     random.uniform(*ang_range[3])
-            # ]
-            solution = newton_raphson(init_ang, x, y, lengths)
+            init_ang = [
+                random.uniform(*(x for x in [init_ang[0]*(1-1/range_koeff),init_ang[0]*(1+1/range_koeff)])),
+                random.uniform(*(x for x in [init_ang[1]*(1-1/range_koeff),init_ang[1]*(1+1/range_koeff)])),
+                random.uniform(*(x for x in [init_ang[2]*(1-1/range_koeff),init_ang[2]*(1+1/range_koeff)]))
+            ]
+            solution = newton_raphson(init_ang, x, y, lengths, ang_range)
             if solution is not None and not is_collision(solution, lengths):
                 valid = True
 
@@ -249,13 +328,14 @@ def get_solution(x, y, ang_range, lengths, q0=None, init_ang=None):
                 #         valid = False
                 #         break
 
-                actual_surface_idx = find_closest_index(main_loaded, q0)
-                xs, ys = dkp.arm_unit_coord_2d(lengths, solution)
-                for i in range(len(xs)-1):
-                    if is_segment_intersects_polygon(xs[i], ys[i], xs[i+1], ys[i+1],
-                                                  Path(arrays_loaded[actual_surface_idx])):
-                        valid = False
-                        break
+
+                # actual_surface_idx = find_closest_index(main_loaded, q0)
+                # xs, ys = dkp.arm_unit_coord_2d(lengths, solution)
+                # for i in range(len(xs)-1):
+                #     if is_segment_intersects_polygon(xs[i], ys[i], xs[i+1], ys[i+1],
+                #                                   Path(arrays_loaded[actual_surface_idx])):
+                #         valid = False
+                #         break
 
                 if valid:
                     return solution

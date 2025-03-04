@@ -6,9 +6,17 @@ import json
 import os
 import time
 import gc
+import psutil
+import sys
 
 import dkp
 import newton_raphson
+
+def memory_limit_exceeded(max_mb):
+    """Проверяет, превышено ли использование памяти."""
+    process = psutil.Process()
+    mem_info = process.memory_info()
+    return (mem_info.rss / 1024 / 1024) > max_mb  # RSS в мегабайтах
 
 def view(lengths, angles, name='Положение манипулятора с осями координат'):
     total_length = sum(lengths)
@@ -83,7 +91,7 @@ def cylindrical_to_cartesian(theta, r, h, degrees=False):
     return (r * np.sin(theta_rad), r * np.cos(theta_rad), h)
 
 def main(x,y,z, init_ang, name='def'):
-    dir = 'ikp_log_Path_segments_42_real_prev_tol_1.0'
+    dir = 'ikp_log_Path_segments_EXPERIMENTAL'
     os.makedirs(dir, exist_ok=True)
     
     theta = (np.arctan2(x,y) + np.pi) % (2 * np.pi) - np.pi
@@ -100,7 +108,9 @@ def main(x,y,z, init_ang, name='def'):
     sol_time = time.time()
     if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
         print('ar',ang_range)
-        deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0, init_ang)
+        if init_ang == [None, None, None]:
+            init_ang = None
+        deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0, init_ang, 5)
         sol_time = time.time() - sol_time
         if all(x is not None for x in deg_ang):
             q1,q2,q3 = np.radians(deg_ang)
@@ -147,27 +157,52 @@ if __name__ == '__main__':
         for (a, b), off in zip(ang_range, ang_offset)
     ]
 
-    x,y,z = 1, 1, 10
-    main(x,y,z, [0,0,0], 'def')
+    # x,y,z = 1, 1, 10
+    # main(x,y,z, [0,0,0], 'def')
 
-    x = [i for i in range(-330,330,10)]
-    y = [i for i in range(-330,330,10)]
-    z = [i for i in range(-330,330,10)]
-
-    q1,q2,q3 = 0,0,0
+    max_r = sum(config['length'])
+    q1,q2,q3 = None, None, None
     i = 0
-    for x_ in x:
-        for y_ in y:
-            for z_ in z:
-                # if i < 285400:
-                #     i += 1
-                #     continue
-                q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+    for x in range(-max_r, max_r, 15):
+        for y in range(-max_r, max_r, 15):
+            if np.sqrt(x**2+y**2) > max_r:
+                continue
+            for z in range(-max_r, max_r, 15):
+                if abs(x+y+z) > max_r or np.sqrt(x**2+z**2) > max_r or np.sqrt(y**2+z**2) > max_r:
+                    continue
+                if i > 288360:
+                    continue
+                i += 1
+                q1_,q2_,q3_ = main(x,y,z, [q1,q2,q3], i)
                 if not (q1_==-1 and q2_==-1 and q3_==-1) and not (q1_==-2 and q2_==-2 and q3_==-2):
                     q1, q2, q3 = q1_, q2_, q3_
-                #main(x_,y_,z_, None, i)
-                i += 1
-                if not (i % 100):
-                    gc.collect()
+                if not 1%420:
+                    # Проверка памяти каждые 1000 итераций
+                    if i % 1000 == 141960:
+                        if memory_limit_exceeded(15000):
+                            print(f"Лимит памяти превышен ({15000} MB). Завершение...")
+                            sys.exit(1)
+                            
+                        gc.collect()
+
+
+    # x = [i for i in range(-330,330,10)]
+    # y = [i for i in range(-330,330,10)]
+    # z = [i for i in range(-330,330,10)]
+ 
+    # i = 0
+    # for x_ in x:
+    #     for y_ in y:
+    #         for z_ in z:
+    #             if i < 0:
+    #                 i += 1
+    #                 continue
+    #             # q1_,q2_,q3_ = main(x_,y_,z_, [q1,q2,q3], i)
+    #             # if not (q1_==-1 and q2_==-1 and q3_==-1) and not (q1_==-2 and q2_==-2 and q3_==-2):
+    #             #     q1, q2, q3 = q1_, q2_, q3_
+    #             main(x_,y_,z_, None, i)
+    #             i += 1
+    #             if not (i % 42):
+    #                 gc.collect()
 
     

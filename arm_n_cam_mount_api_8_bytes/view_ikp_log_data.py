@@ -4,6 +4,48 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+def plot_histograms(directory, jpg_times, unreachable_times, outzone_times):
+    # Создаем гистограммы для трех классов
+    colors = {
+        "JPG": "blue",
+        "Недостижимые": "red",
+        "Вне_зоны": "yellow"
+    }
+    
+    # Настройки общего стиля
+    plt.style.use('seaborn')
+    
+    for class_name, times in zip(["JPG", "Недостижимые", "Вне_зоны"],
+                               [jpg_times, unreachable_times, outzone_times]):
+        if not times:
+            continue
+            
+        plt.figure(figsize=(10, 6))
+        n, bins, patches = plt.hist(times, 
+                                   bins=int(np.sqrt(len(times))) if len(times) > 10 else 5,
+                                   color=colors[class_name],
+                                   edgecolor='black',
+                                   alpha=0.7)
+        
+        # Добавляем вертикальную линию для среднего
+        mean_val = np.mean(times)
+        plt.axvline(mean_val, color='k', linestyle='dashed', linewidth=2, 
+                   label=f'Среднее: {mean_val:.2f} сек')
+        
+        plt.title(f"{directory}: Распределение времени для {class_name.replace('_', ' ')}\n"
+                f"Всего точек: {len(times)}")
+        plt.xlabel('Время решения (секунды)')
+        plt.ylabel('Количество точек')
+        plt.legend()
+        
+        # Форматируем имя файла
+        safe_dir = directory.replace(" ", "_").replace("/", "-")
+        safe_class = class_name.replace(" ", "_")
+        plt.savefig(f"{safe_dir}_{safe_class}_hist.png", 
+                   bbox_inches='tight', 
+                   dpi=150)
+        plt.close()
+
 def main(directory):
 
     # Регулярные выражения для парсинга файлов
@@ -54,6 +96,8 @@ def main(directory):
     unreachable_time_stats = calc_time_stats(unreachable_times)
     outzone_time_stats = calc_time_stats(outzone_times)
 
+    plot_histograms(directory, jpg_times, unreachable_times, outzone_times)
+
     print(f'{directory}:')
     # Вывод статистики
     jpg_num = len(jpg_points)
@@ -66,12 +110,14 @@ def main(directory):
     print(f"Вне зоны {round(100*outzone_num/all_num,2)}%:", outzone_time_stats)
     print()
 
+
+
 if __name__ == '__main__':
-    main('ikp_log_Path_segments_100_random')
-    main('ikp_log_Path_segments_100_prev')
-    main('ikp_log_Path_segments_1000_random')
-    main('ikp_log_Path_segments_1000_prev')
-    main('ikp_log_Path_segments_42_real_prev_tol_1.0')
+    # main('ikp_log_Path_segments_100_random')
+    # main('ikp_log_Path_segments_100_prev')
+    # main('ikp_log_Path_segments_1000_random')
+    # main('ikp_log_Path_segments_1000_prev')
+    main('ikp_log_Path_segments_EXPERIMENTAL')
 
 
 
