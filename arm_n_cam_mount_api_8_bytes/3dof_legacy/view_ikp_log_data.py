@@ -50,8 +50,8 @@ def main(directory):
 
     # Регулярные выражения для парсинга файлов
     jpg_pattern = re.compile(r"(?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.jpg")
-    txt_unreachable_pattern = re.compile(r"Недостиж (?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
-    txt_outzone_pattern = re.compile(r"Вне з (?P<name>.+) x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
+    txt_unreachable_pattern = re.compile(r"(?P<name>.+) Недостиж x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
+    txt_outzone_pattern = re.compile(r"(?P<name>.+) Вне з x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+), time=(?P<time>\d+\.\d+)\.txt")
 
     # Списки координат
     jpg_points = []

@@ -103,42 +103,41 @@ def main(x,y,z, init_ang, name='def'):
     x_p = x / np.sin(theta)
 
     q0 = theta
-    print(f'В локальной плоскости точка ({x_p}, {y_p})')
-    print(f'Угол базового звена {np.degrees(theta)}')
+    # print(f'В локальной плоскости точка ({x_p}, {y_p})')
+    # print(f'Угол базового звена {np.degrees(theta)}')
     sol_time = time.time()
     if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
-        print('ar',ang_range)
-        if init_ang == [None, None, None]:
-            init_ang = None
         deg_ang = newton_raphson.get_solution(x_p, y_p, ang_range, (l1,l2,l3), q0, init_ang, 5)
         sol_time = time.time() - sol_time
         if all(x is not None for x in deg_ang):
             q1,q2,q3 = np.radians(deg_ang)
             a,b,c = deg_ang
-            print(f"Углы в локальной плоскости: {deg_ang}")
-            print(f'Угол theta = {np.degrees(theta)}')
-            print(f"Реальное положение схвата: {dkp.dkp_3d((l1,l2,l3),(np.degrees(theta),a,b,c))}")
+            # print(f"Углы в локальной плоскости: {deg_ang}")
+            # print(f'Угол theta = {np.degrees(theta)}')
+            r_x, r_y, r_z = dkp.dkp_3d((l1,l2,l3),(np.degrees(theta),a,b,c))
+            print(f"Реальное положение схвата: x={r_x}, y={r_y}, z={r_z}")
+            print(f'Углы в град. q0={np.degrees(theta)}, q1={a}, q2={b},q3={c}')
             view((l1, l2, l3), (q0,q1,q2,q3), f'{dir}/{name} x={x}, y={y}, z={z}, time={sol_time}')
-            return q1,q2,q3
+            return a,b,c
         else:
-            print(f"Точка ({x_p}, {y_p}) в локальной плоскости недостижима.")
-            with open(f"{dir}/Недостиж {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+            print(f"{name} Точка ({x_p}, {y_p}) в локальной плоскости недостижима.")
+            with open(f"{dir}/{name} Недостиж x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
                 file.write("")
             return -1, -1, -1
     else:
         for k in range(42):
             if newton_raphson.is_reachable(x_p, y_p, (l1,l2,l3)):
                 sol_time = time.time() - sol_time
-                print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
-                with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
-                    file.write(f"Точка ({x_p}, {y_p}) наебала детерминированный метод.")
+                print(f"{name} Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
+                with open(f"{dir}/{name} Вне з x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+                    file.write(f"{name} Точка ({x_p}, {y_p}) наебала детерминированный метод.")
                 with open(f'{dir}_log.txt', 'a'):
-                    file.write(f'Точка {name} ({x_p}, {y_p}), наёбка произошла с {k+1} попытки.')
+                    file.write(f'{name} Точка ({x_p}, {y_p}), наёбка произошла с {k+1} попытки.')
                 return -2, -2, -2
             
         sol_time = time.time() - sol_time
-        print(f"Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
-        with open(f"{dir}/Вне з {name} x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
+        print(f"{name} Точка ({x_p}, {y_p}) в локальной плокости вне зоны досягаемости.")
+        with open(f"{dir}/{name} Вне з x={x}, y={y}, z={z}, time={sol_time}.txt", "w") as file:
             file.write("")
         return -2, -2, -2
 
@@ -159,31 +158,30 @@ if __name__ == '__main__':
 
     # x,y,z = 1, 1, 10
     # main(x,y,z, [0,0,0], 'def')
-
+    
+    step = 100
     max_r = sum(config['length'])
-    q1,q2,q3 = None, None, None
+    q1,q2,q3 = 0, 0, 0
     i = 0
-    for x in range(-max_r, max_r, 15):
-        for y in range(-max_r, max_r, 15):
+    for x in range(-max_r, max_r, step):
+        for y in range(-max_r, max_r, step):
             if np.sqrt(x**2+y**2) > max_r:
                 continue
-            for z in range(-max_r, max_r, 15):
+            for z in range(-max_r, max_r, step):
                 if abs(x+y+z) > max_r or np.sqrt(x**2+z**2) > max_r or np.sqrt(y**2+z**2) > max_r:
                     continue
-                if i > 288360:
-                    continue
                 i += 1
+                print('\nЦелевое положение схвата: ',f'x={x}, y={y}, z={z}')
                 q1_,q2_,q3_ = main(x,y,z, [q1,q2,q3], i)
                 if not (q1_==-1 and q2_==-1 and q3_==-1) and not (q1_==-2 and q2_==-2 and q3_==-2):
                     q1, q2, q3 = q1_, q2_, q3_
                 if not 1%420:
-                    # Проверка памяти каждые 1000 итераций
-                    if i % 1000 == 141960:
-                        if memory_limit_exceeded(15000):
-                            print(f"Лимит памяти превышен ({15000} MB). Завершение...")
-                            sys.exit(1)
-                            
-                        gc.collect()
+                    # Проверка памяти
+                    if memory_limit_exceeded(15000):
+                        print(f"Лимит памяти превышен ({15000} MB). Завершение...")
+                        sys.exit(1)
+                        
+                    gc.collect()
 
 
     # x = [i for i in range(-330,330,10)]

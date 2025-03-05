@@ -95,7 +95,7 @@ def segments_intersect(p1, p2, p3, p4):
     return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
 
 
-def f(angles, x_target, y_target, lengths):
+def f(angles, x_target, y_target, lengths, lower_bounds, upper_bounds, penalty_weight=1e3):
     l1, l2, l3 = lengths
     a, b, c = angles  # Углы в радианах
     
@@ -108,10 +108,22 @@ def f(angles, x_target, y_target, lengths):
     # Невязка между текущими координатами и целевыми
     f1 = x - x_target
     f2 = y - y_target
+
+    # # Штрафы за выход за границы
+    # penalty = 0
+    # for i in range(3):
+    #     if angles[i] < lower_bounds[i]:
+    #         penalty += (lower_bounds[i] - angles[i])**2
+    #     elif angles[i] > upper_bounds[i]:
+    #         penalty += (angles[i] - upper_bounds[i])**2
+    
+    # # Расширенная система уравнений
+    # F = np.array([f1, f2, np.sqrt(penalty_weight * penalty)])
+    # return F
     
     return np.array([f1, f2])
 
-def jacobian(lengths, angles):
+def jacobian(lengths, angles, lower_bounds, upper_bounds, penalty_weight=1e3):
     l1, l2, l3 = lengths
     a, b, c = angles  # Углы в радианах
     J = np.zeros((2, 3))  # Матрица 2x3
@@ -120,17 +132,37 @@ def jacobian(lengths, angles):
     # df1/da = l1*cos(a) + l2*cos(a+b) + l3*cos(a+b+c)
     # df1/db = l2*cos(a+b) + l3*cos(a+b+c)
     # df1/dc = l3*cos(a+b+c)
-    J[1, 0] = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
-    J[1, 1] = l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
-    J[1, 2] = l3 * np.cos(a + b + c)
+    J[0, 0] = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    J[0, 1] = l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    J[0, 2] = l3 * np.cos(a + b + c)
     
     # Производные для f2 (по y):
     # df2/da = -l1*sin(a) - l2*sin(a+b) - l3*sin(a+b+c)
     # df2/db = -l2*sin(a+b) - l3*sin(a+b+c)
     # df2/dc = -l3*sin(a+b+c)
-    J[0, 0] = -l1 * np.sin(a) - l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
-    J[0, 1] = -l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
-    J[0, 2] = -l3 * np.sin(a + b + c)
+    J[1, 0] = -l1 * np.sin(a) - l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
+    J[1, 1] = -l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
+    J[1, 2] = -l3 * np.sin(a + b + c)
+
+    # J = np.zeros((3, 3))  # Теперь 3x3
+    
+    # # Оригинальные производные
+    # J[0, 0] = l1 * np.cos(a) + l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    # J[0, 1] = l2 * np.cos(a + b) + l3 * np.cos(a + b + c)
+    # J[0, 2] = l3 * np.cos(a + b + c)
+    
+    # J[1, 0] = -l1 * np.sin(a) - l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
+    # J[1, 1] = -l2 * np.sin(a + b) - l3 * np.sin(a + b + c)
+    # J[1, 2] = -l3 * np.sin(a + b + c)
+    
+    # # Производные штрафа
+    # for i in range(3):
+    #     if angles[i] < lower_bounds[i]:
+    #         J[2, i] = -2 * penalty_weight * (lower_bounds[i] - angles[i])
+    #     elif angles[i] > upper_bounds[i]:
+    #         J[2, i] = 2 * penalty_weight * (angles[i] - upper_bounds[i])
+    #     else:
+    #         J[2, i] = 0
     
     return J
 
@@ -180,25 +212,45 @@ def jacobian(lengths, angles):
     
 #     return np.degrees(angles).tolist()
 
-def newton_raphson(initial_guess, x_target, y_target, lengths, ang_range, tol=1e-1, max_iter=10000, lambda_=0.01):
+def project_delta(angles, delta, lower_bounds, upper_bounds):
+    # Определяем активные ограничения
+    active_lower = (angles <= lower_bounds) & (delta < 0)
+    active_upper = (angles >= upper_bounds) & (delta > 0)
+    # Обнуляем дельту для активных ограничений
+    delta[active_lower | active_upper] = 0
+    return delta
+
+def newton_raphson(initial_guess, x_target, y_target, lengths, ang_range, tol=1e-6, max_iter=10000, lambda_init=0.01):
     angles = np.radians(initial_guess)
     lower_bounds = np.radians([ang[0] for ang in ang_range[1:]])
     upper_bounds = np.radians([ang[1] for ang in ang_range[1:]])
+    lambda_ = lambda_init
     
     for _ in range(max_iter):
-        J = jacobian(lengths, angles)
-        F = f(angles, x_target, y_target, lengths)
+        J = jacobian(lengths, angles, lower_bounds, upper_bounds)
+        F = f(angles, x_target, y_target, lengths, lower_bounds, upper_bounds)
         
         # Решение методом Левенберга-Марквардта: (J^T J + λI) δ = -J^T F
         I = np.eye(3)
-        delta = np.linalg.lstsq(J.T @ J + lambda_ * I, -J.T @ F, rcond=None)[0]
+        U, s, Vt = np.linalg.svd(J.T @ J + lambda_ * I, full_matrices=False)
+        #delta = np.linalg.pinv(J.T @ J + lambda_ * I) @ (-J.T @ F)
+        delta = np.linalg.lstsq(
+            J.T @ J + lambda_ * np.eye(3), 
+            -J.T @ F, 
+            rcond=None
+        )[0]
+        # delta = Vt.T @ np.diag(1/(s + 1e-12)) @ U.T @ (-J.T @ F)
+        # delta = np.linalg.lstsq(J.T @ J + lambda_ * I, -J.T @ F, rcond=None)[0]
+        # Проекция дельты на допустимые направления
+        delta = project_delta(angles, delta, lower_bounds, upper_bounds)
         
         # Линейный поиск с адаптивным шагом
         alpha = 1.0
-        for _ in range(10):  # Максимум 10 попыток шага
+        min_alpha = 1e-8  # Минимальный допустимый шаг
+        while alpha > min_alpha:
             new_angles = angles + alpha * delta
             new_angles = np.clip(new_angles, lower_bounds, upper_bounds)
-            new_F = f(new_angles, x_target, y_target, lengths)
+            new_F = f(new_angles, x_target, y_target, lengths, lower_bounds, upper_bounds)
             
             if np.linalg.norm(new_F) < np.linalg.norm(F):
                 angles = new_angles
@@ -211,9 +263,11 @@ def newton_raphson(initial_guess, x_target, y_target, lengths, ang_range, tol=1e
             break  # Не удалось найти подходящий шаг
         
         # Критерий остановки
-        if (np.linalg.norm(F) < tol and 
-            np.linalg.norm(delta) < tol and 
-            np.linalg.norm(alpha * delta) < 0.1 * tol):
+        # if (np.linalg.norm(F) < tol and 
+        #     np.linalg.norm(delta) < tol and 
+        #     np.linalg.norm(alpha * delta) < 0.1 * tol):
+        #     break
+        if np.linalg.norm(F) < tol and np.linalg.norm(delta) < tol:
             break
             
     return np.degrees(angles).tolist()
