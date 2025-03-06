@@ -28,7 +28,7 @@ len_m50 = len_m90/np.sin(np.radians(50))
 array_m50 = np.array([[-np.inf, -np.inf], [-np.inf, -170], [-len_m50, -170], [-len_m50, 0], [0,0], [len_m50, 0], [len_m50, -170], [np.inf, -170], [np.inf, -np.inf]])
 # ----------------------------------------------------------------------------
 len_m40_back, len_m40_forw = 180, 200
-array_m40 = np.array([[[-np.inf, -np.inf], [-np.inf, -170], [-len_m40_back, -170], [-len_m40_back, 0], [0, 0], [len_m40_forw, 0], [len_m40_forw, -170], [np.inf, -170], [np.inf, np.inf]]])
+array_m40 = np.array([[-np.inf, -np.inf], [-np.inf, -170], [-len_m40_back, -170], [-len_m40_back, 0], [0, 0], [len_m40_forw, 0], [len_m40_forw, -170], [np.inf, -170], [np.inf, np.inf]])
 array_m30 = np.copy(array_m40)
 array_m20 = np.copy(array_m30)
 # ----------------------------------------------------------------------------

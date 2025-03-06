@@ -18,6 +18,8 @@ main_loaded = loaded_data['main'].tolist()
 # Восстанавливаем список массивов, сохраняя порядок
 arrays_loaded = [loaded_data[f'array_{i}'] for i in range(len(main_loaded))]
 
+print(main_loaded)
+
 
 def find_closest_index(arr, target):
     # Используем bisect_left для нахождения позиции, куда можно вставить target
