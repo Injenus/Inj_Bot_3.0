@@ -10,6 +10,7 @@ import copy
 import sys
 import os
 import numpy as np
+from matplotlib.path import Path
 
 current_script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(current_script_path)
@@ -17,8 +18,7 @@ receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '
 if receive_data_path not in sys.path:
     sys.path.append(receive_data_path)
 
-import dkp
-import main_ikp
+from arm_full_pack import *
 
 class KeyboardNode(Node):
     def __init__(self):
@@ -40,6 +40,14 @@ class KeyboardNode(Node):
 
         with open('../../../../arm_n_cam_mount_api_8_bytes/config_grip.json', 'r') as file:
             self.config_grip = json.load(file)
+
+        actual_ang_range = np.deg2rad([[a - off, b - off] for (a, b), off in zip(self.config_arm['ang_range'], self.config_arm['offset'])])
+        valid_area_data = np.load('../../../../valid_area_data.npz')
+        specific_theta_angles = valid_area_data['main']
+        specific_valid_area = [Path(valid_area_data[f'array_{i}']) for i in range(len(specific_theta_angles.tolist()))]
+        global_valid_area = Path(np.array([[-np.inf, -np.inf], [-np.inf, -170], [-210, -170], [-210, 0], [0, 0], [210, 0], [210, -170], [np.inf, -170], [np.inf, -np.inf]]))
+
+        self.arm = ArmIKP(self.config_arm['length'], actual_ang_range, specific_valid_area, specific_theta_angles, global_valid_area)
 
         self.SERVO_FREQ = 50
         self.SERVO_MIN_LINEAR_STEP = 10 # мм, всё что меньше НЕ считается изменением текущих линейных (xyz, rh) координат
@@ -65,14 +73,15 @@ class KeyboardNode(Node):
 
         self.is_polar = True
 
-        self.last_xyz = dkp.dkp_3d(self.config_arm['length'], self.last_arm_pos)
-        self.last_polar = dkp.cartesian_to_polar(self.last_xyz) # theta, r, h
+        self.last_xyz = self.arm.dkp_2dof(np.deg2rad(self.last_arm_pos))
+        self.last_cyclin = ArmIKP.cartesian_to_cylindrical(self.last_xyz, np.deg2rad(self.ARM_RANGE[0])) # theta r h
+        self.last_cyclin[0] = np.rad2deg(self.last_cyclin[0]) 
 
         self.last_grip = None
         self.last_cam = [None, None]
 
         self.current_xyz = copy.deepcopy(self.last_xyz)
-        self.currnet_polar = copy.deepcopy(self.last_polar) # theta, r, h
+        self.currnet_cyclin = copy.deepcopy(self.last_cyclin) # theta, r, h
 
         self.current_grip = copy.deepcopy(self.last_grip)
         self.current_cam = copy.deepcopy(self.last_cam)
@@ -133,22 +142,23 @@ class KeyboardNode(Node):
         all_data = list(msg.data)
         # получаем актуальные координаты от драйвера - самые актуальные реальные данные, а значит, неважно, что мы там нассчитали с текущими, они тоже становятся здесь равны актуальным
         self.last_arm_pos = [x - y for x, y in zip(all_data[:4], self.ARM_OFFSET)] # приводим к отрицательному виду (полному виду, реальный дипазон грудсов)
-        self.last_xyz = dkp.dkp_3d(self.config_arm['length'], self.last_arm_pos)
-        self.last_polar = dkp.cartesian_to_polar(self.last_xyz)
+        self.last_xyz = self.arm.dkp_2dof(np.deg2rad(self.last_arm_pos))
+        self.last_cyclin = ArmIKP.cartesian_to_cylindrical(self.last_xyz, np.deg2rad(self.ARM_RANGE[0])) # theta r h
+        self.last_cyclin[0] = np.ead2deg(self.last_cyclin[0])
         self.last_grip = all_data[4]
         self.last_cam = [x-y for x, y in zip(all_data[5:], self.CAM_OFFSET)]
         # необходимо использовать текущие координаты вместе с последнирми, потому что в общем случае скорость измения текущих вследжии тиков узла может бьть достаточно большой, чтобы текущие координаты зщначительно отличались от послшдених
         self.current_gener_coord = copy.deepcopy(self.last_arm_pos)
         self.current_xyz = copy.deepcopy(self.last_xyz)
-        self.currnet_polar = copy.deepcopy(self.last_polar)
+        self.currnet_cyclin = copy.deepcopy(self.last_cyclin)
         self.current_grip = copy.deepcopy(self.last_grip)
         self.current_cam = copy.deepcopy(self.last_cam)
 
 
     def check_difference(self):
-        self.polar_is_diff =  abs(self.currnet_polar[0] - self.last_polar[0]) > self.SERVO_MIN_ANG_STEP or\
-        abs(self.currnet_polar[1] - self.last_polar[1]) > self.SERVO_MIN_LINEAR_STEP or\
-        abs(self.currnet_polar[2] - self.last_polar[2]) > self.SERVO_MIN_LINEAR_STEP
+        self.cyclin_is_diff =  abs(self.currnet_cyclin[0] - self.last_cyclin[0]) > self.SERVO_MIN_ANG_STEP or\
+        abs(self.currnet_cyclin[1] - self.last_cyclin[1]) > self.SERVO_MIN_LINEAR_STEP or\
+        abs(self.currnet_cyclin[2] - self.last_cyclin[2]) > self.SERVO_MIN_LINEAR_STEP
 
         self.cartesian_is_diff = abs(self.current_xyz[0] - self.last_xyz[0]) > self.SERVO_MIN_LINEAR_STEP or\
         abs(self.current_xyz[1] - self.last_xyz[1]) > self.SERVO_MIN_LINEAR_STEP or\
@@ -273,35 +283,35 @@ class KeyboardNode(Node):
         if self.is_polar:
             # вращение базы манипулятора
             if '4' in current_keys and '6' not in current_keys:
-                self.currnet_polar[0] -= self.SERVO_ANG_STEP
+                self.currnet_cyclin[0] -= self.SERVO_ANG_STEP
             elif '6' in current_keys and '4' not in current_keys:
-                self.currnet_polar[0] += self.SERVO_ANG_STEP
+                self.currnet_cyclin[0] += self.SERVO_ANG_STEP
             # изменение высоты
             if '2' in current_keys and '8' not in current_keys:
-                self.currnet_polar[2] -= self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[2] -= self.SERVO_LINEAR_STEP
             elif '8' in current_keys and '2' not in current_keys:
-                self.currnet_polar[2] += self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[2] += self.SERVO_LINEAR_STEP
             # изменение расстояния
             if '1' in current_keys and '7' not in current_keys:
-                self.currnet_polar[1] -= self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[1] -= self.SERVO_LINEAR_STEP
             elif '7' in current_keys and '1' not in current_keys:
-                self.currnet_polar[1] += self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[1] += self.SERVO_LINEAR_STEP
         else:
             # x
             if '4' in current_keys and '6' not in current_keys:
                 self.current_xyz[0] -= self.SERVO_LINEAR_STEP
             elif '6' in current_keys and '4' not in current_keys:
-                self.currnet_polar[0] += self.SERVO_ANG_STEP
+                self.currnet_cyclin[0] += self.SERVO_ANG_STEP
             # z
             if '2' in current_keys and '8' not in current_keys:
-                self.currnet_polar[2] -= self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[2] -= self.SERVO_LINEAR_STEP
             elif '8' in current_keys and '2' not in current_keys:
-                self.currnet_polar[2] += self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[2] += self.SERVO_LINEAR_STEP
             # y
             if '1' in current_keys and '7' not in current_keys:
-                self.currnet_polar[1] -= self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[1] -= self.SERVO_LINEAR_STEP
             elif '7' in current_keys and '1' not in current_keys:
-                self.currnet_polar[1] += self.SERVO_LINEAR_STEP
+                self.currnet_cyclin[1] += self.SERVO_LINEAR_STEP
 
 
         if '3' in current_keys and '9' not in current_keys:
@@ -325,11 +335,11 @@ class KeyboardNode(Node):
         msg_data = []
 
         arm_success = False
-        if self.polar_is_diff:
-            result = main_ikp.solution(dkp.polar_to_cartesian(self.currnet_polar))
+        if self.cyclin_is_diff:
+            result = np.rad2deg(self.arm.ikp_2dof(ArmIKP.cylindrical_to_cartesian(np.deg2rad(self.currnet_cyclin))))
             arm_success = result is not None
         elif self.cartesian_is_diff:
-            result = main_ikp.solution(self.current_xyz)
+            result = np.rad2deg(self.arm.ikp_2dof(self.current_xyz))
             arm_success = result is not None
 
         if arm_success:

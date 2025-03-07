@@ -268,7 +268,8 @@ class ArmIKP():
                         q1 = alpha - beta
                         q2 = -q2
                         if not self.is_reachable(l1*np.sin(q1), l1*np.cos(q1), q0_idx):
-                            return [-6,-6,-6,-6] # локоить недоступен даже в высоком положении
+                            print(-6)
+                            return None #[-6,-6,-6,-6] # локоить недоступен даже в высоком положении
                         
                 actual_xyz = self.dkp_2dof(q)
                 
@@ -276,13 +277,16 @@ class ArmIKP():
                     #print(np.round(actual_xyz))
                     return  q
                 else:
-                    return [-10,-10,-10,-10] # решение слишком сильно отличается от целевого
+                    print(-10)
+                    return None #[-10,-10,-10,-10] # решение слишком сильно отличается от целевого
                     #raise ValueError('Решение слишком неправильное!', '\n', f'actual={actual_xyz}, target={target_xyz}')
             else:
-                return [-7, -7, -7, -7]
+                print(-7)
+                return None #[-7, -7, -7, -7]
                 #raise ValueError('Целевая точка в запретной зоне!','wwdw')
         else:
-            return [-9, -9, -9, -9] # nr
+            print(-9)
+            return None #[-9, -9, -9, -9] # nr
             
 
 
