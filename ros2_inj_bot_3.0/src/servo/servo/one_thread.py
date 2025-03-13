@@ -20,11 +20,11 @@ import send_data
 class SerialReadWrite(Node):
     def __init__(self):
         super().__init__('servo_read_write')
-        self.publisher = self.create_publisher(UInt8MultiArray, 'servo/current', 1)
+        self.publisher = self.create_publisher(UInt8MultiArray, 'servo/current', 3)
         self.serial_port = None
         self.running = False
 
-        self.subscription = self.create_subscription(UInt8MultiArray, 'servo/to_write', self.command_callback, 1)
+        self.subscription = self.create_subscription(UInt8MultiArray, 'servo/to_write', self.command_callback, 3)
         
         try:
             self.serial_port = serial.Serial(
