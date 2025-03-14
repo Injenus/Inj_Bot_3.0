@@ -1,0 +1,6 @@
+https://raw.githubusercontent.com/digistump/arduino-boards-index/master/package_digistump_index.json
+http://digistump.com/package_digistump_index.json
+
+
+http://drazzy.com/package_drazzy.com_index.json
+_

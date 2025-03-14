@@ -1,52 +1,52 @@
 #include <Wire.h>
 
-// Настройки ADXL345
-#define DEVICE_ADDR 0x53 // Адрес I2C (0x53 или 0x1D)
-#define REG_POWER_CTL 0x2D // Регистр включения питания
-#define REG_DATA_FORMAT 0x31 // Регистр настройки диапазона
-#define REG_DATAZ0 0x36 // Регистр данных Z (младший байт)
-#define REG_DATAZ1 0x37 // Регистр данных Z (старший байт)
-
-// Коэффициент преобразования (зависит от диапазона)
-float scale_factor = 9.81 / 256; // Для диапазона ±2g (256 LSB/g)
+#define ADXL345_ADDR 0x53       // Адрес датчика
+#define REG_POWER_CTL 0x2D      // Регистр управления питанием
+#define REG_DATA_FORMAT 0x31    // Регистр формата данных
+#define REG_DATAX0 0x32         // Начальный регистр данных оси X
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin(); // Инициализация I2C
-
-  // Настройка датчика
-  writeRegister(REG_POWER_CTL, 0x08); // Включить режим измерения
-  writeRegister(REG_DATA_FORMAT, 0x00); // Диапазон ±2g (по умолчанию)
-}
-
-void loop() {
-  int16_t z_raw = readZAxis(); // Чтение сырых данных
-  float z_mss = z_raw * scale_factor / 9.81; // Перевести в м/с²
-
-  Serial.print("Z: ");
-  Serial.print(z_mss);
-  Serial.println(" м/с²");
-  delay(100);
-}
-
-// Функция записи в регистр
-void writeRegister(byte reg, byte value) {
-  Wire.beginTransmission(DEVICE_ADDR);
-  Wire.write(reg);
-  Wire.write(value);
+  Wire.begin();
+  
+  // Активация датчика
+  Wire.beginTransmission(ADXL345_ADDR);
+  Wire.write(REG_POWER_CTL);
+  Wire.write(0x08);            // Режим измерения
+  Wire.endTransmission();
+  
+  // Настройка диапазона (±2g)
+  Wire.beginTransmission(ADXL345_ADDR);
+  Wire.write(REG_DATA_FORMAT);
+  Wire.write(0x00);            // ±2g (значение по умолчанию)
   Wire.endTransmission();
 }
 
-// Функция чтения данных по оси Z
-int16_t readZAxis() {
-  Wire.beginTransmission(DEVICE_ADDR);
-  Wire.write(REG_DATAZ0);
+void loop() {
+  // Чтение данных всех осей
+  Wire.beginTransmission(ADXL345_ADDR);
+  Wire.write(REG_DATAX0);      // Указываем начальный регистр данных
   Wire.endTransmission(false);
-
-  Wire.requestFrom(DEVICE_ADDR, 2); // Запросить 2 байта
-  uint8_t z0 = Wire.read(); // Младший байт
-  uint8_t z1 = Wire.read(); // Старший байт
-
-  // Объединить байты с учетом знака
-  return (int16_t)(z1 << 8 | z0);
+  
+  // Запрашиваем 6 байтов (по 2 на каждую ось)
+  Wire.requestFrom(ADXL345_ADDR, 6, true);
+  
+  if (Wire.available() >= 6) {
+    // Чтение данных для оси X
+    int16_t xRaw = Wire.read() | (Wire.read() << 8);
+    // Чтение данных для оси Y
+    int16_t yRaw = Wire.read() | (Wire.read() << 8);
+    // Чтение данных для оси Z
+    int16_t zRaw = Wire.read() | (Wire.read() << 8);
+    
+    // Вывод данных
+    Serial.print("X: ");
+    Serial.print(xRaw);
+    Serial.print(" | Y: ");
+    Serial.print(yRaw);
+    Serial.print(" | Z: ");
+    Serial.println(zRaw);
+  }
+  
+  delay(5);
 }

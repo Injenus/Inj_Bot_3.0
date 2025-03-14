@@ -19,19 +19,12 @@
    Для отправки углов сначала получаем реальный угол переводом мкс,
    затем вычитаем из угла оффсет и переводим в byte.
    Проверка на байтовый диапазон фактически не трубется, так как мы не можем изначально подать угол больше байта.
+
+   UPD: 4-ая серва здесь не контролируется!! управляется собственным драйвером
 */
 
 #include <ServoDriverSmooth.h>
 #include <EEPROM.h>
-#include <Wire.h>
-
-#define IDX_Z 3
-#define SAMPLES_Z 3
-#define SAMPLE_Z_DELAY 2
-//#define STAB_DELAY_Z 15
-#define STEP_Z 6
-//#define STEP_INC 30     // Увеличение шага при успехе
-//#define STEP_DEC 15    // Уменьшение шага при неудаче
 
 const byte servoNum = 7;
 const uint16_t addr = 42;
@@ -57,55 +50,8 @@ struct ServoPosAng {
 };
 ServoPosAng servoPosAng, prevServoPosAng;
 
-struct AutoServo{
-  int linkDefVal = 128;
-  //int init_ang, plus_ang, minus_ang;
-  int acc[3] = {0, 0, 0};
-  //uint8_t count_init, count_plus, count_minus;
-  uint8_t count[3] = {0,0,0};
-};
-AutoServo autoServo;
-
 uint32_t servoSendTimer = 0;
 const uint32_t servoSendPeriod = 21;
-
-const int MPU = 0x68;
-int accX, accY, accZ;
-bool isPlus;
-
-uint32_t autoServoUpdateTImer = 0;
-const uint32_t autoServoUpdatePeriod = 50;
-
-bool i2cBusy = true;
-
-void updateValCount(int* val, uint8_t* counter){
-  counter += 1;
-  val += mpuReadZ();
-}
-
-int mpuReadZ(){
-  Wire.beginTransmission(MPU);
-  Wire.write(0x3B); // Start with register 0x3B (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU, 6, true); // Read 6 registers total, each axis value is stored in 2 registers
-  //For a range of +-2g, we need to divide the raw values by 16384, according to the datasheet
-  accX = (Wire.read() << 8 | Wire.read()); // X-axis value
-  accY = (Wire.read() << 8 | Wire.read()); // Y-axis value
-  accZ = (Wire.read() << 8 | Wire.read()); // Z-axis value
-  Wire.endTransmission(true);
-  return accZ;
-}
-
-//// Функция усреднения и сглаживания az
-//int getAvgAZ() {
-//  int sum = 0;
-//  for (uint8_t i = 0; i < SAMPLES_Z; i++) {
-//    sum += mpuReadZ(); // Замените A0 на нужный пин
-//    delay(SAMPLE_Z_DELAY);
-//  }
-//  int az = sum / SAMPLES_Z;
-//  return az;
-//}
 
 uint8_t fletcher8(uint8_t *data, size_t len) {
   uint8_t sum1 = 0;
@@ -137,14 +83,6 @@ int mcsToAngle(int mcs, byte idx) {
 void setup() {
   Serial.begin(115200);
   EEPROM.get(addr, prevServoPosAng);
-  
-  Wire.begin();
-  Wire.beginTransmission(MPU);       // Start communication with MPU6050 // MPU=0x68
-  Wire.write(0x6B);                  // Talk to the register 6B
-  Wire.write(0x00);
-  Wire.endTransmission(true);
-
-  Serial.println(prevServoPosAng.pos[0]);
 
   servo[0].attach(0, servoSettings.minMcs[0], servoSettings.maxMcs[0]);
   servo[0].writeMicroseconds(anglesToMcs(prevServoPosAng.pos[0], 0));
@@ -194,8 +132,7 @@ void loop() {
   static uint8_t rBuffer[9]; // Массив для хранения принятых данных
   static size_t rIndex = 0;   // Индекс для записи в буфер
   static uint8_t sBuffer[9]; // Массив для хранения отправленных данных
-  
-  i2cBusy = true;
+
   servo[0].tick();
   servo[1].tick();
   servo[2].tick();
@@ -203,7 +140,6 @@ void loop() {
   servo[4].tick();
   servo[5].tick();
   servo[6].tick();
-  i2cBusy = false;
 
   while (Serial.available() > 0) {
     uint8_t byteReceived = Serial.read();
@@ -232,19 +168,18 @@ void loop() {
           }
 
           //          Serial.println("Right!");
-          
+
           for (size_t i = 0; i < 7; i++) {
             //            Serial.print("mcS ");
             //            Serial.print(i);
             //            Serial.print(": ");
             //            Serial.println(anglesToMcs(servoPosAng.pos[i], i));
             //servo[i].writeMicroseconds(anglesToMcs(servoPosAng.pos[i], i));
-            if (i != 3){
+            if (i != 3) {
               servo[i].setTarget(anglesToMcs(servoPosAng.pos[i], i));
             }
           }
-          i2cBusy = false;
-          
+
           if (memcmp(&servoPosAng, &prevServoPosAng, sizeof(ServoPosAng)) != 0) {
             EEPROM.put(addr, servoPosAng);
             memcpy(&prevServoPosAng, &servoPosAng, sizeof(ServoPosAng));
@@ -275,58 +210,9 @@ void loop() {
     }
     sBuffer[8] = fletcher8(sBuffer, 8);
     for (byte i = 0; i < 5; i++) { // чтобы исключить повдреждение и потерю данных
-      Serial.write(sBuffer, 9);
+      //Serial.write(sBuffer, 9);
     }
-    //Serial.println(sBuffer[8]);
-  }
-
-  if (millis() - autoServoUpdateTImer > autoServoUpdatePeriod){  // просто обновялем текущее положение актульной инфой от движения, чтобы не уползало
-    autoServoUpdateTImer = millis();
-    servoPosAng.pos[IDX_Z] = mcsToAngle(servo[IDX_Z].getCurrent(), IDX_Z);
-  }
-
-  static int temp_currentPosAng = servoPosAng.pos[IDX_Z];
-  if (~i2cBusy){
-  
-    if (autoServo.count[0] < SAMPLES_Z-1){ // пока не набрали нужно колво семплов - набираем
-      updateValCount(&autoServo.acc[0], &autoServo.count[0]);
-    }
-      
-    if (autoServo.count[0] == SAMPLES_Z-1){  // набрали - вычислояем среднее, увеличиваем счётчик, чтобы снвоа сюдап не попасть, обнуляем счётчики плюсов и минусов
-      autoServo.acc[0] /= SAMPLES_Z; // получили начальное положение в основном цикле (без блоикровки)
-      autoServo.count[0] = SAMPLES_Z; // увеличил чтобы не падать в деление каждыфй раз 
-      autoServo.count[1] = 0; // обнулили счетчки для всех сравнителных значенийl
-      autoServo.count[2] = 0;
-    }
-    
-    else if (autoServo.count[0] == SAMPLES_Z){ // если счетчик равен числу обнуления + 1, то крутим серву от текущего положения в +10 - положение не сохраняем, неизветсно то ли оно
-      servo[IDX_Z].setTarget(anglesToMcs(constrain(prevServoPosAng.pos[IDX_Z]+STEP_Z, servoSettings.minAng[IDX_Z], servoSettings.maxAng[IDX_Z]), IDX_Z));
-      autoServo.count[0] = SAMPLES_Z + 1; // увеличиваем счётчик чтобы снова сюда не попатсь
-    }
-    
-    else if (autoServo.count[0] == SAMPLES_Z + 1){ // если мы уже спозиционирвали серву
-      if (autoServo.count[1] < SAMPLES_Z-1){
-        updateValCount(&autoServo.acc[1], &autoServo.count[1]);
-        if (autoServo.count[1] == SAMPLES_Z-1){
-          autoServo.acc[1] /= SAMPLES_Z;    // вычислили положение после движения в увеличние
-          autoServo.count[1] = SAMPLES_Z; // увеличили чтобы не падать в деление каждыфй раз
-          autoServo.count[0] = SAMPLES_Z + 2; // опять увличвли, чтобы не попасть снова
-
-          isPlus = (autoServo.acc[1] - autoServo.acc[0] > 0); // определем, в плюсовую сторону ли нужно двигаться
-        }
-      }
-    }
-    
-    else if (autoServo.count[0] == SAMPLES_Z + 2){ // попадаем в область корректирвоки угла, коррпектируем один раз, после чего начинаем всё заново
-      if (isPlus) { // если нужно добавлять
-        servoPosAng.pos[IDX_Z] = temp_currentPosAng + STEP_Z;
-      }
-      else{
-        servoPosAng.pos[IDX_Z] = temp_currentPosAng - STEP_Z;
-      }
-      servo[IDX_Z].setTarget(anglesToMcs(constrain(servoPosAng.pos[IDX_Z], servoSettings.minAng[IDX_Z], servoSettings.maxAng[IDX_Z]), IDX_Z));
-      autoServo.count[0] = 0;
-    }
+    Serial.println(sBuffer[8]);
   }
 
 }

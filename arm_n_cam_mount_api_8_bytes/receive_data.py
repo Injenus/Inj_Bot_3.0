@@ -24,7 +24,7 @@ def parse_data(packet):
 def main():
     START_BYTE = ord('A')
     PACKET_LENGTH = 9 
-    ser = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
+    ser = serial.Serial('COM5', 115200, timeout=1)
     buffer = bytearray()
 
     while True:
