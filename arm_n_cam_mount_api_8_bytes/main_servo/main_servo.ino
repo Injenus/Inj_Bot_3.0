@@ -214,5 +214,4 @@ void loop() {
     }
     Serial.println(sBuffer[8]);
   }
-
 }
