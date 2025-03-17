@@ -28,21 +28,21 @@ class KeyboardNode(Node):
         self.LINEAR_SPEED_Y = 0.2  # м/с
         self.ANGULAR_SPEED = 0.5 # рад/с
 
-        with open('../../../../arm_n_cam_mount_api_8_bytes/config_arm.json', 'r') as file:
+        with open(os.path.join(receive_data_path, 'config_arm.json'), 'r') as file:
             self.config_arm = json.load(file)
             # l1, l2, l3 = config['length']
             # ang_range_arm = config['ang_range']
 
-        with open('../../../../arm_n_cam_mount_api_8_bytes/config_cam.json', 'r') as file:
+        with open(os.path.join(receive_data_path, 'config_cam.json'), 'r') as file:
             self.config_cam = json.load(file)
             # l1, l2, l3 = config['length']
             # ang_range_arm = config['ang_range']
 
-        with open('../../../../arm_n_cam_mount_api_8_bytes/config_grip.json', 'r') as file:
+        with open(os.path.join(receive_data_path, 'config_grip.json'), 'r') as file:
             self.config_grip = json.load(file)
 
         actual_ang_range = np.deg2rad([[a - off, b - off] for (a, b), off in zip(self.config_arm['ang_range'], self.config_arm['offset'])])
-        valid_area_data = np.load('../../../../valid_area_data.npz')
+        valid_area_data = np.load(os.path.join(receive_data_path, 'valid_area_data.npz'))
         specific_theta_angles = valid_area_data['main']
         specific_valid_area = [Path(valid_area_data[f'array_{i}']) for i in range(len(specific_theta_angles.tolist()))]
         global_valid_area = Path(np.array([[-np.inf, -np.inf], [-np.inf, -170], [-210, -170], [-210, 0], [0, 0], [210, 0], [210, -170], [np.inf, -170], [np.inf, -np.inf]]))
@@ -106,16 +106,16 @@ class KeyboardNode(Node):
         }
         
         self.arm_keys = {
-            ecodes.KEY_KP0: '0',
-            ecodes.KEY_KP1: '1',
-            ecodes.KEY_KP2: '2',
-            ecodes.KEY_KP3: '3',
-            ecodes.KEY_KP4: '4',
+            ecodes.KEY_0: '0',
+            ecodes.KEY_1: '1',
+            ecodes.KEY_2: '2',
+            ecodes.KEY_3: '3',
+            ecodes.KEY_4: '4',
             ecodes.KEY_KP5: '5',
-            ecodes.KEY_KP6: '6',
-            ecodes.KEY_KP7: '7',
-            ecodes.KEY_KP8: '8',
-            ecodes.KEY_KP9: '9',
+            ecodes.KEY_6: '6',
+            ecodes.KEY_7: '7',
+            ecodes.KEY_8: '8',
+            ecodes.KEY_9: '9',
             ecodes.KEY_ESC: 'Esc'
         }
 
@@ -170,26 +170,57 @@ class KeyboardNode(Node):
         abs(self.current_cam[1] - self.last_cam[1]) > self.SERVO_MIN_ANG_STEP
 
 
+    # def find_keyboard_device(self):
+    #     """Находит устройство клавиатуры, поддерживающее нужные клавиши."""
+    #     # Объединяем все клавиши из трех групп
+    #     self.all_keys = {
+    #         **self.wheel_keys,
+    #         **self.cam_keys,
+    #         **self.arm_keys
+    #     }
+    #     devices = [InputDevice(path) for path in evdev.list_devices()]
+    #     for device in devices:
+    #         try:
+    #             caps = device.capabilities()
+    #             if ecodes.EV_KEY in caps:
+    #                 available_keys = caps[ecodes.EV_KEY]
+    #                 # Проверяем наличие хотя бы одной нужной клавиши
+    #                 if any(key in self.all_keys for key in available_keys):
+    #                     return device
+    #         except (OSError, PermissionError):
+    #             continue
+    #     return None
+    
+
     def find_keyboard_device(self):
-        """Находит устройство клавиатуры, поддерживающее нужные клавиши."""
-        # Объединяем все клавиши из трех групп
-        self.all_keys = {
-            **self.wheel_keys,
-            **self.cam_keys,
-            **self.arm_keys
-        }
+        """Поиск и выбор клавиатуры с подробной отладкой"""
         devices = [InputDevice(path) for path in evdev.list_devices()]
-        for device in devices:
+
+        self.get_logger().info("\nДоступные устройства ввода:")
+        for i, dev in enumerate(devices):
+            print(f"{i+1}. {dev.name} ({dev.path})")
+
+        for dev in devices:
             try:
-                caps = device.capabilities()
+                caps = dev.capabilities()
                 if ecodes.EV_KEY in caps:
-                    available_keys = caps[ecodes.EV_KEY]
-                    # Проверяем наличие хотя бы одной нужной клавиши
-                    if any(key in self.all_keys for key in available_keys):
-                        return device
-            except (OSError, PermissionError):
+                    # if DEBUG:
+                    #     print(f"\nПроверка устройства: {dev.name}")
+                    #     print("Поддерживаемые клавиши:", [ecodes.KEY[k] for k in caps[ecodes.EV_KEY]] if caps[ecodes.EV_KEY] else "Нет клавиш")
+                    
+                    # Проверяем наличие необходимых клавиш
+                    required_keys = {ecodes.KEY_A, ecodes.KEY_P, ecodes.KEY_S}
+                    if required_keys.issubset(caps[ecodes.EV_KEY]):
+                        # if DEBUG:
+                        #     print(f"Выбрана клавиатура: {dev.name}")
+                        return dev
+            except Exception as e:
+                # if DEBUG:
+                #     print(f"Ошибка при проверке {dev.path}: {str(e)}")
                 continue
+
         return None
+
 
     def read_events(self):
         """Читает события клавиатуры в отдельном потоке."""
