@@ -168,7 +168,6 @@ class KeyboardNode(Node):
 
         self.cam_is_diff = abs(self.current_cam[0] - self.last_cam[0]) > self.SERVO_MIN_ANG_STEP or\
         abs(self.current_cam[1] - self.last_cam[1]) > self.SERVO_MIN_ANG_STEP
-        print(5)
 
 
     # def find_keyboard_device(self):
@@ -412,11 +411,13 @@ class KeyboardNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     detect_key = KeyboardNode()
-    try:
-        rclpy.spin(detect_key)
-    except:
-        detect_key.destroy_node()
-        rclpy.shutdown()
+    # try:
+    #     rclpy.spin(detect_key)
+    # except:
+    #     detect_key.destroy_node()
+    #     rclpy.shutdown()
+
+    rclpy.spin(detect_key)
 
 if __name__ == '__main__':
     main()

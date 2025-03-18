@@ -32,7 +32,7 @@ class SerialReadWrite(Node):
 
         try:
             self.serial_port = serial.Serial(
-                port='/dev/servo_arduino',
+                port='/dev/ttyUSB0',
                 baudrate=115200,
                 timeout=1
             )
@@ -42,22 +42,24 @@ class SerialReadWrite(Node):
             self.get_logger().error(f"Failed to open serial port: {e}")
 
         self.create_timer(0.040, self.main_loop)
+        print('tiner mainloop')
 
     
     def command_callback(self, msg):
+
         if self.last_data != msg.data:
             self.last_data = copy.deepcopy(msg.data)
             self.send_attempts = 3
+
 
     def main_loop(self):
 
         # отправляем целевые данные на драйвер - из топика ожидаюся углы уже в формате uint8_t
         while self.send_attempts > 0:
-            send_data.send_to_serial(self.ser, self.last_data)
+            send_data.send_to_serial(self.serial_port, self.last_data)
             self.send_attempts -= 1
 
-        
-        start_time = time()
+        start_time = time.time()
         max_runtime = 0.025
         intime = True
         rec_buff = bytearray()
@@ -65,10 +67,11 @@ class SerialReadWrite(Node):
         START_BYTE = ord('A')
         # приём данных (идут регулярно)
         while intime:
-            byte = self.ser.read(1)
+            byte = self.serial_port.read(1)
+            print('b', byte)
             rec_buff.append(byte[0])
 
-            if len(rec_buff) >= self.REC_PACKET_LENGTH:
+            if len(rec_buff) >= PACKET_LENGTH:
                 start_idx = rec_buff.find(bytes([START_BYTE]))
                 if start_idx != -1:
                     if len(rec_buff) - start_idx >= PACKET_LENGTH:
@@ -85,13 +88,14 @@ class SerialReadWrite(Node):
                 else:
                     rec_buff = rec_buff[-1:]
 
-            if time() - start_time > max_runtime:
+            if time.time() - start_time > max_runtime:
+                print(time.time() - start_time, max_runtime)
                 intime = False
 
         #получили данные, отпарвляем в топик текущих положений
         if intime:
             msg = UInt8MultiArray()
-            msg.data = self.parsed_data[1:]
+            msg.data = parsed_data[1:]
             self.receive_data_publisher.publish(msg)
             self.get_logger().info('Publ data: ', msg.data)
         else:
@@ -100,20 +104,20 @@ class SerialReadWrite(Node):
 
     def destroy_node(self):
         self.running = False
-        if self.read_thread.is_alive():
-            self.read_thread.join()
         if self.serial_port and self.serial_port.is_open:
             self.serial_port.close()
         super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
-    node = SerialReadWrite()
-    try:
-        rclpy.spin(node)
-    except:
-        node.destroy_node()
-        rclpy.shutdown()
+    servo_data_exchange = SerialReadWrite()
+    # try:
+    #     rclpy.spin(servo_data_exchange)
+    # except:
+    #     servo_data_exchange.destroy_node()
+    #     rclpy.shutdown()
+
+    rclpy.spin(servo_data_exchange)
 
 if __name__ == '__main__':
     main()
