@@ -1,0 +1,19 @@
+curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+
+arduino-cli compile --fqbn arduino:avr:nano sketch.ino
+
+avrdude -p atmega328p -c arduino -P /dev/ttyUSB0 -b 57600 -U flash:w:sketch.ino.hex
+
+
+sudo apt install firmware-chromium
+
+
+bin/arduino-cli lib search "Название библиотеки"
+
+bin/arduino-cli lib install "Название библиотеки"
+
+
+arduino-cli compile \
+  --fqbn arduino:avr:nano \
+  --library "Ваш_скетч/libraries" \
+  Ваш_скетч.ino
