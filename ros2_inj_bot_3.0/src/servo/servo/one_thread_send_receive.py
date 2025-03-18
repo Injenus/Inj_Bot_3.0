@@ -42,7 +42,6 @@ class SerialReadWrite(Node):
             self.get_logger().error(f"Failed to open serial port: {e}")
 
         self.create_timer(0.040, self.main_loop)
-        print('tiner mainloop')
 
     
     def command_callback(self, msg):
@@ -68,7 +67,6 @@ class SerialReadWrite(Node):
         # приём данных (идут регулярно)
         while intime:
             byte = self.serial_port.read(1)
-            print('b', byte)
             rec_buff.append(byte[0])
 
             if len(rec_buff) >= PACKET_LENGTH:
@@ -76,10 +74,10 @@ class SerialReadWrite(Node):
                 if start_idx != -1:
                     if len(rec_buff) - start_idx >= PACKET_LENGTH:
                         packet = rec_buff[start_idx:start_idx+PACKET_LENGTH]
-                        parsed_data = receive_data.parse_data(packet)
+                        parsed_data = receive_data.parse_data(packet)[1:] # убираем первый байт-символ
 
                         if parsed_data:
-                            self.get_logger().info('Got data: ', parsed_data[1:])  # в таком виде имеем список из 7 
+                            self.get_logger().info(f'Got data: {parsed_data}')  # в таком виде имеем список из 7 
                             break # выходим из цикла поулчания байт - ном притшло корреткное сообщение о состоянии
                         else:
                             self.get_logger().info("Receive err")
@@ -95,9 +93,9 @@ class SerialReadWrite(Node):
         #получили данные, отпарвляем в топик текущих положений
         if intime:
             msg = UInt8MultiArray()
-            msg.data = parsed_data[1:]
+            msg.data = parsed_data
             self.receive_data_publisher.publish(msg)
-            self.get_logger().info('Publ data: ', msg.data)
+            self.get_logger().info(f'Publ data: {msg.data}')
         else:
             self.get_logger().info('Nothing to publ., timeout')
 
