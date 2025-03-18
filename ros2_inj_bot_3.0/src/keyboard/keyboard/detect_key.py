@@ -159,7 +159,7 @@ class KeyboardNode(Node):
         self.cyclin_is_diff =  abs(self.currnet_cyclin[0] - self.last_cyclin[0]) > self.SERVO_MIN_ANG_STEP or\
         abs(self.currnet_cyclin[1] - self.last_cyclin[1]) > self.SERVO_MIN_LINEAR_STEP or\
         abs(self.currnet_cyclin[2] - self.last_cyclin[2]) > self.SERVO_MIN_LINEAR_STEP
-
+        
         self.cartesian_is_diff = abs(self.current_xyz[0] - self.last_xyz[0]) > self.SERVO_MIN_LINEAR_STEP or\
         abs(self.current_xyz[1] - self.last_xyz[1]) > self.SERVO_MIN_LINEAR_STEP or\
         abs(self.current_xyz[2] - self.last_xyz[2]) > self.SERVO_MIN_LINEAR_STEP
@@ -168,6 +168,7 @@ class KeyboardNode(Node):
 
         self.cam_is_diff = abs(self.current_cam[0] - self.last_cam[0]) > self.SERVO_MIN_ANG_STEP or\
         abs(self.current_cam[1] - self.last_cam[1]) > self.SERVO_MIN_ANG_STEP
+        print(5)
 
 
     # def find_keyboard_device(self):
@@ -225,6 +226,7 @@ class KeyboardNode(Node):
     def read_events(self):
         """Читает события клавиатуры в отдельном потоке."""
         try:
+            print("TRYE Read events")
             for event in self.device.read_loop():
                 if event.type == ecodes.EV_KEY:
                     with self.lock:
@@ -250,12 +252,14 @@ class KeyboardNode(Node):
     
     def process_keys(self):
         """Обрабатывает текущее состояние клавиш."""
+        print("Procces_Keys")
         if self.stop_event.is_set():
             return
         
         # Копируем состояние для минимизации времени блокировки
         with self.lock:
             current_keys = self.pressed_keys.copy()
+        print(0)
         
         # Завершение работы по Esc
         if 'Esc' in current_keys:
@@ -361,9 +365,11 @@ class KeyboardNode(Node):
         elif 'down' in current_keys and 'up' not in current_keys:
             self.current_cam[1] += self.SERVO_MIN_ANG_STEP
 
+        print(1)
 
         self.check_difference()
         msg_data = []
+        print(3)
 
         arm_success = False
         if self.cyclin_is_diff:
@@ -397,6 +403,7 @@ class KeyboardNode(Node):
                 f"PUB: {servo_msg.data}",
                 throttle_duration_sec=0.2
             )
+        print(2)
 
     def destroy_node(self):
         self.stop_event.set()

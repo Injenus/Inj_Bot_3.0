@@ -210,8 +210,8 @@ void loop() {
     }
     sBuffer[8] = fletcher8(sBuffer, 8);
     for (byte i = 0; i < 5; i++) { // чтобы исключить повдреждение и потерю данных
-      //Serial.write(sBuffer, 9);
+      Serial.write(sBuffer, 9);
     }
-    Serial.println(sBuffer[8]);
+    //Serial.println(sBuffer[8]);
   }
 }
