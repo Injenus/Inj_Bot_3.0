@@ -16,6 +16,9 @@ if receive_data_path not in sys.path:
     sys.path.append(receive_data_path)
 
 import wheel_modules
+############################################
+RPM_MULTIPLIER = 8192       ### Убедись, что совпадает с прошивкой!!!
+############################################
 
 class WheelSerialReadWrite(Node):
     def __init__(self):
@@ -58,14 +61,23 @@ class WheelSerialReadWrite(Node):
         PACKET_LENGTH = 19
         START_BYTE = ord('S')
 
-        while intime:
-            byte = self.serial_port.read(1)
-            rec_buff.append(byte[0])
+        parsed = None
+        self.serial_port.reset_input_buffer()
+        while intime and parsed is None:
+            if self.serial_port.in_waiting > 0:
+                byte = self.serial_port.read(1)
+                rec_buff.append(byte[0])
 
             # Поиск и обработка полных пакетов
             while True:
-                # Поиск стартового байта
-                start_pos = rec_buff.find(START_BYTE.to_bytes(1, 'big'))
+
+                start_pos = -1
+                for i in range(len(rec_buff)-1, -1, -1):
+                    if rec_buff[i] == START_BYTE:
+                        start_pos = i
+
+                # # Поиск стартового байта
+                # start_pos = rec_buff.find(START_BYTE.to_bytes(1, 'big'))
                 
                 if start_pos == -1:
                     # Нет стартового байта - очищаем буфер
@@ -83,14 +95,12 @@ class WheelSerialReadWrite(Node):
                 # Извлекаем потенциальный пакет
                 packet = rec_buff[:PACKET_LENGTH]
                 del rec_buff[:PACKET_LENGTH]
-                print(packet[0])
-                print(packet[1])
-                print(packet[2])
-                print(packet)
                 
                 parsed = wheel_modules.parse_packet(packet)
                 if parsed is not None:
-                    print("Received RPMs:", parsed)
+                    parsed = [round(p/RPM_MULTIPLIER) for p in parsed]
+                    #print("Received RPMs:", parsed)
+                    break
                 else:
                     print("Invalid packet received")
 

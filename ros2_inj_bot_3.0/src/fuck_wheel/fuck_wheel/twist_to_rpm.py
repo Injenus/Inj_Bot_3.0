@@ -30,13 +30,13 @@ class TwistToRPM(Node):
             2
         )
         
-        # Берём текущие обороты из топика, в который писали от драйвера
-        self.rpm_sub = self.create_subscription(
-            Int32MultiArray,
-            'wheel/current_rpm',
-            self.rpm_callback,
-            2
-        )
+        # # Берём текущие обороты из топика, в который писали от драйвера
+        # self.rpm_sub = self.create_subscription(
+        #     Int32MultiArray,
+        #     'wheel/current_rpm',
+        #     self.rpm_callback,
+        #     2
+        # )
         
         # Публикуем целевые обороты (БЕЗ РЕГУЛИРВОКИ, просто желаемые, вся реглирвока на драйвере!)
         self.rpm_pub = self.create_publisher(
@@ -50,12 +50,12 @@ class TwistToRPM(Node):
         
         self.get_logger().info("Узел управления запущен")
 
-    def rpm_callback(self, msg):
-        if len(msg.data) == 4:
-            self.current_rpms = msg.data
-            #self.last_rpm_update = self.get_clock().now()
-        else:
-            self.get_logger().warn("Некорректное сообщение RPM")
+    # def rpm_callback(self, msg):
+    #     if len(msg.data) == 4:
+    #         self.current_rpms = msg.data
+    #         #self.last_rpm_update = self.get_clock().now()
+    #     else:
+    #         self.get_logger().warn("Некорректное сообщение RPM")
 
     def calculate_target_rpms(self, twist_msg):
         def constrain(rpm):
@@ -69,10 +69,10 @@ class TwistToRPM(Node):
         right_vel = linear_vel + (angular_vel * self.wheel_separation / 2)
         
         wheel_circumference = math.pi * self.wheel_diameter
-        left_rpm = constrain((left_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0)
-        right_rpm = constrain((right_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0)
+        left_rpm = round(constrain((left_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0))
+        right_rpm = round(constrain((right_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0))
 
-        return [left_rpm, left_rpm, right_rpm, right_rpm]
+        return [right_rpm, left_rpm, left_rpm, right_rpm]
 
     def twist_callback(self, msg):
         # Store latest twist command
@@ -87,7 +87,7 @@ class TwistToRPM(Node):
         self.rpm_pub.publish(rpm_msg)
         
         self.get_logger().info(
-            f"Целевые: {self.target_rpms} | Текущие: {self.current_rpms} | Корректированные: {self.target_rpms}",
+            f"Целевые: {self.target_rpms}",
             throttle_duration_sec=1.0
         )
 
