@@ -10,7 +10,7 @@
 #define PWM_FREQUENCY 16000                // Частота ШИМ в Гц
 #define PWM_RESOLUTION_BITS 12             // Разрешение ШИМ (макс. значение 4095)
 #define MAX_PWM_VALUE 4095                 // Максимальное значение ШИМ
-#define RPM_DEADZONE 42                // Зона нечувствительности регулятора
+#define PWM_DEADZONE 42                // Зона нечувствительности регулятора
 
 // Пины подключения энкодеров [A, B]
 const uint8_t ENCODER_PINS[4][2] = {
@@ -242,16 +242,16 @@ void send_serial_data() {
   output_packet[17] = checksum >> 8;   // Старший байт контрольной суммы
   output_packet[18] = checksum & 0xFF; // Младший байт;
   
-  //Serial.write(output_packet, 19); // Отправка пакета
-  for(uint8_t i=0; i<4; i++) {
-    int32_t rpm = *((int32_t*)&output_packet[1 + i*4]); // Для little-endian
-    Serial.print("RPM ");
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.print((float)rpm/RPM_MULTIPLIER);
-    Serial.print("   ");
-  }
-  Serial.println();
+  Serial.write(output_packet, 19); // Отправка пакета
+  // for(uint8_t i=0; i<4; i++) {
+  //   int32_t rpm = *((int32_t*)&output_packet[1 + i*4]); // Для little-endian
+  //   Serial.print("RPM ");
+  //   Serial.print(i);
+  //   Serial.print(": ");
+  //   Serial.print((float)rpm/RPM_MULTIPLIER);
+  //   Serial.print("   ");
+  // }
+  // Serial.println();
 
 }
 
@@ -280,8 +280,8 @@ bool process_data_packet() {
 
 // Расчет контрольной суммы
 uint16_t calculate_checksum(uint8_t* data, uint8_t length) {
-  uint16_t sum1 = 0xFF;
-  uint16_t sum2 = 0xFF;
+  uint16_t sum1 = 0;
+  uint16_t sum2 = 0;
   
   for(uint8_t i=0; i<length; i++){
     sum1 = (sum1 + data[i]) % 255;
@@ -313,11 +313,11 @@ void update_motor_power(uint8_t motor_index) {
   // Управление выходами
   uint32_t pwm_value = abs(motor_controllers[motor_index].current_pwm);
 
-  if(motor_controllers[motor_index].current_pwm < -RPM_DEADZONE){
+  if(motor_controllers[motor_index].current_pwm < -PWM_DEADZONE){
     ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, 0);
     ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_b, pwm_value);
   }
-  else if(motor_controllers[motor_index].current_pwm > RPM_DEADZONE){
+  else if(motor_controllers[motor_index].current_pwm > PWM_DEADZONE){
     ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, pwm_value);
     ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_b, 0);
   }

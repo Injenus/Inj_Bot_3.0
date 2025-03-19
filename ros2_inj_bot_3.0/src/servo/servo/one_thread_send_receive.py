@@ -19,7 +19,7 @@ import receive_data
 import send_data
 
 
-class SerialReadWrite(Node):
+class ServoSerialReadWrite(Node):
     def __init__(self):
         super().__init__('servo_read_write')
         self.receive_data_publisher = self.create_publisher(UInt8MultiArray, 'servo/current', 3)
@@ -37,7 +37,6 @@ class SerialReadWrite(Node):
                 timeout=1
             )
             self.get_logger().info("Serial port opened successfully")
-            self.running = True
         except serial.SerialException as e:
             self.get_logger().error(f"Failed to open serial port: {e}")
 
@@ -101,14 +100,13 @@ class SerialReadWrite(Node):
 
 
     def destroy_node(self):
-        self.running = False
         if self.serial_port and self.serial_port.is_open:
             self.serial_port.close()
         super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
-    servo_data_exchange = SerialReadWrite()
+    servo_data_exchange = ServoSerialReadWrite()
     # try:
     #     rclpy.spin(servo_data_exchange)
     # except:

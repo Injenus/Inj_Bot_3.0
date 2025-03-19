@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Int32MultiArray
 import math
 
 
@@ -14,13 +14,13 @@ class TwistToRPM(Node):
             parameters=[
                 ('wheel_diameter', 0.067),
                 ('wheel_separation', 0.2655),
-                ('max_rpm', 558.14), # 2 m/s - коэффициент 8330.44
+                ('max_rpm', 405), # 1.42 м/с
             ]
         )
         
         self.wheel_diameter = self.get_parameter('wheel_diameter').value
         self.wheel_separation = self.get_parameter('wheel_separation').value
-        self.max_rpm = self.wheel_diameter * 8330.44  # self.get_parameter('max_rpm').value
+        self.max_rpm = self.get_parameter('max_rpm').value
 
         
         self.twist_sub = self.create_subscription(
@@ -32,7 +32,7 @@ class TwistToRPM(Node):
         
         # Берём текущие обороты из топика, в который писали от драйвера
         self.rpm_sub = self.create_subscription(
-            Float32MultiArray,
+            Int32MultiArray,
             'wheel/current_rpm',
             self.rpm_callback,
             2
@@ -40,7 +40,7 @@ class TwistToRPM(Node):
         
         # Публикуем целевые обороты (БЕЗ РЕГУЛИРВОКИ, просто желаемые, вся реглирвока на драйвере!)
         self.rpm_pub = self.create_publisher(
-            Float32MultiArray, 
+            Int32MultiArray, 
             'wheel/target_rpm', 
             2
         )
@@ -58,6 +58,9 @@ class TwistToRPM(Node):
             self.get_logger().warn("Некорректное сообщение RPM")
 
     def calculate_target_rpms(self, twist_msg):
+        def constrain(rpm):
+            return min(self.max_rpm, max(-self.max_rpm, rpm))
+
         # Конвертируем twist в целевые rpm
         linear_vel = twist_msg.linear.x
         angular_vel = twist_msg.angular.z
@@ -66,9 +69,9 @@ class TwistToRPM(Node):
         right_vel = linear_vel + (angular_vel * self.wheel_separation / 2)
         
         wheel_circumference = math.pi * self.wheel_diameter
-        left_rpm = (left_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0
-        right_rpm = (right_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0
-        
+        left_rpm = constrain((left_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0)
+        right_rpm = constrain((right_vel / wheel_circumference) * 60 if wheel_circumference != 0 else 0.0)
+
         return [left_rpm, left_rpm, right_rpm, right_rpm]
 
     def twist_callback(self, msg):
@@ -79,7 +82,7 @@ class TwistToRPM(Node):
         if not hasattr(self, 'target_rpms'):
             return
         
-        rpm_msg = Float32MultiArray()
+        rpm_msg = Int32MultiArray()
         rpm_msg.data = self.target_rpms
         self.rpm_pub.publish(rpm_msg)
         
