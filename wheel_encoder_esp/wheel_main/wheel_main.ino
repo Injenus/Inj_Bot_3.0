@@ -222,6 +222,16 @@ void calculate_motor_speeds() {
   interrupts();
 }
 
+// Функция для вывода массива байт в HEX
+void printHex(uint8_t* data, size_t len) {
+  for(size_t i = 0; i < len; i++) {
+    if(data[i] < 0x10) Serial.print("0");
+    Serial.print(data[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
 // Отправка данных через последовательный порт
 void send_serial_data() {
   uint8_t output_packet[19] = {0}; // Инициализируем весь массив нулями
@@ -244,6 +254,7 @@ void send_serial_data() {
   output_packet[18] = checksum & 0xFF; // Младший байт;
   
   Serial.write(output_packet, 19); // Отправка пакета
+  //printHex(output_packet, 19);
   // for(uint8_t i=0; i<4; i++) {
   //   int32_t rpm = *((int32_t*)&output_packet[1 + i*4]); // Для little-endian
   //   Serial.print("RPM ");
