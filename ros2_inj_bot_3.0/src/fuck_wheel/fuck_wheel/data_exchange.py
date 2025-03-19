@@ -83,6 +83,10 @@ class WheelSerialReadWrite(Node):
                 # Извлекаем потенциальный пакет
                 packet = rec_buff[:PACKET_LENGTH]
                 del rec_buff[:PACKET_LENGTH]
+                print(packet[0])
+                print(packet[1])
+                print(packet[2])
+                print(packet)
                 
                 parsed = wheel_modules.parse_packet(packet)
                 if parsed is not None:

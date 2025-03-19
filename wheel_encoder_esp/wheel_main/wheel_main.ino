@@ -224,7 +224,8 @@ void calculate_motor_speeds() {
 
 // Отправка данных через последовательный порт
 void send_serial_data() {
-  uint8_t output_packet[19] = {'S'}; // Заголовок пакета
+  uint8_t output_packet[19] = {0}; // Инициализируем весь массив нулями
+  output_packet[0] = 'S'; 
   
   // Запись значений RPM в пакет
   for(uint8_t i=0; i<4; i++){
