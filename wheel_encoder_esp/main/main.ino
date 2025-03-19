@@ -1,271 +1,346 @@
 #include <Arduino.h>
 
-// Конфигурация энкодеров
-#define STEPS_PER_REV     234.3f    // Шагов на оборот вала
-#define UPDATE_INTERVAL   20        // Интервал обновления (мс)
-#define NUM_ENCODERS      4         // Количество энкодеров
-#define PACKET_SIZE       19        // Размер пакета данных
-#define PWM_FREQ          16000     // Частота ШИМ
-#define PWM_RESOL         12        // Разрешение ШИМ (4096)
-#define MAX_PWM           4095      // Максимальное значение ШИМ
-#define DEADBAND_RPM      10.0f     // Мёртвая зона регулирования
+// Конфигурационные константы
+#define RPM_MULTIPLIER 8192
+#define ENCODER_STEPS_PER_REVOLUTION 2343 // Шагов энкодера на один оборот
+#define ENCODER_STEPS_DIVIDER 10
+#define UPDATE_INTERVAL_MS 4              // Интервал обновления в миллисекундах
+#define NUMBER_OF_ENCODERS 4               // Количество энкодеров
+#define DATA_PACKET_SIZE 19                // Размер пакета данных в байтах
+#define PWM_FREQUENCY 16000                // Частота ШИМ в Гц
+#define PWM_RESOLUTION_BITS 12             // Разрешение ШИМ (макс. значение 4095)
+#define MAX_PWM_VALUE 4095                 // Максимальное значение ШИМ
+#define RPM_DEADZONE 42                // Зона нечувствительности регулятора
 
-// Пины энкодеров (A, B)
-const uint8_t encoderPins[NUM_ENCODERS][2] = {
-  {15, 2},   // Encoder 1
-  {27, 14}, // Encoder 2
-  {32, 33}, // Encoder 3
-  {25, 26}  // Encoder 4
+// Пины подключения энкодеров [A, B]
+const uint8_t ENCODER_PINS[4][2] = {
+  {2, 15},  // Энкодер 1
+  {27, 14}, // Энкодер 2
+  {32, 33}, // Энкодер 3
+  {26, 25}  // Энкодер 4
 };
 
-// Структура для хранения состояния
-struct EncoderState {
-  volatile int32_t position;
-  volatile uint8_t lastState;
-  float rpm;
+// Пины управления моторами [A, B]
+const uint8_t MOTOR_PINS[4][2] = {
+  {16, 4},  // Мотор 1
+  {17, 18}, // Мотор 2
+  {21, 19}, // Мотор 3
+  {22, 23}  // Мотор 4
 };
-volatile EncoderState encoders[NUM_ENCODERS] = {0};
 
-// Целевые скорости для колёс
-volatile float targetSpeeds[4] = {0}; // [FL, BL, FR, BR]
-
-// Приёмный буфер
-uint8_t rxBuffer[PACKET_SIZE];
-uint8_t rxIndex = 0;
-bool packetStarted = false;
-
-// Назначение ШИМ-пинов [A, B]
-const uint8_t motorPins[4][2] = {
-  {4, 16},   // Motor 1 (FL)
-  {17, 18},  // Motor 2 (BL)
-  {19, 21},  // Motor 3 (FR)
-  {22, 23}   // Motor 4 (BR)
+// Структура для хранения состояния энкодера
+struct Encoder {
+  volatile int32_t step_count;    // Текущая позиция в шагах
+  volatile uint8_t previous_state; // Предыдущее состояние контактов
 };
+volatile Encoder encoder_states[4]; // Массив энкодеров
 
 // Структура для управления мотором
-struct MotorController {
-  uint8_t pinA;
-  uint8_t pinB;
-  float currentPWM;
-  float targetRPM;
-  float currentRPM;
+struct Motor {
+  uint8_t pwm_channel_a;    // Номер канала ШИМ для выхода A
+  uint8_t pwm_channel_b;    // Номер канала ШИМ для выхода B
+  int32_t current_pwm;        // Текущее значение ШИМ  | int???
+  int32_t target_rpm;         // Целевая скорость вращения
+  int32_t measured_rpm;       // Измеренная скорость вращения
+  int32_t prev_rpm;           //предыдущая измеренная скорость (для реалзации фильтра)
 };
+Motor motor_controllers[4]; // Массив моторов
 
-MotorController motors[4];
-float kP = 0.5f; // Коэффициент пропорционального регулятора
+// Глобальные переменные
+volatile int32_t target_rpms[4] = {0}; // Целевые скорости для моторов
+uint8_t serial_buffer[DATA_PACKET_SIZE]; // Буфер для приема данных
+uint8_t buffer_position = 0;           // Текущая позиция в буфере
+bool receiving_packet = false;         // Флаг приема пакета
+int32_t divider_p_gain = 8; // Коэффициент пропорционального регулятора
 
-void IRAM_ATTR handleEncoderISR(uint8_t index);
-void setupEncoders();
-void calculateSpeed();
-void sendSpeedData();
-bool parseSpeedPacket();
-uint16_t fletcher16(const uint8_t* data, size_t len);
-void setupPWM();
-void updateMotorPWM(uint8_t motorIndex);
+// Объявления функций
+void handle_encoder_isr(uint8_t encoder_index);
+void encoder1_isr() { handle_encoder_isr(0); }
+void encoder2_isr() { handle_encoder_isr(1); }
+void encoder3_isr() { handle_encoder_isr(2); }
+void encoder4_isr() { handle_encoder_isr(3); }
+void setup_encoders();
+void calculate_motor_speeds();
+void send_serial_data();
+bool process_data_packet();
+uint16_t calculate_checksum(uint8_t* data, uint8_t length);
+void update_motor_power(uint8_t motor_index);
+uint8_t get_real_motor_idx(uint8_t motor_index);
 
-
-
-
+// Начальная настройка
 void setup() {
-  Serial.begin(115200);
-  setupEncoders();
-  setupPWM();
+  Serial.begin(115200); // Инициализация последовательного порта
+  
+  setup_encoders(); // Настройка энкодеров
   
   // Инициализация моторов
-  for(int i = 0; i < 4; i++) {
-    motors[i].pinA = motorPins[i][0];
-    motors[i].pinB = motorPins[i][1];
-    motors[i].currentPWM = 0;
-    motors[i].targetRPM = 0;
-    motors[i].currentRPM = 0;
+  motor_controllers[0].pwm_channel_a = MOTOR_PINS[0][0];
+  motor_controllers[0].pwm_channel_b = MOTOR_PINS[0][1];
+  
+  motor_controllers[1].pwm_channel_a = MOTOR_PINS[1][0];
+  motor_controllers[1].pwm_channel_b = MOTOR_PINS[1][1];
+  
+  motor_controllers[2].pwm_channel_a = MOTOR_PINS[2][0];
+  motor_controllers[2].pwm_channel_b = MOTOR_PINS[2][1];
+  
+  motor_controllers[3].pwm_channel_a = MOTOR_PINS[3][0];
+  motor_controllers[3].pwm_channel_b = MOTOR_PINS[3][1];
+  
+  for(uint8_t i=0; i<4; i++){
+    ledcAttach(motor_controllers[i].pwm_channel_a, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
+    ledcWrite(motor_controllers[i].pwm_channel_a, 0);
+    
+    ledcAttach(motor_controllers[i].pwm_channel_b, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
+    ledcWrite(motor_controllers[i].pwm_channel_b, 0);
+
+    motor_controllers[i].current_pwm = 0;
+    motor_controllers[i].target_rpm = 0;
+    motor_controllers[i].measured_rpm = 0;
   }
 }
 
+// Основной цикл программы
 void loop() {
-  static uint32_t lastUpdate = 0;
-  
-  // Обработка входящих данных
-  while(Serial.available()) {
-    uint8_t c = Serial.read();
+  static uint32_t last_update = 0;    // Время последнего обновления
+  static uint32_t last_data_time = 0; // Время последнего приема данных
+
+  // Прием данных с последовательного порта
+  while(Serial.available() > 0){
+    uint8_t _byte = Serial.read();
+    last_data_time = millis();
+    Serial.println(_byte);
     
-    if(c == 'S' && !packetStarted) {
-      rxIndex = 0;
-      rxBuffer[rxIndex++] = c;
-      packetStarted = true;
-    } 
-    else if(packetStarted) {
-      rxBuffer[rxIndex++] = c;
+    if(_byte == 'S' && !receiving_packet){
+      buffer_position = 0;
+      serial_buffer[buffer_position] = _byte;
+      buffer_position++;
+      receiving_packet = true;
+    }
+    else if(receiving_packet && buffer_position < DATA_PACKET_SIZE){
+      serial_buffer[buffer_position] = _byte;
+      buffer_position++;
       
-      if(rxIndex >= PACKET_SIZE) {
-        packetStarted = false;
-        if(parseSpeedPacket()) {
-          // Успешно распаршен пакет
-          // targetSpeeds содержит новые значения
+      if(buffer_position >= DATA_PACKET_SIZE){
+        receiving_packet = false;
+        if(process_data_packet()){
+          // Успешно принятый пакет
         }
       }
     }
   }
 
-  // Отправка данных и расчёт
-  if(millis() - lastUpdate >= UPDATE_INTERVAL) {
-    calculateSpeed(); // Обновляем motors[].currentRPM
+  // Периодическое обновление системы
+  if(millis() - last_update >= UPDATE_INTERVAL_MS){
+    calculate_motor_speeds(); // Расчет текущих скоростей
     
-    // Обновляем целевые скорости из парсера
+    // Обновление целевых скоростей
     noInterrupts();
-    for(int i = 0; i < 4; i++) {
-      motors[i].targetRPM = targetSpeeds[i];
+    for(uint8_t i=0; i<4; i++){
+      motor_controllers[i].target_rpm = target_rpms[i];
     }
     interrupts();
     
-    // Регулировка всех моторов
-    for(int i = 0; i < 4; i++) {
-      updateMotorPWM(i);
+    // Регулировка мощности моторов
+    for(uint8_t i=0; i<4; i++){
+      update_motor_power(i);
     }
+    //update_motor_power(3);
+    
+    send_serial_data(); // Отправка данных
+    last_update = millis();
+  }
 
-    sendSpeedData();
-    lastUpdate = millis();
+  // Сброс приема при простое
+  if(receiving_packet && (millis() - last_data_time > 50)){
+    receiving_packet = false;
   }
 }
 
-
-
-
-// Парсинг пакета с проверкой контрольной суммы
-bool parseSpeedPacket() {
-  // Проверка размера
-  if(rxIndex != PACKET_SIZE) return false;
-
-  // Проверка контрольной суммы
-  uint16_t receivedChecksum = (rxBuffer[PACKET_SIZE-1] << 8) | rxBuffer[PACKET_SIZE-2];
-  uint16_t calculatedChecksum = fletcher16(rxBuffer, PACKET_SIZE-2);
+// Обработчик прерываний для энкодера
+void handle_encoder_isr(uint8_t encoder_index) {
+  // Чтение текущего состояния контактов
+  uint8_t current_state = digitalRead(ENCODER_PINS[encoder_index][0]) << 1;
+  current_state |= digitalRead(ENCODER_PINS[encoder_index][1]);
   
-  if(receivedChecksum != calculatedChecksum) return false;
-
-  // Извлечение значений скоростей
-  const uint8_t* data = rxBuffer + 1;
-  volatile float* speeds[] = {&targetSpeeds[0], &targetSpeeds[1], 
-                             &targetSpeeds[2], &targetSpeeds[3]};
+  // Определение направления вращения
+  uint8_t state_change = (encoder_states[encoder_index].previous_state << 2) | current_state;
+  const int8_t direction_table[] = {0,1,-1,0, -1,0,0,1, 1,0,0,-1, 0,-1,1,0};
+  encoder_states[encoder_index].step_count += direction_table[state_change];
   
-  for(int i = 0; i < 4; i++) {
-    float value;
-    memcpy(&value, data + i*4, 4);
-    *speeds[i] = value;
-  }
-
-  return true;
-}
-
-// Расчёт контрольной суммы
-uint16_t fletcher16(const uint8_t* data, size_t len) {
-  uint16_t sum1 = 0xFF, sum2 = 0xFF;
-  while(len) {
-    size_t tlen = len > 20 ? 20 : len;
-    len -= tlen;
-    do {
-      sum1 += *data++;
-      sum2 += sum1;
-    } while(--tlen);
-    sum1 = (sum1 & 0xFF) + (sum1 >> 8);
-    sum2 = (sum2 & 0xFF) + (sum2 >> 8);
-  }
-  sum1 = (sum1 & 0xFF) + (sum1 >> 8);
-  sum2 = (sum2 & 0xFF) + (sum2 >> 8);
-  return (sum2 << 8) | sum1;
+  encoder_states[encoder_index].previous_state = current_state; // Сохранение состояния
 }
 
 // Настройка энкодеров и прерываний
-void setupEncoders() {
-  for (uint8_t i = 0; i < NUM_ENCODERS; i++) {
-    pinMode(encoderPins[i][0], INPUT_PULLUP);
-    pinMode(encoderPins[i][1], INPUT_PULLUP);
+void setup_encoders() {
+  for(uint8_t i=0; i<4; i++){
+    // Настройка пинов как входы с подтяжкой
+    pinMode(ENCODER_PINS[i][0], INPUT_PULLUP);
+    pinMode(ENCODER_PINS[i][1], INPUT_PULLUP);
     
     // Инициализация начального состояния
-    encoders[i].lastState = (digitalRead(encoderPins[i][0]) << 1 | digitalRead(encoderPins[i][1]));
+    encoder_states[i].previous_state = digitalRead(ENCODER_PINS[i][0]) << 1;
+    encoder_states[i].previous_state |= digitalRead(ENCODER_PINS[i][1]);
     
-    // Привязка прерываний
-    attachInterrupt(digitalPinToInterrupt(encoderPins[i][0]), []{ handleEncoderISR(i); }, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(encoderPins[i][1]), []{ handleEncoderISR(i); }, CHANGE);
+    // Назначение обработчиков прерываний
+    switch(i){
+      case 0:
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][0]), encoder1_isr, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][1]), encoder1_isr, CHANGE);
+        break;
+      case 1:
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][0]), encoder2_isr, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][1]), encoder2_isr, CHANGE);
+        break;
+      case 2:
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][0]), encoder3_isr, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][1]), encoder3_isr, CHANGE);
+        break;
+      case 3:
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][0]), encoder4_isr, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(ENCODER_PINS[i][1]), encoder4_isr, CHANGE);
+        break;
+    }
   }
 }
 
-// Обработчик прерываний для всех энкодеров
-void IRAM_ATTR handleEncoderISR(uint8_t index) {
-  const uint8_t state = (digitalRead(encoderPins[index][0]) << 1) | digitalRead(encoderPins[index][1]);
-  const uint8_t prev = encoders[index].lastState;
-  encoders[index].lastState = state;
-
-  // Таблица переходов для определения направления
-  const int8_t transitions[] = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0};
-  encoders[index].position += transitions[(prev << 2) | state];
-}
-
-// Расчёт скорости вращения
-// Функция calculateSpeed() должна обновлять motors[].currentRPM
-void calculateSpeed() {
-  static int32_t lastPositions[NUM_ENCODERS] = {0};
+// Расчет текущей скорости вращения
+void calculate_motor_speeds() {
+  static int32_t previous_steps[4] = {0}; // Предыдущие показания
+  
   noInterrupts();
-  for(uint8_t i = 0; i < NUM_ENCODERS; i++) {
-    const int32_t delta = encoders[i].position - lastPositions[i];
-    lastPositions[i] = encoders[i].position;
-    motors[i].currentRPM = (delta / STEPS_PER_REV) * (60000.0f / UPDATE_INTERVAL);
+  for(uint8_t i=0; i<4; i++){
+    int32_t steps = encoder_states[i].step_count - previous_steps[i];
+    previous_steps[i] = encoder_states[i].step_count;
+    
+    // Расчет RPM: (шаги/обороты) * (миллисекунды в минуте / интервал)
+    int32_t new_value = (RPM_MULTIPLIER * ENCODER_STEPS_DIVIDER * steps / ENCODER_STEPS_PER_REVOLUTION) * 3000;
+    static uint8_t K = 4;
+    motor_controllers[i].measured_rpm  = (motor_controllers[i].prev_rpm * ( (1 << K) - 1 ) + new_value) >> K;
+    motor_controllers[i].prev_rpm = motor_controllers[i].measured_rpm;
+    
   }
   interrupts();
 }
 
-// Отправка данных по UART
-void sendSpeedData() {
-  uint8_t packet[1 + NUM_ENCODERS * 4 + 2] = {'S'};
-  float* rpmData = (float*)(packet + 1);
+// Отправка данных через последовательный порт
+void send_serial_data() {
+  uint8_t output_packet[19] = {'S'}; // Заголовок пакета
   
-  for (uint8_t i = 0; i < NUM_ENCODERS; i++) {
-    rpmData[i] = encoders[i].rpm;
+  // Запись значений RPM в пакет
+  for(uint8_t i=0; i<4; i++){
+    int32_t rpm_value = motor_controllers[i].measured_rpm;
+
+    // Преобразуем в little-endian байты
+    output_packet[1 + i*4] = (rpm_value)       & 0xFF; // Младший байт
+    output_packet[2 + i*4] = (rpm_value >> 8)  & 0xFF;
+    output_packet[3 + i*4] = (rpm_value >> 16) & 0xFF;
+    output_packet[4 + i*4] = (rpm_value >> 24) & 0xFF; // Старший байт
+  }
+  
+  // Расчет контрольной суммы (для 17 байт: 1 заголовок + 16 данных)
+  uint16_t checksum = calculate_checksum(output_packet, 17);
+  output_packet[17] = checksum >> 8;   // Старший байт контрольной суммы
+  output_packet[18] = checksum & 0xFF; // Младший байт;
+  
+  //Serial.write(output_packet, 19); // Отправка пакета
+  for(uint8_t i=0; i<4; i++) {
+    int32_t rpm = *((int32_t*)&output_packet[1 + i*4]); // Для little-endian
+    Serial.print("RPM ");
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.print((float)rpm/RPM_MULTIPLIER);
+    Serial.print("   ");
+  }
+  Serial.println();
+
+}
+
+// Обработка входящего пакета
+bool process_data_packet() {
+  // Проверка контрольной суммы
+  uint16_t received_checksum = (serial_buffer[17] << 8) | serial_buffer[18];
+  if(calculate_checksum(serial_buffer, 17) != received_checksum){
+    return false;
   }
 
-  // Расчёт контрольной суммы Fletcher16
-  uint16_t sum1 = 0xFF, sum2 = 0xFF;
-  for (size_t i = 0; i < sizeof(packet)-2; i++) {
-    sum1 = (sum1 + packet[i]) % 255;
+  // Чтение значений RPM
+  noInterrupts();
+  for(uint8_t i = 0; i < 4; i++) {
+    // Создаем НЕ-volatile переменную для промежуточного копирования
+    int32_t tmp;
+    // Копируем 4 байта из serial_buffer (с учетом смещения, если нужно)
+    memcpy(&tmp, &serial_buffer[1 + i * 4], sizeof(int32_t));
+    // Присваиваем значение в volatile-массив
+    target_rpms[i] = RPM_MULTIPLIER * tmp; // умнижаем рпм на местный коэффицент вычислений
+  }
+  interrupts();
+  
+  return true;
+}
+
+// Расчет контрольной суммы
+uint16_t calculate_checksum(uint8_t* data, uint8_t length) {
+  uint16_t sum1 = 0xFF;
+  uint16_t sum2 = 0xFF;
+  
+  for(uint8_t i=0; i<length; i++){
+    sum1 = (sum1 + data[i]) % 255;
     sum2 = (sum2 + sum1) % 255;
   }
-  packet[sizeof(packet)-2] = sum1;
-  packet[sizeof(packet)-1] = sum2;
-
-  Serial.write(packet, sizeof(packet));
+  return (sum2 << 8) | sum1;
 }
 
-void setupPWM() {
-  for(int i = 0; i < 4; i++) {
-    ledcSetup(i*2, PWM_FREQ, PWM_RESOL);    // Каналы 0,2,4,6 для пинов A
-    ledcSetup(i*2+1, PWM_FREQ, PWM_RESOL); // Каналы 1,3,5,7 для пинов B
-    ledcAttachPin(motorPins[i][0], i*2);
-    ledcAttachPin(motorPins[i][1], i*2+1);
-  }
-}
+// Обновление мощности мотора
+void update_motor_power(uint8_t motor_index) {
 
-void updateMotorPWM(uint8_t motorIndex) {
-  MotorController* mc = &motors[motorIndex];
-  float error = mc->targetRPM - mc->currentRPM;
-  
+  int32_t error = motor_controllers[motor_index].target_rpm - 
+                motor_controllers[motor_index].measured_rpm;
+
   // Пропорциональное регулирование
-  float pwmDelta = kP * error;
+  int32_t pwm_change = error / (RPM_MULTIPLIER * divider_p_gain);
+  pwm_change = constrain(pwm_change, -420, 420);
   
-  // Ограничение скорости изменения
-  pwmDelta = constrain(pwmDelta, -MAX_PWM/10.0f, MAX_PWM/10.0f);
-  
-  mc->currentPWM += pwmDelta;
-  mc->currentPWM = constrain(mc->currentPWM, -MAX_PWM, MAX_PWM);
+  // Обновление значения PWM
+  motor_controllers[motor_index].current_pwm += pwm_change;
+  motor_controllers[motor_index].current_pwm = constrain(
+    motor_controllers[motor_index].current_pwm,
+    -MAX_PWM_VALUE,
+    MAX_PWM_VALUE
+  );
 
-  // Управление направлениями
-  if(fabs(error) > DEADBAND_RPM) {
-    if(mc->currentPWM > 0) {
-      ledcWrite(motorIndex*2, 0);
-      ledcWrite(motorIndex*2+1, (uint32_t)fabs(mc->currentPWM));
-    } else {
-      ledcWrite(motorIndex*2+1, 0);
-      ledcWrite(motorIndex*2, (uint32_t)fabs(mc->currentPWM));
-    }
-  } else {
-    ledcWrite(motorIndex*2, 0);
-    ledcWrite(motorIndex*2+1, 0);
+  //Serial.println(motor_controllers[motor_index].current_pwm);
+  
+  // Управление выходами
+  uint32_t pwm_value = abs(motor_controllers[motor_index].current_pwm);
+
+  if(motor_controllers[motor_index].current_pwm < -RPM_DEADZONE){
+    ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, 0);
+    ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_b, pwm_value);
   }
+  else if(motor_controllers[motor_index].current_pwm > RPM_DEADZONE){
+    ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, pwm_value);
+    ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_b, 0);
+  }
+  else{
+    ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, 0);
+    ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_b, 0);
+  }
+}
+
+uint8_t get_real_motor_idx(uint8_t motor_index) {
+  switch (motor_index){
+    case 0:
+      motor_index = 3;
+      break;
+    case 1:
+      motor_index = 2;
+      break;
+    case 2:
+      motor_index = 0;
+      break;
+    case 3:
+      motor_index = 1;
+      break;
+  }
+  return motor_index;
 }
