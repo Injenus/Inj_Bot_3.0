@@ -11,6 +11,7 @@ import sys
 import os
 import numpy as np
 from matplotlib.path import Path
+import time
 
 current_script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(current_script_path)
@@ -142,9 +143,11 @@ class KeyboardNode(Node):
         all_data = list(msg.data)
         # получаем актуальные координаты от драйвера - самые актуальные реальные данные, а значит, неважно, что мы там нассчитали с текущими, они тоже становятся здесь равны актуальным
         self.last_arm_pos = [x - y for x, y in zip(all_data[:4], self.ARM_OFFSET)] # приводим к отрицательному виду (полному виду, реальный дипазон грудсов)
+        #print(self.last_arm_pos)
         self.last_xyz = self.arm.dkp_2dof(np.deg2rad(self.last_arm_pos))
+        print(self.last_xyz)
         self.last_cyclin = ArmIKP.cartesian_to_cylindrical(self.last_xyz, np.deg2rad(self.ARM_RANGE[0])) # theta r h
-        self.last_cyclin[0] = np.ead2deg(self.last_cyclin[0])
+        self.last_cyclin[0] = np.rad2deg(self.last_cyclin[0])
         self.last_grip = all_data[4]
         self.last_cam = [x-y for x, y in zip(all_data[5:], self.CAM_OFFSET)]
         # необходимо использовать текущие координаты вместе с последнирми, потому что в общем случае скорость измения текущих вследжии тиков узла может бьть достаточно большой, чтобы текущие координаты зщначительно отличались от послшдених
@@ -166,8 +169,9 @@ class KeyboardNode(Node):
 
         self.grip_is_diff = self.current_grip != self.last_grip
 
-        self.cam_is_diff = abs(self.current_cam[0] - self.last_cam[0]) > self.SERVO_MIN_ANG_STEP or\
-        abs(self.current_cam[1] - self.last_cam[1]) > self.SERVO_MIN_ANG_STEP
+        if self.current_cam[0] is not None and self.last_cam[0] is not None :
+            self.cam_is_diff = abs(self.current_cam[0] - self.last_cam[0]) > self.SERVO_MIN_ANG_STEP or\
+            abs(self.current_cam[1] - self.last_cam[1]) > self.SERVO_MIN_ANG_STEP
 
 
     # def find_keyboard_device(self):
@@ -251,14 +255,13 @@ class KeyboardNode(Node):
     
     def process_keys(self):
         """Обрабатывает текущее состояние клавиш."""
-        print("Procces_Keys")
+
         if self.stop_event.is_set():
             return
         
         # Копируем состояние для минимизации времени блокировки
         with self.lock:
             current_keys = self.pressed_keys.copy()
-        print(0)
         
         # Завершение работы по Esc
         if 'Esc' in current_keys:
@@ -275,20 +278,26 @@ class KeyboardNode(Node):
         # Движение по X (W/S)
         if 'w' in current_keys and 's' not in current_keys:
             linear_x = self.LINEAR_SPEED_X
+            print('w')
         elif 's' in current_keys and 'w' not in current_keys:
             linear_x = -self.LINEAR_SPEED_X
+            print('s')
         
         # Движение по Y (A/D)
         if 'a' in current_keys and 'd' not in current_keys:
             linear_y = self.LINEAR_SPEED_Y
+            print('a')
         elif 'd' in current_keys and 'a' not in current_keys:
             linear_y = -self.LINEAR_SPEED_Y
+            print('d')
         
         # Вращение по Z (Q/E)
         if 'q' in current_keys and 'e' not in current_keys:
             angular_z = self.ANGULAR_SPEED
+            print('q')
         elif 'e' in current_keys and 'q' not in current_keys:
             angular_z = -self.ANGULAR_SPEED
+            print('e')
 
         twist_msg = Twist()
         twist_msg.linear.x = linear_x
@@ -310,9 +319,11 @@ class KeyboardNode(Node):
         """
         # переключение типа координат
         if '0' in current_keys and '5' not in current_keys:
+            print(0)
             self.is_polar = True
         elif '5' in current_keys and '5' not in current_keys:
             self.is_polar = False
+            print(5)
 
         if self.is_polar:
             # вращение базы манипулятора
@@ -364,11 +375,8 @@ class KeyboardNode(Node):
         elif 'down' in current_keys and 'up' not in current_keys:
             self.current_cam[1] += self.SERVO_MIN_ANG_STEP
 
-        print(1)
-
         self.check_difference()
         msg_data = []
-        print(3)
 
         arm_success = False
         if self.cyclin_is_diff:
@@ -391,6 +399,10 @@ class KeyboardNode(Node):
         else:
             msg_data += self.last_cam
 
+        # print(self.current_gener_coord)
+        # print(self.current_grip)
+        # print(self.current_cam)
+
         if arm_success or self.grip_is_diff or self.cam_is_diff:
             clipper = self.ARM_RANGE + self.GRIP_RANGE + self.CAM_RANGE
             msg_data = np.clip(msg_data, [c[0] for c in clipper], [c[1] for c in clipper]).tolist()
@@ -402,7 +414,6 @@ class KeyboardNode(Node):
                 f"PUB: {servo_msg.data}",
                 throttle_duration_sec=0.2
             )
-        print(2)
 
     def destroy_node(self):
         self.stop_event.set()

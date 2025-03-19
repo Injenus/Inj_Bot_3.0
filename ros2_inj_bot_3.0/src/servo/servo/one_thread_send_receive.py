@@ -67,6 +67,7 @@ class ServoSerialReadWrite(Node):
         while intime:
             byte = self.serial_port.read(1)
             rec_buff.append(byte[0])
+            # принятые баты
 
             if len(rec_buff) >= PACKET_LENGTH:
                 start_idx = rec_buff.find(bytes([START_BYTE]))

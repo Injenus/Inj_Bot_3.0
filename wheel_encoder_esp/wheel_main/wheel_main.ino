@@ -108,7 +108,7 @@ void loop() {
   while(Serial.available() > 0){
     uint8_t _byte = Serial.read();
     last_data_time = millis();
-    Serial.println(_byte);
+    //Serial.println(_byte);
     
     if(_byte == 'S' && !receiving_packet){
       buffer_position = 0;
