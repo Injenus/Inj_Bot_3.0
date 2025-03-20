@@ -2,6 +2,7 @@
 
 // Конфигурационные константы
 #define RPM_MULTIPLIER 8192
+#define REGULATOR_MODE 0        // 0 - simple P, 1 - PID
 #define ENCODER_STEPS_PER_REVOLUTION 2343 // Шагов энкодера на один оборот
 #define ENCODER_STEPS_DIVIDER 10
 #define UPDATE_INTERVAL_MS 4              // Интервал обновления в миллисекундах
@@ -46,12 +47,26 @@ struct Motor {
 };
 Motor motor_controllers[4]; // Массив моторов
 
+// Структура для хранения состояния регуляторов
+struct RegulatorState {
+    int32_t _integral;   // интегральная составляющая ПИД-регулятора
+    int32_t prevError;  // Предыдущая ошибка
+    int32_t max_integral = RPM_MULTIPLIER * 1024;
+};
+RegulatorState regStates[4];  // Отдельные состояния для каждого регулятора
+
 // Глобальные переменные
+int32_t KP = 10;
+int32_t KI = 1;
+int32_t KD = 4;
+
 volatile int32_t target_rpms[4] = {0}; // Целевые скорости для моторов
 uint8_t serial_buffer[DATA_PACKET_SIZE]; // Буфер для приема данных
 uint8_t buffer_position = 0;           // Текущая позиция в буфере
 bool receiving_packet = false;         // Флаг приема пакета
-int32_t divider_p_gain = 8; // Коэффициент пропорционального регулятора
+int32_t divider_p_gain = 2; // обратный коэффициент (на него делим) простого регулятора
+int32_t d_gain = 64;
+int32_t prev_error[4] = {0}; // предыдущая ошибека для пртсого регулятора
 
 // Объявления функций
 void handle_encoder_isr(uint8_t encoder_index);
@@ -66,6 +81,7 @@ bool process_data_packet();
 uint16_t calculate_checksum(uint8_t* data, uint8_t length);
 void update_motor_power(uint8_t motor_index);
 uint8_t get_real_motor_idx(uint8_t motor_index);
+int32_t computeRegulator(RegulatorState* regStates, int32_t error, int32_t dt);
 
 // Начальная настройка
 void setup() {
@@ -254,16 +270,16 @@ void send_serial_data() {
   output_packet[18] = checksum & 0xFF; // Младший байт;
   
   Serial.write(output_packet, 19); // Отправка пакета
-  //printHex(output_packet, 19);
-  // for(uint8_t i=0; i<4; i++) {
-  //   int32_t rpm = *((int32_t*)&output_packet[1 + i*4]); // Для little-endian
-  //   Serial.print("RPM ");
-  //   Serial.print(i);
-  //   Serial.print(": ");
-  //   Serial.print((float)rpm/RPM_MULTIPLIER);
-  //   Serial.print("   ");
-  // }
-  // Serial.println();
+//  printHex(output_packet, 19);
+//   for(uint8_t i=0; i<4; i++) {
+//     int32_t rpm = *((int32_t*)&output_packet[1 + i*4]); // Для little-endian
+//     Serial.print("RPM ");
+//     Serial.print(i);
+//     Serial.print(": ");
+//     Serial.print((float)rpm/RPM_MULTIPLIER);
+//     Serial.print("   ");
+//   }
+//   Serial.println();
 
 }
 
@@ -308,20 +324,30 @@ void update_motor_power(uint8_t motor_index) {
   int32_t error = motor_controllers[motor_index].target_rpm - 
                 motor_controllers[motor_index].measured_rpm;
 
-  // Пропорциональное регулирование
-  int32_t pwm_change = error / (RPM_MULTIPLIER * divider_p_gain);
-  pwm_change = constrain(pwm_change, -420, 420);
-  
-  // Обновление значения PWM
-  motor_controllers[motor_index].current_pwm += pwm_change;
+  if (REGULATOR_MODE == 0){
+    // Пропорциональное регулирование
+    int32_t pwm_change = (error / divider_p_gain + d_gain*(error-prev_error[motor_index])/UPDATE_INTERVAL_MS) / RPM_MULTIPLIER;
+    prev_error[motor_index] = error;
+    pwm_change = constrain(pwm_change, -420, 420);
+    // Обновление значения PWM
+    motor_controllers[motor_index].current_pwm += pwm_change;
+  }
+  else if (REGULATOR_MODE == 1){
+    //ПИД
+    motor_controllers[motor_index].current_pwm = computeRegulator(&regStates[motor_index], error, UPDATE_INTERVAL_MS);
+  }  
+
+//  Serial.print(error / RPM_MULTIPLIER);
+
   motor_controllers[motor_index].current_pwm = constrain(
     motor_controllers[motor_index].current_pwm,
     -MAX_PWM_VALUE,
     MAX_PWM_VALUE
   );
 
-  //Serial.println(motor_controllers[motor_index].current_pwm);
-  
+  //Serial.print(motor_controllers[motor_index].current_pwm);
+
+//  Serial.print(',');
   // Управление выходами
   uint32_t pwm_value = abs(motor_controllers[motor_index].current_pwm);
 
@@ -355,4 +381,18 @@ uint8_t get_real_motor_idx(uint8_t motor_index) {
       break;
   }
   return motor_index;
+}
+
+// Единая функция регулятора, работающая с конкретным состоянием
+// Раюоатет в УМНОЖЕННОМ пространсвте
+// Выход жедим на УМНОЖИТЕЛЬ - так сразу и переходим в пространсвто шима
+int32_t computeRegulator(RegulatorState* regStates, int32_t error, int32_t dt) {
+    // Реализация регулятора (например, ПИД)
+    regStates->_integral += error * dt;
+    regStates->_integral = constrain(regStates->_integral, -regStates->max_integral, regStates->max_integral);
+    int32_t derivative = (error - regStates->prevError) / dt;
+    regStates->prevError = error;
+
+    int32_t _output = (KP * error + KI * regStates->_integral + KD * derivative) / RPM_MULTIPLIER;
+    return _output;
 }
