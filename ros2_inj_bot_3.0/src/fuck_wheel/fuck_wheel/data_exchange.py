@@ -9,9 +9,9 @@ import time
 
 current_script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(current_script_path)
-# print(script_dir)
+print(script_dir)
 receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'wheel_encoder_esp'))
-# print(receive_data_path)
+print(receive_data_path)
 if receive_data_path not in sys.path:
     sys.path.append(receive_data_path)
 
@@ -33,7 +33,7 @@ class WheelSerialReadWrite(Node):
 
         try:
             self.serial_port = serial.Serial(
-                port = '/dev/ttyUSB2',
+                port = '/dev/ttyUSB0',
                 baudrate=115200,
                 timeout=1
             )

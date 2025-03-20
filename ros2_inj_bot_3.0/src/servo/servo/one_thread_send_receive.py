@@ -41,6 +41,11 @@ class ServoSerialReadWrite(Node):
             self.get_logger().error(f"Failed to open serial port: {e}")
 
         self.create_timer(0.040, self.main_loop)
+        
+
+        servo_msg = UInt8MultiArray()
+        servo_msg.data = bytes([142-90, 133+60, 130+30, 132, 0, 128, 128])
+        send_data.send_to_serial(self.serial_port, servo_msg.data)
 
     
     def command_callback(self, msg):
@@ -56,6 +61,7 @@ class ServoSerialReadWrite(Node):
         while self.send_attempts > 0:
             send_data.send_to_serial(self.serial_port, self.last_data)
             self.send_attempts -= 1
+            print(f'Send to driver {self.last_data}')
 
         start_time = time.time()
         max_runtime = 0.025
@@ -65,9 +71,10 @@ class ServoSerialReadWrite(Node):
         START_BYTE = ord('A')
         # приём данных (идут регулярно)
         while intime:
-            byte = self.serial_port.read(1)
-            rec_buff.append(byte[0])
-            # принятые баты
+            if self.serial_port.in_waiting > 0:
+                byte = self.serial_port.read(1)
+                rec_buff.append(byte[0])
+                # принятые баты
 
             if len(rec_buff) >= PACKET_LENGTH:
                 start_idx = rec_buff.find(bytes([START_BYTE]))
@@ -77,7 +84,7 @@ class ServoSerialReadWrite(Node):
                         parsed_data = receive_data.parse_data(packet)[1:] # убираем первый байт-символ
 
                         if parsed_data:
-                            self.get_logger().info(f'Got data: {parsed_data}')  # в таком виде имеем список из 7 
+                            #elf.get_logger().info(f'Got data: {parsed_data}')  # в таком виде имеем список из 7 
                             break # выходим из цикла поулчания байт - ном притшло корреткное сообщение о состоянии
                         else:
                             self.get_logger().info("Receive err")
@@ -95,7 +102,7 @@ class ServoSerialReadWrite(Node):
             msg = UInt8MultiArray()
             msg.data = parsed_data
             self.receive_data_publisher.publish(msg)
-            self.get_logger().info(f'Publ data: {msg.data}')
+            #self.get_logger().info(f'Publ data: {msg.data}')
         else:
             self.get_logger().info('Nothing to publ., timeout')
 
