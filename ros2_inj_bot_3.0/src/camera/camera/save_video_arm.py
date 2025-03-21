@@ -48,8 +48,8 @@ class ArmSavingVideo(Node):
 
         self.out.write(frame)
 
-        cv2.imshow("Arm", resize(2, frame))
-        cv2.waitKey(1)
+        # cv2.imshow("Arm", resize(2, frame))
+        # cv2.waitKey(1)
 
         self.get_logger().info('Got arm frame')
 

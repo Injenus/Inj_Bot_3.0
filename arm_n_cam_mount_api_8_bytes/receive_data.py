@@ -19,7 +19,7 @@ def parse_data(packet):
     checksum = packet[8]
     if fletcher8_checksum(data) != checksum:
         return None
-    return list(data)
+    return list(data)[1:]
 
 def main():
     START_BYTE = ord('A')

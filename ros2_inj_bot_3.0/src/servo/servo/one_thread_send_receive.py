@@ -32,7 +32,7 @@ class ServoSerialReadWrite(Node):
 
         try:
             self.serial_port = serial.Serial(
-                port='/dev/ttyUSB0',
+                port='/dev/SERVOs',
                 baudrate=115200,
                 timeout=1
             )

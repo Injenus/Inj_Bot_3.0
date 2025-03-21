@@ -33,7 +33,7 @@ class WheelSerialReadWrite(Node):
 
         try:
             self.serial_port = serial.Serial(
-                port = '/dev/ttyUSB0',
+                port = '/dev/WHEELs',
                 baudrate=115200,
                 timeout=1
             )

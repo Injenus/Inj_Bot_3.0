@@ -25,9 +25,9 @@ class KeyboardNode(Node):
     def __init__(self):
         super().__init__('detect_key')
 
-        self.LINEAR_SPEED_X = 0.2 # м/с
-        self.LINEAR_SPEED_Y = 0.2  # м/с
-        self.ANGULAR_SPEED = 0.5 # рад/с
+        self.LINEAR_SPEED_X = 0.15 # м/с
+        self.LINEAR_SPEED_Y = 0.15  # м/с
+        self.ANGULAR_SPEED = 0.75 # рад/с
 
         with open(os.path.join(receive_data_path, 'config_arm.json'), 'r') as file:
             self.config_arm = json.load(file)
@@ -112,7 +112,7 @@ class KeyboardNode(Node):
             ecodes.KEY_2: '2',
             ecodes.KEY_3: '3',
             ecodes.KEY_4: '4',
-            ecodes.KEY_KP5: '5',
+            ecodes.KEY_5: '5',
             ecodes.KEY_6: '6',
             ecodes.KEY_7: '7',
             ecodes.KEY_8: '8',
