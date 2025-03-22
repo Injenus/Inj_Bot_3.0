@@ -145,13 +145,11 @@ class KeyboardNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     detect_key = KeyboardNode()
-    # try:
-    #     rclpy.spin(detect_key)
-    # except:
-    #     detect_key.destroy_node()
-    #     rclpy.shutdown()
-
-    rclpy.spin(detect_key)
+    try:
+        rclpy.spin(detect_key)
+    except:
+        detect_key.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

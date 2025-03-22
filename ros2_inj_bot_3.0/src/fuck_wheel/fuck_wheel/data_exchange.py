@@ -126,13 +126,12 @@ class WheelSerialReadWrite(Node):
 def main(args=None):
     rclpy.init(args=args)
     wheel_data_exchange = WheelSerialReadWrite()
-    # try:
-    #     rclpy.spin(servo_data_exchange)
-    # except:
-    #     servo_data_exchange.destroy_node()
-    #     rclpy.shutdown()
+    try:
+        rclpy.spin(wheel_data_exchange)
+    except:
+        wheel_data_exchange.destroy_node()
+        rclpy.shutdown()
 
-    rclpy.spin(wheel_data_exchange)
 
 if __name__ == '__main__':
     main()

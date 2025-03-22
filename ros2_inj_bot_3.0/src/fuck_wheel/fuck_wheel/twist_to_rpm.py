@@ -46,7 +46,7 @@ class TwistToRPM(Node):
         )
         
         # Частота работы
-        self.control_timer = self.create_timer(0.005, self.control_loop)
+        self.control_timer = self.create_timer(0.050, self.control_loop)
         
         self.get_logger().info("Узел управления запущен")
 
@@ -94,13 +94,12 @@ class TwistToRPM(Node):
 def main():
     rclpy.init()
     twist_to_rpm = TwistToRPM()
-    # try:
-    #     rclpy.spin(twist_to_rpm)
-    # except KeyboardInterrupt:
-    #     twist_to_rpm.destroy_node()
-    #     rclpy.shutdown()
+    try:
+        rclpy.spin(twist_to_rpm)
+    except KeyboardInterrupt:
+        twist_to_rpm.destroy_node()
+        rclpy.shutdown()
 
-    rclpy.spin(twist_to_rpm)
 
 if __name__ == '__main__':
     main()
