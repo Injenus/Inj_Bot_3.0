@@ -46,7 +46,7 @@ class TwistToRPM(Node):
         )
         
         # Частота работы
-        self.control_timer = self.create_timer(0.01, self.control_loop)
+        self.control_timer = self.create_timer(0.005, self.control_loop)
         
         self.get_logger().info("Узел управления запущен")
 

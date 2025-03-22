@@ -5,7 +5,7 @@ import sys
 import time
 
 # Конфигурация
-AUDIO_FILE = os.path.join('..', 'audio', 'leopold.wav')
+AUDIO_FILE = os.path.join('..', 'audio', 'ACDC_BACK_IN_BLACK.wav')
 DEBUG = True  # Включить подробный вывод отладки
 
 class AudioController:

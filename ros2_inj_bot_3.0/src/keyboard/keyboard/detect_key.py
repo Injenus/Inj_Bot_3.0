@@ -25,9 +25,9 @@ class KeyboardNode(Node):
     def __init__(self):
         super().__init__('detect_key')
 
-        self.LINEAR_SPEED_X = 0.15 # м/с
-        self.LINEAR_SPEED_Y = 0.15  # м/с
-        self.ANGULAR_SPEED = 0.75 # рад/с
+        self.LINEAR_SPEED_X = 0.2 # м/с
+        self.LINEAR_SPEED_Y = 0.2  # м/с
+        self.ANGULAR_SPEED = 1.2 # рад/с
 
         with open(os.path.join(receive_data_path, 'config_arm.json'), 'r') as file:
             self.config_arm = json.load(file)
@@ -312,8 +312,7 @@ class KeyboardNode(Node):
         
         self.twist_pub.publish(twist_msg)
         self.get_logger().debug(
-            f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={angular_z}",
-            throttle_duration_sec=0.2
+            f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={angular_z}"
         )
         if 0:
             #-----------------------------------------------------
@@ -355,7 +354,8 @@ class KeyboardNode(Node):
                 print(0)
                 self.is_polar = True
             elif '5' in current_keys and '0' not in current_keys:
-                self.is_polar et_cyclin[2] += self.SERVO_LINEAR_STEP
+                self.is_polar = False
+
                 # изменение расстояния
                 if '1' in current_keys and '7' not in current_keys:
                     self.currnet_cyclin[1] -= self.SERVO_LINEAR_STEP

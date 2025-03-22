@@ -43,9 +43,9 @@ class ServoSerialReadWrite(Node):
         self.create_timer(0.040, self.main_loop)
         
 
-        servo_msg = UInt8MultiArray()
-        servo_msg.data = bytes([142-90, 133+60, 130+30, 132, 0, 128, 128])
-        send_data.send_to_serial(self.serial_port, servo_msg.data)
+        # servo_msg = UInt8MultiArray()
+        # servo_msg.data = bytes([142-90, 133+60, 130+30, 132, 0, 128, 128])
+        # send_data.send_to_serial(self.serial_port, servo_msg.data)
 
     
     def command_callback(self, msg):
@@ -81,10 +81,10 @@ class ServoSerialReadWrite(Node):
                 if start_idx != -1:
                     if len(rec_buff) - start_idx >= PACKET_LENGTH:
                         packet = rec_buff[start_idx:start_idx+PACKET_LENGTH]
-                        parsed_data = receive_data.parse_data(packet)[1:] # убираем первый байт-символ
+                        parsed_data = receive_data.parse_data(packet) # убираем первый байт-символ
 
                         if parsed_data:
-                            #elf.get_logger().info(f'Got data: {parsed_data}')  # в таком виде имеем список из 7 
+                            #elf.get_logger().info(f'Got data: {parsed_data}')  #  в таком виде имеем список из 7 
                             break # выходим из цикла поулчания байт - ном притшло корреткное сообщение о состоянии
                         else:
                             self.get_logger().info("Receive err")
@@ -102,7 +102,7 @@ class ServoSerialReadWrite(Node):
             msg = UInt8MultiArray()
             msg.data = parsed_data
             self.receive_data_publisher.publish(msg)
-            #self.get_logger().info(f'Publ data: {msg.data}')
+            self.get_logger().info(f'Publ data: {msg.data}')
         else:
             self.get_logger().info('Nothing to publ., timeout')
 
