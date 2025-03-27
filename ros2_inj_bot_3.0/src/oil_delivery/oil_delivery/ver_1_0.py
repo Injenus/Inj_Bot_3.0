@@ -1,94 +1,120 @@
-"""
- Движение по запсанным логам, начало чтения логов - старт движения.
- 
-"""
-import sys
 import os
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import Int32MultiArray, UInt8MultiArray
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import cv2
+import sys
+import numpy as np
 from std_msgs.msg import Int32MultiArray
-import serial
-import copy
-import time
-from rclpy.node import Node
-from rosbag2_py import Player, StorageOptions, PlayOptions
-import subprocess
-import signal
-from std_msgs.msg import UInt8MultiArray
 
 current_script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(current_script_path)
 print(script_dir)
-log_patterns_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', 'src', 'log_patterns'))
-print(log_patterns_path)
+receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'modules'))
+print(receive_data_path)
+if receive_data_path not in sys.path:
+    sys.path.append(receive_data_path)
 
+import play_audio
+
+current_script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(current_script_path)
+log_patterns_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', 'src', 'log_patterns'))
 
 class Oil_Delivery(Node):
     def __init__(self):
         super().__init__('oil_delivery')
+        self.bridge = CvBridge()
 
         self.servo_pub = self.create_publisher(UInt8MultiArray, 'servo/to_write', 1)
-
-
-        # self.launch_child_nodes()
-
-        self.main_line()
-
-        # self.child_processes = []
-        #self._start_bag_playback(os.path.join(log_patterns_path, '/example'))
-
-
+        self.subscription = self.create_subscription(Image, 'cam/arm', self.search_qr, 1)
+        self.wheel_sub = self.create_subscription(Int32MultiArray, 'wheel/target_rpm', self.wheel_data, 3)
         
+        self.waiting_for_qr = False
+        self.window_shown = False
+        self.first_data_received = False  # Новый флаг для первого изображения
+        self.initial_command_timer = None  # Таймер для начальной команды
 
-    
-    def _start_bag_playback(self, bag_path):
-        cmd = [
-            'ros2', 'bag', 'play',
-            bag_path,
-        ]
+    def initial_servo_command(self):
+        # Отправляем первую команду и отменяем таймер
+        self.publish_servo_command(bytes([142-90, 133+75, 130-120, 132, 0, 128, 42]))
+        if self.initial_command_timer:
+            self.initial_command_timer.cancel()
+        self.waiting_for_qr = True
+
+    def publish_servo_command(self, data):
+        servo_msg = UInt8MultiArray()
+        servo_msg.data = data
+        self.servo_pub.publish(servo_msg)
+
+    def wheel_data(self, msg):
+        # Запускаем таймер при первом получении изображения
+        if not self.first_data_received:
+            self.first_data_received = True
+            self.get_logger().info("Первые уставки получены")
+            self.initial_command_timer = self.create_timer(2.0, self.initial_servo_command)
+
+    def search_qr(self, msg):
+        frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        detector = cv2.QRCodeDetector()
+        data, bbox, _ = detector.detectAndDecode(frame)
+
+        if data:
+            self.get_logger().info(f"Найден QR-код: {data}")
+            play_audio.main()
+            if self.waiting_for_qr:
+                self.publish_servo_command(bytes([142, 133, 130, 132, 0, 128, 42]))
+                self.waiting_for_qr = False
+
+            if not self.window_shown:
+                self.show_qr_window(data)
+
+    def show_qr_window(self, qr_data):
+        # Параметры экрана (можете изменить под ваше разрешение)
+        screen_width = 640
+        screen_height = 480
+
+        # Создаем желтое изображение
+        yellow_img = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
+        yellow_img[:] = (0, 255, 255)  # BGR для желтого цвета
+
+        # Настраиваем текст
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 2
+        thickness = 3
+        text_color = (0, 0, 0)  # Черный текст
+
+        # Вычисляем позицию текста
+        text_size = cv2.getTextSize(qr_data, font, font_scale, thickness)[0]
+        text_x = (screen_width - text_size[0]) // 2
+        text_y = (screen_height + text_size[1]) // 2
+
+        # Добавляем текст на изображение
+        cv2.putText(yellow_img, qr_data, (text_x, text_y), 
+                    font, font_scale, text_color, thickness, cv2.LINE_AA)
+
+        # Создаем полноэкранное окно
+        cv2.namedWindow("QR Code", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("QR Code", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        cv2.imshow("QR Code", yellow_img)
+        cv2.waitKey(1)  # Обновляем окно
+
+        # Устанавливаем флаг и запускаем таймер для закрытия окна
+        self.window_shown = True
+        self.window_timer = self.create_timer(5.0, self.close_qr_window)
         
-        try:
-            self.bag_proc = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                preexec_fn=os.setsid
-            )
-            self.get_logger().info(f"Playback started with PID: {self.bag_proc.pid}")
-        except Exception as e:
-            self.get_logger().error(f"Failed to start playback: {str(e)}")
-            raise
-
-
-    def main_line(self):
-        #self._start_bag_playback(f"{os.path.join(log_patterns_path, 'example')}")
-
-        def servo_pub(data):
-            servo_msg = UInt8MultiArray()
-            servo_msg.data = data
-            self.servo_pub.publish(servo_msg)
-
-        # servo_pub(bytes([142, 133, 130, 132, 0, 128, 42]))
-        # time.sleep(3.0)
-        # Измените путь на реальный абсолютный путь к вашим логам
-        time.sleep(3.0)
-        servo_pub(bytes([142-90, 133+75, 130-120, 132, 0, 128, 42]))
-
-        time.sleep(5.0)
-        servo_pub(bytes([142, 133, 130, 132, 0, 128, 42]))
+    def close_qr_window(self):
+        cv2.destroyWindow("QR Code")
+        self.window_shown = False
+        self.window_timer.cancel()
         
-
-
-
-
-
     def destroy_node(self):
-        # self.get_logger().info("Stopping, destroy..")
-        # for proc in self.child_processes:
-        #     if proc.poll() is None:
-        #         os.killing(os.getpid(proc.pid), signal.SIGTERM)
+        if self.initial_command_timer:
+            self.initial_command_timer.cancel()
+        cv2.destroyAllWindows()
         super().destroy_node()
-
 
 def main(args=None):
     rclpy.init(args=args)
