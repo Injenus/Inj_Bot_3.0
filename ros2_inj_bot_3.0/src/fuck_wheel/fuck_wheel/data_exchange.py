@@ -7,11 +7,7 @@ import serial
 import copy
 import time
 
-current_script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(current_script_path)
-print(script_dir)
-receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'wheel_encoder_esp'))
-print(receive_data_path)
+receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'wheel_encoder_esp')
 if receive_data_path not in sys.path:
     sys.path.append(receive_data_path)
 

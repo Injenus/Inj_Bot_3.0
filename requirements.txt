@@ -1,0 +1,598 @@
+action-msgs==1.6.0
+action-tutorials-interfaces==0.27.2
+# Editable install with no version control (action-tutorials-py==0.27.2)
+-e /home/inj/ros2_iron/build/action_tutorials_py
+actionlib-msgs==5.0.1
+# Editable install with no version control (ament-clang-format==0.14.4)
+-e /home/inj/ros2_iron/build/ament_clang_format
+# Editable install with no version control (ament-clang-tidy==0.14.4)
+-e /home/inj/ros2_iron/build/ament_clang_tidy
+ament-cmake-google-benchmark==2.0.7
+ament-cmake-test==2.0.7
+# Editable install with no version control (ament-copyright==0.14.4)
+-e /home/inj/ros2_iron/build/ament_copyright
+# Editable install with no version control (ament-cppcheck==0.14.4)
+-e /home/inj/ros2_iron/build/ament_cppcheck
+# Editable install with no version control (ament-cpplint==0.14.4)
+-e /home/inj/ros2_iron/build/ament_cpplint
+# Editable install with no version control (ament-flake8==0.14.4)
+-e /home/inj/ros2_iron/build/ament_flake8
+# Editable install with no version control (ament-index-python==1.5.2)
+-e /home/inj/ros2_iron/build/ament_index_python
+# Editable install with no version control (ament-lint==0.14.4)
+-e /home/inj/ros2_iron/build/ament_lint
+# Editable install with no version control (ament-lint-cmake==0.14.4)
+-e /home/inj/ros2_iron/build/ament_lint_cmake
+# Editable install with no version control (ament-mypy==0.14.4)
+-e /home/inj/ros2_iron/build/ament_mypy
+# Editable install with no version control (ament-package==0.15.3)
+-e /home/inj/ros2_iron/build/ament_package
+# Editable install with no version control (ament-pclint==0.14.4)
+-e /home/inj/ros2_iron/build/ament_pclint
+# Editable install with no version control (ament-pep257==0.14.4)
+-e /home/inj/ros2_iron/build/ament_pep257
+# Editable install with no version control (ament-pycodestyle==0.14.4)
+-e /home/inj/ros2_iron/build/ament_pycodestyle
+# Editable install with no version control (ament-pyflakes==0.14.4)
+-e /home/inj/ros2_iron/build/ament_pyflakes
+# Editable install with no version control (ament-uncrustify==0.14.4)
+-e /home/inj/ros2_iron/build/ament_uncrustify
+# Editable install with no version control (ament-xmllint==0.14.4)
+-e /home/inj/ros2_iron/build/ament_xmllint
+appdirs==1.4.4
+argcomplete==2.0.0
+asgiref==3.6.0
+astroid==2.14.2
+asttokens==2.2.1
+attrs==22.2.0
+av==12.3.0
+Babel==2.10.3
+beautifulsoup4==4.11.2
+beniget==0.4.1
+blinker==1.5
+breezy==3.3.2
+Brotli==1.0.9
+builtin-interfaces==1.6.0
+catkin-pkg==0.5.2
+certifi==2022.9.24
+chardet==5.1.0
+charset-normalizer==3.0.1
+click==8.1.3
+colcon-argcomplete==0.3.3
+colcon-bash==0.4.2
+colcon-cd==0.1.1
+colcon-cmake==0.2.27
+colcon-core==0.12.1
+colcon-defaults==0.2.8
+colcon-devtools==0.2.3
+colcon-library-path==0.2.1
+colcon-metadata==0.2.5
+colcon-notification==0.2.15
+colcon-output==0.2.12
+colcon-package-information==0.3.3
+colcon-package-selection==0.2.10
+colcon-parallel-executor==0.2.4
+colcon-pkg-config==0.1.0
+colcon-python-setup-py==0.2.8
+colcon-recursive-crawl==0.2.1
+colcon-ros==0.3.23
+colcon-test-result==0.3.8
+colcon-zsh==0.4.0
+colorama==0.4.6
+colorzero==2.0
+composition-interfaces==1.6.0
+configobj==5.0.8
+contourpy==1.0.7
+coverage==6.5.0
+cryptography==38.0.4
+cupshelpers==1.0
+cycler==0.11.0
+dbus-python==1.3.2
+decorator==5.1.1
+# Editable install with no version control (demo-nodes-py==0.27.2)
+-e /home/inj/ros2_iron/build/demo_nodes_py
+Deprecated==1.2.13
+diagnostic-msgs==5.0.1
+dill==0.3.6
+distlib==0.3.6
+distro==1.8.0
+docutils==0.19
+# Editable install with no version control (domain-coordinator==0.11.2)
+-e /home/inj/ros2_iron/build/domain_coordinator
+dulwich==0.21.2
+empy==3.3.4
+example-interfaces==0.10.2
+# Editable install with no version control (examples-rclpy-executors==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_executors
+# Editable install with no version control (examples-rclpy-guard-conditions==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_guard_conditions
+# Editable install with no version control (examples-rclpy-minimal-action-client==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_minimal_action_client
+# Editable install with no version control (examples-rclpy-minimal-action-server==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_minimal_action_server
+# Editable install with no version control (examples-rclpy-minimal-client==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_minimal_client
+# Editable install with no version control (examples-rclpy-minimal-publisher==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_minimal_publisher
+# Editable install with no version control (examples-rclpy-minimal-service==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_minimal_service
+# Editable install with no version control (examples-rclpy-minimal-subscriber==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_minimal_subscriber
+# Editable install with no version control (examples-rclpy-pointcloud-publisher==0.18.2)
+-e /home/inj/ros2_iron/build/examples_rclpy_pointcloud_publisher
+# Editable install with no version control (examples-tf2-py==0.31.8)
+-e /home/inj/ros2_iron/build/examples_tf2_py
+fastbencode==0.2
+fastimport==0.9.14
+flake8==5.0.4
+flake8-blind-except==0.2.1
+flake8-builtins==2.1.0
+flake8-class-newline==1.6.0
+flake8-comprehensions==3.10.1
+flake8-deprecated==2.0.1
+flake8-docstrings==1.6.0
+flake8-import-order==0.18.2
+flake8-quotes==3.3.1
+Flask==2.2.2
+fonttools==4.38.0
+fs==2.4.16
+gast==0.5.2
+geometry-msgs==5.0.1
+gpg==1.18.0
+gpiozero==2.0.1
+html5lib==1.1
+httplib2==0.20.4
+idna==3.3
+importlib-metadata==4.12.0
+importlib-resources==5.1.2
+iniconfig==1.1.1
+interactive-markers==2.4.0
+isort==5.6.4
+itsdangerous==2.1.2
+jaraco.classes==3.2.1
+jedi==0.18.2
+jeepney==0.8.0
+Jinja2==3.1.2
+jsonpointer==2.3
+jsonschema==4.10.3
+keyring==23.9.3
+kiwisolver==0.0.0
+lark==1.1.5
+laser-geometry==2.5.0
+# Editable install with no version control (launch==2.0.4)
+-e /home/inj/ros2_iron/build/launch
+# Editable install with no version control (launch-pytest==2.0.4)
+-e /home/inj/ros2_iron/build/launch_pytest
+# Editable install with no version control (launch-ros==0.24.2)
+-e /home/inj/ros2_iron/build/launch_ros
+# Editable install with no version control (launch-testing==2.0.4)
+-e /home/inj/ros2_iron/build/launch_testing
+# Editable install with no version control (launch-testing-examples==0.18.2)
+-e /home/inj/ros2_iron/build/launch_testing_examples
+# Editable install with no version control (launch-testing-ros==0.24.2)
+-e /home/inj/ros2_iron/build/launch_testing_ros
+# Editable install with no version control (launch-xml==2.0.4)
+-e /home/inj/ros2_iron/build/launch_xml
+# Editable install with no version control (launch-yaml==2.0.4)
+-e /home/inj/ros2_iron/build/launch_yaml
+launchpadlib==1.11.0
+lazr.restfulclient==0.14.5
+lazr.uri==1.0.6
+lazy-object-proxy==1.9.0
+lgpio==0.2.2.0
+libarchive-c==2.9
+libevdev==0.5
+lifecycle-msgs==1.6.0
+# Editable install with no version control (lifecycle-py==0.27.2)
+-e /home/inj/ros2_iron/build/lifecycle_py
+logging-demo==0.27.2
+logilab-common==1.9.8
+lxml==4.9.2
+lz4==4.0.2+dfsg
+map-msgs==2.2.0
+MarkupSafe==2.1.2
+matplotlib==3.6.3
+mccabe==0.7.0
+mercurial==6.3.2
+merge3==0.0.8
+meson==1.5.1
+message-filters==4.7.1
+more-itertools==8.10.0
+mpmath==0.0.0
+mypy==1.0.1
+mypy-extensions==0.4.3
+nav-msgs==5.0.1
+netifaces==0.11.0
+notify2==0.3
+numpy==1.24.2
+oauthlib==3.2.2
+olefile==0.46
+# Editable install with no version control (osrf-pycommon==2.1.6)
+-e /home/inj/ros2_iron/build/osrf_pycommon
+packaging==23.0
+parso==0.8.3
+patiencediff==0.2.13
+pendulum-msgs==0.27.2
+pexpect==4.8.0
+pgzero==1.2
+picamera2==0.3.25
+pidng==4.0.9
+piexif==1.1.3
+pigpio==1.78
+Pillow==9.4.0
+platformdirs==2.6.0
+pluggy==1.0.0+repack
+ply==3.11
+psutil==5.9.4
+ptyprocess==0.7.0
+py==1.11.0
+pycairo==1.20.1
+pycodestyle==2.10.0
+pycryptodomex==3.11.0
+pycups==2.0.1
+pydocstyle==6.2.3
+pydot==1.4.2
+pyflakes==2.5.0
+pygame==2.1.2
+PyGithub==1.55
+Pygments==2.14.0
+PyGObject==3.42.2
+pygraphviz==1.7
+pyinotify==0.9.6
+PyJWT==2.6.0
+pylint==2.16.2
+PyNaCl==1.5.0
+PyOpenGL==3.1.6
+pyOpenSSL==23.0.0
+pyparsing==3.0.9
+PyQt5==5.15.9
+PyQt5-sip==12.11.1
+pyrsistent==0.18.1
+pyserial==3.5
+pysmbc==1.0.23
+pytest==7.2.1
+pytest-cov==4.0.0
+pytest-mock==3.8.2
+pytest-repeat==0.9.1
+pytest-rerunfailures==10.2
+pytest-timeout==2.1.0
+python-apt==2.6.0
+python-dateutil==2.8.2
+python-dotenv==0.21.0
+python-prctl==1.8.1
+python-qt-binding==1.2.4
+pythran==0.11.0
+pytz==2022.7.1
+pyudev==0.24.0
+PyYAML==6.0
+qt-dotgraph==2.4.3
+qt-gui==2.4.3
+qt-gui-cpp==2.4.3
+qt-gui-py-common==2.4.3
+# Editable install with no version control (quality-of-service-demo-py==0.27.2)
+-e /home/inj/ros2_iron/build/quality_of_service_demo_py
+rcl-interfaces==1.6.0
+rclpy==4.1.7
+rcutils==6.2.4
+reportlab==3.6.12
+requests==2.28.1
+requests-oauthlib==1.3.0
+resource-retriever==3.2.3
+responses==0.18.0
+rfc3987==1.3.8
+rmw-dds-common==2.0.1
+roman==3.3
+# Editable install with no version control (ros2action==0.25.8)
+-e /home/inj/ros2_iron/build/ros2action
+# Editable install with no version control (ros2bag==0.22.8)
+-e /home/inj/ros2_iron/build/ros2bag
+ros2bag-mcap-cli==0.22.8
+ros2bag-sqlite3-cli==0.22.8
+# Editable install with no version control (ros2cli==0.25.8)
+-e /home/inj/ros2_iron/build/ros2cli
+ros2cli-test-interfaces==0.25.8
+# Editable install with no version control (ros2component==0.25.8)
+-e /home/inj/ros2_iron/build/ros2component
+# Editable install with no version control (ros2doctor==0.25.8)
+-e /home/inj/ros2_iron/build/ros2doctor
+# Editable install with no version control (ros2interface==0.25.8)
+-e /home/inj/ros2_iron/build/ros2interface
+# Editable install with no version control (ros2launch==0.24.2)
+-e /home/inj/ros2_iron/build/ros2launch
+# Editable install with no version control (ros2lifecycle==0.25.8)
+-e /home/inj/ros2_iron/build/ros2lifecycle
+# Editable install with no version control (ros2multicast==0.25.8)
+-e /home/inj/ros2_iron/build/ros2multicast
+# Editable install with no version control (ros2node==0.25.8)
+-e /home/inj/ros2_iron/build/ros2node
+# Editable install with no version control (ros2param==0.25.8)
+-e /home/inj/ros2_iron/build/ros2param
+# Editable install with no version control (ros2pkg==0.25.8)
+-e /home/inj/ros2_iron/build/ros2pkg
+# Editable install with no version control (ros2run==0.25.8)
+-e /home/inj/ros2_iron/build/ros2run
+# Editable install with no version control (ros2service==0.25.8)
+-e /home/inj/ros2_iron/build/ros2service
+# Editable install with no version control (ros2test==0.5.2)
+-e /home/inj/ros2_iron/build/ros2test
+# Editable install with no version control (ros2topic==0.25.8)
+-e /home/inj/ros2_iron/build/ros2topic
+# Editable install with no version control (ros2trace==6.3.3)
+-e /home/inj/ros2_iron/build/ros2trace
+# Editable install with no version control (rosbag2-examples-py==0.22.8)
+-e /home/inj/ros2_iron/build/rosbag2_examples_py
+rosbag2-interfaces==0.22.8
+rosbag2-py==0.22.8
+rosbag2-test-common==0.22.8
+rosbag2-test-msgdefs==0.22.8
+rosdep==0.22.1
+rosdistro==0.9.0
+rosgraph-msgs==1.6.0
+rosidl-adapter==4.0.1
+# Editable install with no version control (rosidl-cli==4.0.1)
+-e /home/inj/ros2_iron/build/rosidl_cli
+rosidl-cmake==4.0.1
+rosidl-generator-c==4.0.1
+rosidl-generator-cpp==4.0.1
+rosidl-generator-dds-idl==0.10.1
+rosidl-generator-py==0.18.0
+rosidl-generator-type-description==4.0.1
+rosidl-parser==4.0.1
+# Editable install with no version control (rosidl-pycommon==4.0.1)
+-e /home/inj/ros2_iron/build/rosidl_pycommon
+# Editable install with no version control (rosidl-runtime-py==0.12.0)
+-e /home/inj/ros2_iron/build/rosidl_runtime_py
+rosidl-typesupport-c==3.0.1
+rosidl-typesupport-cpp==3.0.1
+rosidl-typesupport-fastrtps-c==3.0.2
+rosidl-typesupport-fastrtps-cpp==3.0.2
+rosidl-typesupport-introspection-c==4.0.1
+rosidl-typesupport-introspection-cpp==4.0.1
+rospkg==1.4.0
+rpi-lgpio==0.6
+# Editable install with no version control (rpyutils==0.3.2)
+-e /home/inj/ros2_iron/build/rpyutils
+# Editable install with no version control (rqt==1.3.4)
+-e /home/inj/ros2_iron/build/rqt
+# Editable install with no version control (rqt-action==2.1.2)
+-e /home/inj/ros2_iron/build/rqt_action/src
+# Editable install with no version control (rqt-bag==1.3.5)
+-e /home/inj/ros2_iron/build/rqt_bag/src
+# Editable install with no version control (rqt-bag-plugins==1.3.5)
+-e /home/inj/ros2_iron/build/rqt_bag_plugins/src
+# Editable install with no version control (rqt-console==2.1.1)
+-e /home/inj/ros2_iron/build/rqt_console/src
+# Editable install with no version control (rqt-graph==1.4.3)
+-e /home/inj/ros2_iron/build/rqt_graph/src
+# Editable install with no version control (rqt-gui==1.3.4)
+-e /home/inj/ros2_iron/build/rqt_gui/src
+# Editable install with no version control (rqt-gui-py==1.3.4)
+-e /home/inj/ros2_iron/build/rqt_gui_py/src
+# Editable install with no version control (rqt-msg==1.3.1)
+-e /home/inj/ros2_iron/build/rqt_msg/src
+# Editable install with no version control (rqt-plot==1.2.3)
+-e /home/inj/ros2_iron/build/rqt_plot/src
+# Editable install with no version control (rqt-publisher==1.6.3)
+-e /home/inj/ros2_iron/build/rqt_publisher/src
+rqt-py-common==1.3.4
+# Editable install with no version control (rqt-py-console==1.1.1)
+-e /home/inj/ros2_iron/build/rqt_py_console/src
+# Editable install with no version control (rqt-reconfigure==1.3.4)
+-e /home/inj/ros2_iron/build/rqt_reconfigure/src
+# Editable install with no version control (rqt-service-caller==1.1.1)
+-e /home/inj/ros2_iron/build/rqt_service_caller/src
+# Editable install with no version control (rqt-shell==1.1.1)
+-e /home/inj/ros2_iron/build/rqt_shell/src
+# Editable install with no version control (rqt-srv==1.1.1)
+-e /home/inj/ros2_iron/build/rqt_srv/src
+# Editable install with no version control (rqt-topic==1.6.1)
+-e /home/inj/ros2_iron/build/rqt_topic/src
+RTIMULib==7.2.1
+scipy==1.10.1
+SecretStorage==3.3.3
+Send2Trash==1.8.1b0
+sense-hat==2.6.0
+sensor-msgs==5.0.1
+# Editable install with no version control (sensor-msgs-py==5.0.1)
+-e /home/inj/ros2_iron/build/sensor_msgs_py
+service-msgs==1.6.0
+shape-msgs==5.0.1
+simplejpeg==1.8.1
+simplejson==3.18.3
+six==1.16.0
+smbus2==0.4.2
+snowballstemmer==2.2.0
+soupsieve==2.3.2
+spidev==3.5
+# Editable install with no version control (sros2==0.11.3)
+-e /home/inj/ros2_iron/build/sros2
+ssh-import-id==5.10
+statistics-msgs==1.6.0
+std-msgs==5.0.1
+std-srvs==5.0.1
+stereo-msgs==5.0.1
+sympy==1.11.1
+# Editable install with no version control (test-launch-ros==0.24.2)
+-e /home/inj/ros2_iron/build/test_launch_ros
+test-msgs==1.6.0
+# Editable install with no version control (test-ros2trace==6.3.3)
+-e /home/inj/ros2_iron/build/test_ros2trace
+# Editable install with no version control (test-tracetools-launch==6.3.3)
+-e /home/inj/ros2_iron/build/test_tracetools_launch
+tf2-geometry-msgs==0.31.8
+tf2-kdl==0.31.8
+tf2-msgs==0.31.8
+tf2-py==0.31.8
+# Editable install with no version control (tf2-ros-py==0.31.8)
+-e /home/inj/ros2_iron/build/tf2_ros_py
+tf2-sensor-msgs==0.31.8
+# Editable install with no version control (tf2-tools==0.31.8)
+-e /home/inj/ros2_iron/build/tf2_tools
+thonny==4.1.4
+toml==0.10.2
+tomlkit==0.11.7
+# Editable install with no version control (topic-monitor==0.27.2)
+-e /home/inj/ros2_iron/build/topic_monitor
+tqdm==4.64.1
+# Editable install with no version control (tracetools-launch==6.3.3)
+-e /home/inj/ros2_iron/build/tracetools_launch
+# Editable install with no version control (tracetools-read==6.3.3)
+-e /home/inj/ros2_iron/build/tracetools_read
+# Editable install with no version control (tracetools-test==6.3.3)
+-e /home/inj/ros2_iron/build/tracetools_test
+# Editable install with no version control (tracetools-trace==6.3.3)
+-e /home/inj/ros2_iron/build/tracetools_trace
+trajectory-msgs==5.0.1
+trash-cli==0.17.1.14
+turtlesim==1.6.1
+twython==3.8.2
+type-description-interfaces==1.6.0
+types-aiofiles==22.1
+types-annoy==1.17
+types-appdirs==1.4
+types-aws-xray-sdk==2.10
+types-babel==2.11
+types-backports.ssl-match-hostname==3.7
+types-beautifulsoup4==4.11
+types-bleach==5.0
+types-boto==2.49
+types-braintree==4.17
+types-cachetools==5.2
+types-caldav==0.10
+types-certifi==2021.10.8
+types-cffi==1.15
+types-chardet==5.0
+types-chevron==0.14
+types-click-spinner==0.1
+types-colorama==0.4
+types-commonmark==0.9
+types-console-menu==0.7
+types-contextvars==2.4
+types-croniter==1.3
+types-cryptography==3.3
+types-D3DShot==0.1
+types-dateparser==1.1
+types-DateTimeRange==1.2
+types-decorator==5.1
+types-Deprecated==1.2
+types-dj-database-url==1.0
+types-docopt==0.6
+types-docutils==0.19
+types-editdistance==0.6
+types-emoji==2.1
+types-entrypoints==0.4
+types-first==2.0
+types-flake8-2020==1.7
+types-flake8-bugbear==22.10.27
+types-flake8-builtins==2.0
+types-flake8-docstrings==1.6
+types-flake8-plugin-utils==1.3
+types-flake8-rst-docstrings==0.2
+types-flake8-simplify==0.19
+types-flake8-typing-imports==1.14
+types-Flask-Cors==3.0
+types-Flask-SQLAlchemy==2.5
+types-fpdf2==2.5
+types-gdb==12.1
+types-google-cloud-ndb==1.11
+types-hdbcli==2.14
+types-html5lib==1.1
+types-httplib2==0.21
+types-humanfriendly==10.0
+types-invoke==1.7
+types-JACK-Client==0.5
+types-jmespath==1.0
+types-jsonschema==4.17
+types-keyboard==0.13
+types-ldap3==2.9
+types-Markdown==3.4
+types-mock==4.0
+types-mypy-extensions==0.4
+types-mysqlclient==2.1
+types-oauthlib==3.2
+types-openpyxl==3.0
+types-opentracing==2.4
+types-paho-mqtt==1.6
+types-paramiko==2.11
+types-parsimonious==0.10
+types-passlib==1.7
+types-passpy==1.0
+types-peewee==3.15
+types-pep8-naming==0.13
+types-Pillow==9.3
+types-playsound==1.3
+types-polib==1.1
+types-prettytable==3.4
+types-protobuf==3.20
+types-psutil==5.9
+types-psycopg2==2.9
+types-pyaudio==0.2
+types-PyAutoGUI==0.9
+types-pycurl==7.45
+types-pyfarmhash==0.3
+types-pyflakes==2.5
+types-Pygments==2.13
+types-pyinstaller==5.6
+types-PyMySQL==1.0
+types-pynput==1.7
+types-pyOpenSSL==22.1
+types-pyRFC3339==1.1
+types-PyScreeze==0.1
+types-pysftp==0.2
+types-pytest-lazy-fixture==0.6
+types-python-crontab==2.6
+types-python-dateutil==2.8
+types-python-gflags==3.1
+types-python-jose==3.3
+types-python-nmap==0.7
+types-python-slugify==6.1
+types-pytz==2022.6
+types-pyvmomi==7.0
+types-pywin32==304
+types-PyYAML==6.0
+types-redis==4.3
+types-regex==2022.10.31
+types-requests==2.28
+types-retry==0.9
+types-Send2Trash==1.8
+types-setuptools==65.5
+types-simplejson==3.17
+types-singledispatch==3.7
+types-six==1.16
+types-slumber==0.7
+types-SQLAlchemy==1.4.43
+types-stdlib-list==0.8
+types-stripe==3.5
+types-tabulate==0.9
+types-termcolor==1.1
+types-toml==0.10
+types-toposort==1.7
+types-tqdm==4.64
+types-tree-sitter==0.20
+types-tree-sitter-languages==1.5
+types-ttkthemes==3.2
+types-typed-ast==1.5
+types-tzlocal==4.2
+types-ujson==5.5
+types-urllib3==1.26
+types-vobject==0.9
+types-waitress==2.1
+types-whatthepatch==1.0
+types-xmltodict==0.13
+types-xxhash==3.0
+types-zxcvbn==4.4
+typing_extensions==4.4.0
+ufoLib2==0.14.0
+unique-identifier-msgs==2.3.2
+uritemplate==4.1.1
+urllib3==1.26.12
+v4l2-python3==0.3.5
+vcstool==0.3.0
+vcstools==0.1.42
+visualization-msgs==5.0.1
+wadllib==1.3.6
+webcolors==1.11.1
+webencodings==0.5.1
+Werkzeug==2.2.2
+wrapt==1.14.1
+zipp==1.0.0

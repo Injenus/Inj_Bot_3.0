@@ -8,11 +8,7 @@ import os
 from datetime import datetime
 import sys
 
-current_script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(current_script_path)
-print(script_dir)
-modules_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'modules'))
-print(modules_data_path)
+receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
 if modules_data_path not in sys.path:
     sys.path.append(modules_data_path)
 

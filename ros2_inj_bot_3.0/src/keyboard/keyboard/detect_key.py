@@ -13,9 +13,7 @@ import numpy as np
 from matplotlib.path import Path
 import time
 
-current_script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(current_script_path)
-receive_data_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', '..', '..', '..', '..', 'arm_n_cam_mount_api_8_bytes'))
+receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'arm_n_cam_mount_api_8_bytes')
 if receive_data_path not in sys.path:
     sys.path.append(receive_data_path)
 

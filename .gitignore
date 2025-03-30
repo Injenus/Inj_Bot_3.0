@@ -4,7 +4,6 @@ coral
 *.jpg
 *log_Path*
 ikp_log
-requirements.txt
 build
 install
 log
