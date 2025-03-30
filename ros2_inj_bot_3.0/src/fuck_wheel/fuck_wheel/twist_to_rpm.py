@@ -13,7 +13,7 @@ class TwistToRPM(Node):
             namespace='',
             parameters=[
                 ('wheel_diameter', 0.067),
-                ('wheel_separation', 0.2655),
+                ('wheel_separation', 0.1655),
                 ('max_rpm', 405), # 1.42 м/с
             ]
         )
