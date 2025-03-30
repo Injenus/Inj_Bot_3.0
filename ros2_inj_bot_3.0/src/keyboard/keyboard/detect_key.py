@@ -217,7 +217,7 @@ class KeyboardNode(Node):
                     #     print("Поддерживаемые клавиши:", [ecodes.KEY[k] for k in caps[ecodes.EV_KEY]] if caps[ecodes.EV_KEY] else "Нет клавиш")
                     
                     # Проверяем наличие необходимых клавиш
-                    required_keys = {ecodes.KEY_A, ecodes.KEY_P, ecodes.KEY_S}
+                    required_keys = {ecodes.KEY_A, ecodes.KEY_P, ecodes.KEY_S, ecodes.KEY_N, ecodes.KEY_Q, ecodes.KEY_B, ecodes.KEY_ESC}
                     if required_keys.issubset(caps[ecodes.EV_KEY]):
                         # if DEBUG:
                         #     print(f"Выбрана клавиатура: {dev.name}")

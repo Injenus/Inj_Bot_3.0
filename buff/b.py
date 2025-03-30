@@ -22,16 +22,16 @@ class AudioController:
             print(f"[Audio] Загружен трек {self.current_track}: {self.file_paths[self.current_track]}")
 
     def start(self):
-        #if not self.playing:
-        pygame.mixer.music.play()
-        self.playing = True
-        self.paused = False
-        if DEBUG:
-            print("[Audio] Воспроизведение начато")
-        # else:
-        #     pygame.mixer.music.rewind()
-        #     if DEBUG:
-        #         print("[Audio] Перезапуск трека")
+        if not self.playing:
+            pygame.mixer.music.play()
+            self.playing = True
+            self.paused = False
+            if DEBUG:
+                print("[Audio] Воспроизведение начато")
+        else:
+            pygame.mixer.music.rewind()
+            if DEBUG:
+                print("[Audio] Перезапуск трека")
 
     def toggle_pause(self):
         if self.paused:
@@ -148,7 +148,6 @@ def main():
             raise FileNotFoundError(f"Аудиофайл не найден: {file}")
 
     controller = AudioController(audio_files)
-    controller.start()  # Автозапуск при старте
     keyboard = find_keyboard()
 
     key_states = {
@@ -206,12 +205,7 @@ def main():
                             controller.previous_track()
                         elif code == ecodes.KEY_Q:
                             print("\n>>> Старт/перезапуск")
-                            if not controller.playing:
-                                controller.start()
-                            else:
-                                pygame.mixer.music.rewind()
-                                if DEBUG:
-                                    print("[Audio] Перезапуск трека")
+                            controller.start()
 
             time.sleep(0.01)
 
