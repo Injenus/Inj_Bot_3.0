@@ -5,11 +5,17 @@ import sys
 import time
 
 # Конфигурация
-AUDIO_FILES = [  # Список аудиофайлов для воспроизведения
-    os.path.join('..', 'audio', 'TTS_663477 (mp3cut.net).wav'),
-    # os.path.join('..', 'audio', 'ACDC_BACK_IN_BLACK.wav')
+AUDIO_FILES = [  
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'leopold.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_BACK_IN_BLACK.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_HIGHWAY_TO_HELL.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_SHOOT_TO_THRILL.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'EURYTHMICS_SWEET_DREAMS_ARE_MADE_OF_THIS.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'POHUY.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_THROUGH_THE_MISTS_OF_TIME.wav'),
+    os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', "ACDC_IT'S_A_LONG_WAY_TO_THE_TOP_IF_YOU_WANNA_ROCK'N'ROLL.wav")
 ]
-DEBUG = True  # Включить подробный вывод отладки
+DEBUG = True  
 
 class AudioController:
     def __init__(self, file_paths):
@@ -62,8 +68,12 @@ class AudioController:
         self.load(self.current_track + 1)
         self.start()
 
+    def previous_track(self):
+        self.stop()
+        self.load(self.current_track - 1)
+        self.start()
+
 def find_keyboard():
-    """Поиск и выбор клавиатуры с подробной отладкой"""
     devices = [InputDevice(path) for path in list_devices()]
     
     if DEBUG:
@@ -79,11 +89,15 @@ def find_keyboard():
                     print(f"\nПроверка устройства: {dev.name}")
                     print("Поддерживаемые клавиши:", [ecodes.KEY[k] for k in caps[ecodes.EV_KEY]] if caps[ecodes.EV_KEY] else "Нет клавиш")
                 
-                required_keys = {ecodes.KEY_A, ecodes.KEY_P, ecodes.KEY_S, ecodes.KEY_N}
+                required_keys = {ecodes.KEY_A, ecodes.KEY_P, ecodes.KEY_S, 
+                               ecodes.KEY_N, ecodes.KEY_Q, ecodes.KEY_B, ecodes.KEY_ESC}
                 if required_keys.issubset(caps[ecodes.EV_KEY]):
                     if DEBUG:
                         print(f"Выбрана клавиатура: {dev.name}")
                     return dev
+                else:
+                    if DEBUG:
+                        print("Не хватает клавиш:", required_keys - set(caps[ecodes.EV_KEY]))
         except Exception as e:
             if DEBUG:
                 print(f"Ошибка при проверке {dev.path}: {str(e)}")
@@ -92,31 +106,30 @@ def find_keyboard():
     raise SystemExit("\nОШИБКА: Не найдено подходящей клавиатуры с необходимыми клавишами!")
 
 def main():
-    # Проверка файлов
     for file in AUDIO_FILES:
         if not os.path.exists(file):
             raise FileNotFoundError(f"Аудиофайл не найден: {file}")
 
-    # Инициализация аудио
     controller = AudioController(AUDIO_FILES)
-
-    # Поиск клавиатуры
     keyboard = find_keyboard()
 
-    # Состояние клавиш
     key_states = {
         ecodes.KEY_A: False,
         ecodes.KEY_P: False,
         ecodes.KEY_S: False,
-        ecodes.KEY_N: False
+        ecodes.KEY_N: False,
+        ecodes.KEY_Q: False,
+        ecodes.KEY_B: False,
+        ecodes.KEY_ESC: False
     }
 
     print("\nУправление:")
     print("1. Зажать A + нажать P - Пауза/Продолжение")
-    print("2. Зажать A + нажать S - Остановка")
+    #print("2. Зажать A + нажать S - Остановка")
     print("3. Зажать A + нажать N - Следующий трек")
-    print("4. Зажать A + нажать Q - Начать/перезапустить")
-    print("5. Ctrl+C - Выход из программы\n")
+    print("4. Зажать A + нажать B - Предыдущий трек")
+    print("5. Зажать A + нажать Q - Начать/перезапустить")
+    print("6. ESC - Немедленный выход из программы\n")
 
     try:
         while True:
@@ -124,9 +137,9 @@ def main():
             if event and event.type == ecodes.EV_KEY:
                 code = event.code
                 state = event.value
-                key_name = ecodes.KEY.get(code, 'UNKNOWN')
 
                 if DEBUG:
+                    key_name = ecodes.KEY.get(code, 'UNKNOWN')
                     state_desc = {
                         0: "Отпущена",
                         1: "Нажата",
@@ -134,41 +147,39 @@ def main():
                     }.get(state, "Неизвестное состояние")
                     print(f"[Клавиша] {key_name} ({code}): {state_desc}")
 
-                # Обновляем состояние клавиш
                 if code in key_states:
                     key_states[code] = state in [1, 2]
 
-                # Обработка комбинаций
                 if state == 1:
+                    if code == ecodes.KEY_ESC:  # Обработка ESC
+                        print("\n>>> Немедленный выход!")
+                        raise SystemExit
+                    
                     if key_states[ecodes.KEY_A]:
                         if code == ecodes.KEY_P:
                             print("\n>>> Пауза/Продолжение")
                             controller.toggle_pause()
-                        elif code == ecodes.KEY_S:
-                            print("\n>>> Остановка воспроизведения")
-                            controller.stop()
+                        # elif code == ecodes.KEY_S:
+                        #     print("\n>>> Остановка воспроизведения")
+                        #     controller.stop()
                         elif code == ecodes.KEY_N:
                             print("\n>>> Следующий трек")
                             controller.next_track()
+                        elif code == ecodes.KEY_B:
+                            print("\n>>> Предыдущий трек")
+                            controller.previous_track()
                         elif code == ecodes.KEY_Q:
                             print("\n>>> Старт/перезапуск")
                             controller.start()
 
-            # Проверка состояния воспроизведения
-            if controller.playing and not pygame.mixer.music.get_busy():
-                controller.playing = False
-                if DEBUG:
-                    print("[Audio] Воспроизведение завершено")
-                    exit(0)
-
             time.sleep(0.01)
 
-    except KeyboardInterrupt:
-        print("\nПрервано пользователем")
+    except SystemExit:
+        print("\nЗавершение работы по запросу пользователя")
     finally:
         controller.stop()
         if DEBUG:
-            print("\nЗавершение работы...")
+            print("\nОчистка ресурсов...")
 
 if __name__ == "__main__":
     try:
