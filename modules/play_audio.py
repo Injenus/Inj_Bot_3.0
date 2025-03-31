@@ -131,7 +131,8 @@ def main():
             os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'crvvdy_KEROSENE_PHONK_VERSION.wav'),
             os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'PUSHNOY_NADO_RADOVATSIA.wav'),
             os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_JAILBREAK.wav'),
-            os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'qr_code.wav')
+            os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'qr_code.wav'),
+            os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'CALGON.wav')
         ]
     else:
         if len(sys.argv) < 3:

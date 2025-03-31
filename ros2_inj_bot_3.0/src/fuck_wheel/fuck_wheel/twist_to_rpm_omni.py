@@ -35,7 +35,7 @@ class TwistToRPM(Node):
             2
         )
         
-        self.control_timer = self.create_timer(0.050, self.control_loop)
+        self.control_timer = self.create_timer(0.005, self.control_loop)
         self.get_logger().info("Узел управления для омни-колёс запущен")
 
     def calculate_target_rpms(self, twist_msg):

@@ -6,9 +6,9 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 
-receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
-if receive_data_path not in sys.path:
-    sys.path.append(receive_data_path)
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
 
 from _tools import *
 

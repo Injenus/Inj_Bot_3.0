@@ -22,7 +22,7 @@ class WheelTestNode(Node):
         self.start_phase_time = time.time()
         self.start_wheel_time = time.time()
         
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        self.timer = self.create_timer(0.005, self.timer_callback)
         self.get_logger().info("Начало теста колёс")
 
     def timer_callback(self):

@@ -5,9 +5,9 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
-if receive_data_path not in sys.path:
-    sys.path.append(receive_data_path)
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
 
 from _custom_picamera2 import *
 from _tools import *
@@ -19,9 +19,10 @@ class ArmCameraPublisher(Node):
 
         self.publisher = self.create_publisher(Image, 'cam/arm', 1)
         # 2591 x 1944  / 2.5 = 1036 x 778
-        self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=3.0, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
+        #2.15: 1205 x 904
+        self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=2.15, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
         
-        self.timer = self.create_timer(0.05, self.publish_imge)
+        self.timer = self.create_timer(0.02, self.publish_imge) # тянет только 15 фпс
 
     def publish_imge(self):
         self.cam.get_frame()

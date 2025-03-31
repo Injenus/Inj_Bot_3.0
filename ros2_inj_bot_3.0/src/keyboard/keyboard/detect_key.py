@@ -48,7 +48,7 @@ class KeyboardNode(Node):
 
         self.arm = ArmIKP(self.config_arm['length'], actual_ang_range, specific_valid_area, specific_theta_angles, global_valid_area)
 
-        self.SERVO_FREQ = 50
+        self.SERVO_FREQ = 200
         self.SERVO_MIN_LINEAR_STEP = 10 # мм, всё что меньше НЕ считается изменением текущих линейных (xyz, rh) координат
         self.SERVO_MIN_ANG_STEP = 3 # град., всё что меньше НЕ считается изменениеми текущих угловых координат (theta)
 
