@@ -12,6 +12,9 @@ class Rpi_Camera():
         assert resolution in [0,1,2,3] or isinstance(resolution, tuple)
         assert rotate in [0,90,180,270]
         self.cam = Picamera2(id)
+        available_modes = self.cam.sensor_modes
+        for mode in available_modes:
+            print(f"Format: {mode['format']}, Size: {mode['size']}, FPS: {mode['fps']}")
         self.hard_roi = hard_roi
         
         if isinstance(resolution, tuple):
