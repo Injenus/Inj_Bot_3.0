@@ -14,8 +14,9 @@ class LidarObstacles(Node):
             self.scan_callback,
             1
         )
+
         self.publisher = self.create_publisher(String, 'lidar/obstacles', 1)
-        self.declare_parameter('angle_step', 10)  # Шаг секторов (должен делить 360)
+        self.declare_parameter('angle_step', 6)  # Шаг секторов (должен делить 360)
         self.get_logger().info('Run ... ')
 
     def scan_callback(self, msg):

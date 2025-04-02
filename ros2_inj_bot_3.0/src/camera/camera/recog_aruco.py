@@ -63,7 +63,7 @@ class ArucoGrayscaleDetector(Node):
                 center = np.mean(marker_corners, axis=0)
                 
                 result[int(marker_id)] = (
-                    (float(center[0]), float(center[1])),
+                    (float(center[0]/cv_image.shape[1]), float(center[1]/cv_image.shape[0])),
                     tuple(tuple(map(float, p)) for p in ordered_corners),
                     int(orientation)
                 )
