@@ -85,6 +85,8 @@ class PharmaDelivery(Node):
         self.lidar_lock = False
         self.aruco_lock = False
 
+        self.last_valid_basic_lidar = {}
+
 
     def qr_code_callback(self, msg):
         data = json.loads(msg.data)
@@ -112,7 +114,8 @@ class PharmaDelivery(Node):
     def lidar_callback(self, msg):
         if not self.lidar_lock:
             data = json.loads(msg.data)
-            print(data)
+            data = {int(k): v for k, v in data.items()}
+            #print(data)
             angles = np.array(sorted(data.keys(), key=lambda x: float(x)), dtype=np.float32)
             # distances = np.array([self.data[str(int(angle))] for angle in angles], dtype=np.float32)
             angle_step = round(np.abs(angles[1] - angles[0]))

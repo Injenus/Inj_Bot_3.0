@@ -25,7 +25,7 @@ class LidarObstacles(Node):
 
         self.publisher = self.create_publisher(String, 'lidar/obstacles', 3)
         self.angle_step = conf.LIDAR_STEP 
-        self.declare_parameter('smoothing_factor', 0.2)  # EMA smoothing factor (0-1)
+        self.declare_parameter('smoothing_factor', 0.8)  # EMA smoothing factor (0-1)
         self.smoothed_medians = {}  # Stores smoothed values per sector
         self.get_logger().info('Run ... ')
 
@@ -57,8 +57,15 @@ class LidarObstacles(Node):
             else:
                 mask = (rotated_angles >= lower) | (rotated_angles < upper)
 
-            valid_distances = distances[mask]
-            median = np.median(valid_distances) if valid_distances.size > 0 else float('nan')
+            sector_data = np.where(np.isinf(distances[mask]), 5.0, distances[mask])  # Замена inf на 5.0
+
+            clean_data = sector_data[~np.isnan(sector_data)]
+            
+            if clean_data.size > 0:
+                median = np.median(clean_data)
+            else:
+                median = float('nan')
+            
             current_medians[round(center)] = float(median)
 
         # Apply EMA smoothing
