@@ -14,7 +14,7 @@ class LidarObstacles(Node):
             self.scan_callback,
             1
         )
-        self.publisher = self.create_publisher(String, '/lidar/obstacles', 1)
+        self.publisher = self.create_publisher(String, 'lidar/obstacles', 1)
         self.declare_parameter('angle_step', 10)  # Шаг секторов (должен делить 360)
         self.get_logger().info('Run ... ')
 
@@ -60,11 +60,11 @@ class LidarObstacles(Node):
 def main(args=None):
     rclpy.init(args=args)
     lidar_obstacles = LidarObstacles()
-    try:
-        rclpy.spin(lidar_obstacles)
-    except:
-        lidar_obstacles.destroy_node()
-        rclpy.shutdown()
+
+    rclpy.spin(lidar_obstacles)
+
+    lidar_obstacles.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

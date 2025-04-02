@@ -12,7 +12,7 @@ class PolarPlotter(Node):
 
         self.subscription = self.create_subscription(
             String,
-            '/lidar/obstacles',
+            'lidar/obstacles',
             self.obstacles_callback,
             1
         )
@@ -22,7 +22,7 @@ class PolarPlotter(Node):
         self.fig, self.ax = plt.subplots(subplot_kw={'projection': 'polar'})
         self.ax.set_theta_zero_location("N")
         self.ax.set_theta_direction(-1)
-        self.ax.set_ylim(0, 5)
+        self.ax.set_ylim(0, 2)
 
         self.data_lock = threading.Lock()
         self.data = {}
@@ -68,7 +68,7 @@ class PolarPlotter(Node):
             self.ax.clear()
             self.ax.set_theta_zero_location("N")
             self.ax.set_theta_direction(-1)
-            self.ax.set_ylim(0, 5)
+            self.ax.set_ylim(0, 2)
 
             self.ax.scatter(full_angles, full_distances, c='b', s=3)
 

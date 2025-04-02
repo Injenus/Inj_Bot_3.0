@@ -67,7 +67,6 @@ class TwistToRPM(Node):
         rpm_L2 = round(constrain(rpm_L2))
         rpm_R2 = round(constrain(rpm_R2))
 
-        # Порядок: [R1, L1, L2, R2] (уточните порядок для вашего робота!)
         return [rpm_R1, rpm_L1, rpm_L2, rpm_R2]
 
     def twist_callback(self, msg):
@@ -89,11 +88,9 @@ class TwistToRPM(Node):
 def main():
     rclpy.init()
     twist_to_rpm = TwistToRPM()
-    try:
-        rclpy.spin(twist_to_rpm)
-    except KeyboardInterrupt:
-        twist_to_rpm.destroy_node()
-        rclpy.shutdown()
+    rclpy.spin(twist_to_rpm)
+    twist_to_rpm.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

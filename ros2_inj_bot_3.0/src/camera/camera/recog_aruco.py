@@ -26,14 +26,14 @@ class ArucoGrayscaleDetector(Node):
         self.declare_parameter('dictionary_size', 4)
         dictionary_size = self.get_parameter('dictionary_size').value
         
-        self.aruco_dict = aruco.getPredefinedDictionary({
-            4: aruco.DICT_4X4_50,
-            5: aruco.DICT_5X5_50,
-            6: aruco.DICT_6X6_50,
-            7: aruco.DICT_7X7_50
-        }[dictionary_size])
+        self.aruco_dict = aruco.Dictionary_get(
+            aruco.DICT_4X4_50 if dictionary_size == 4 else 
+            aruco.DICT_5X5_50 if dictionary_size == 5 else
+            aruco.DICT_6X6_50 if dictionary_size == 6 else
+            aruco.DICT_7X7_50
+        )
         
-        self.detector = aruco.ArucoDetector(self.aruco_dict)
+        self.parameters = aruco.DetectorParameters_create()
         self.bridge = CvBridge()
         
         self.subscription = self.create_subscription(Image, 'cam/arm_g', self.image_callback, 1)
@@ -46,15 +46,23 @@ class ArucoGrayscaleDetector(Node):
             self.get_logger().error(f'Image conversion failed: {e}')
             return
 
-        corners, ids, _ = self.detector.detectMarkers(cv_image)
+        corners, ids, _ = aruco.detectMarkers(
+            cv_image, 
+            self.aruco_dict,
+            parameters=self.parameters
+        )
+
         result = {}
         
         if ids is not None:
-            for marker_id, marker_corners in zip(ids, corners):
-                ordered_corners, orientation = self.process_corners(marker_corners[0])
-                center = np.mean(marker_corners[0], axis=0).tolist()
+            for i in range(len(ids)):
+                marker_id = ids[i][0]
+                marker_corners = corners[i][0]
                 
-                result[int(marker_id[0])] = (
+                ordered_corners, orientation = self.process_corners(marker_corners)
+                center = np.mean(marker_corners, axis=0)
+                
+                result[int(marker_id)] = (
                     (float(center[0]), float(center[1])),
                     tuple(tuple(map(float, p)) for p in ordered_corners),
                     int(orientation)
@@ -63,6 +71,7 @@ class ArucoGrayscaleDetector(Node):
         output = String()
         output.data = json.dumps(result)
         self.publisher.publish(output)
+        self.get_logger().info(f'Отправили: {output.data}')
 
     def process_corners(self, corners):
         """Определение порядка углов и ориентации по исходному верхнему левому углу"""
