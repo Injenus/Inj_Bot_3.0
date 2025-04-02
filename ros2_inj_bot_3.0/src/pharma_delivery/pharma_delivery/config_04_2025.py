@@ -1,9 +1,11 @@
 # Параметры и константы
 
+LIDAR_STEP = 10
+
 LIN_X_SPEED = 0.3 # m/s
 LIN_Y_SPEED = 0.3
 ANG_Z_SPEED = 1.5 # rad/s
-P_koef = 1
+P_koef = 10
 
 thresh_taking_pharma_err = 0.05
 

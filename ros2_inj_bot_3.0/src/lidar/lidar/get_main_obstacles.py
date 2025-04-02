@@ -4,6 +4,14 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
 import numpy as np
 import json
+import os
+import sys
+
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'pharma_delivery', 'pharma_delivery')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+import config_04_2025 as conf
 
 class LidarObstacles(Node):
     def __init__(self):
@@ -16,17 +24,12 @@ class LidarObstacles(Node):
         )
 
         self.publisher = self.create_publisher(String, 'lidar/obstacles', 3)
-        self.declare_parameter('angle_step', 10)  # Sector step (must divide 360)
+        self.angle_step = conf.LIDAR_STEP 
         self.declare_parameter('smoothing_factor', 0.2)  # EMA smoothing factor (0-1)
         self.smoothed_medians = {}  # Stores smoothed values per sector
         self.get_logger().info('Run ... ')
 
     def scan_callback(self, msg):
-        # Validate parameters
-        angle_step = self.get_parameter('angle_step').get_parameter_value().integer_value
-        if 360 % angle_step != 0:
-            self.get_logger().error(f"angle_step {angle_step} must be a divisor of 360!")
-            return
 
         smoothing_factor = self.get_parameter('smoothing_factor').get_parameter_value().double_value
         if not (0 < smoothing_factor <= 1):
@@ -37,10 +40,10 @@ class LidarObstacles(Node):
         angles_raw = np.degrees(msg.angle_min + np.arange(len(msg.ranges)) * msg.angle_increment)
         rotated_angles = (angles_raw + 180) % 360
         distances = np.array(msg.ranges)
-        half_step = angle_step / 2
+        half_step = self.angle_step / 2
 
         # Process sectors
-        centers = np.arange(0, 360, angle_step)
+        centers = np.arange(0, 360, self.angle_step)
         current_medians = {}
 
         for center in centers:
@@ -77,6 +80,7 @@ class LidarObstacles(Node):
         # Publish results
         msg_out = String()
         msg_out.data = json.dumps(smoothed_medians)
+        print(msg_out.data)
         self.publisher.publish(msg_out)
 
 def main(args=None):

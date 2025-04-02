@@ -36,8 +36,8 @@ class ArucoGrayscaleDetector(Node):
         self.parameters = aruco.DetectorParameters_create()
         self.bridge = CvBridge()
         
-        self.subscription = self.create_subscription(Image, 'cam/arm_g', self.image_callback, 1)
-        self.publisher = self.create_publisher(String, 'aruco_markers', 1)
+        self.subscription = self.create_subscription(Image, 'cam/arm_g', self.image_callback, 2)
+        self.publisher = self.create_publisher(String, 'aruco_markers', 2)
 
     def image_callback(self, msg):
         try:
@@ -55,6 +55,7 @@ class ArucoGrayscaleDetector(Node):
         result = {}
         
         if ids is not None:
+            
             for i in range(len(ids)):
                 marker_id = ids[i][0]
                 marker_corners = corners[i][0]
@@ -67,6 +68,7 @@ class ArucoGrayscaleDetector(Node):
                     tuple(tuple(map(float, p)) for p in ordered_corners),
                     int(orientation)
                 )
+                # cv2.imwrite(f'/home/inj/Inj_Bot_3.0/test_{i}_{round(center[0]/cv_image.shape[1], 3)}_{round(center[1]/cv_image.shape[0], 3)}.jpg', cv_image)
 
         output = String()
         output.data = json.dumps(result)
