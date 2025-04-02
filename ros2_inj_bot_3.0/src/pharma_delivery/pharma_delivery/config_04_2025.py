@@ -15,11 +15,12 @@ arm_positions = {
 }
 
 # рассторния от центра лидара до соотв. краёв робота (метры)
+lidar_radiues = 0.0507/2
 lidar_offsets = {
-    'front': 0.010,
-    'left': 0.100,
-    'right': 0.100,
-    'back': 0.260
+    'front': 0.010+lidar_radiues,
+    'left': 0.100+lidar_radiues,
+    'right': 0.100+lidar_radiues,
+    'back': 0.260+lidar_radiues
 }
 
 # минимальные расстония до стенки лабиринта

@@ -22,11 +22,12 @@
 1 - стоим на старте, нашли qr код, спраосили, повораисваем руку на прямо через промежуточное положение
 2 - двигаемся согласно алгориму
 3 - приехали в зону аптеки (короткий стоп)
-4 - крутимся пока не станем перпендикулярно декарствам
-5 - движемся к лекарству, центрируясь по его аруке
-6 - доехали до лекарства, короткая остановка
-7 - отъехали назад для нормальных манёвров
-8 - едем в палату - хз пока как и что
+4 - крутимся пока нужная арука не будет в центре камеры руки
+5 - крутимся пока не станем перемендикуляор лекатсвам, запоминаем сторону вращения!!!
+6 - смещаемся боком влевро если керутились по часовой стрелке (и наоброт) пока арука не будет в центре камеры
+7 - едем до елкстра, доехали до лекарства, короткая остановка
+8 - отъехали назад для нормальных манёвров
+9 - едем в палату - хз пока как и что
 
 """
 
@@ -110,12 +111,12 @@ class PharmaDelivery(Node):
                 # distances = np.array([self.data[str(int(angle))] for angle in angles], dtype=np.float32)
                 angle_step = np.abs(angles[1] - angles[0])
 
-                self.lidar_all = data
+                self.lidar_all = copy.deepcopy(data)
                 self.lidar_basic = {
-                    'front': [data[360.-angle_step], data[0.], data[0.+angle_step]],
-                    'right': [data[90.-angle_step], data[90.], data[90.+angle_step]],
-                    'back': [data[180.-angle_step], data[180.], data[180.+angle_step]],
-                    'left': [data[270.-angle_step], data[270.], data[270.+angle_step]]
+                    'front': [data[360-angle_step], data[0], data[0+angle_step]],
+                    'right': [data[90-angle_step], data[90], data[90+angle_step]],
+                    'back': [data[180-angle_step], data[180], data[180+angle_step]],
+                    'left': [data[270-angle_step], data[270], data[270+angle_step]]
                 }
 
         def get_turns(self):
@@ -202,7 +203,7 @@ class PharmaDelivery(Node):
                     self.main_state = 4
 
             if self.main_state == 4:
-                pass
+                angular_z = -conf.ANG_Z_SPEED
 
             if self.main_state == 5:
                 self.aruco_lock = True

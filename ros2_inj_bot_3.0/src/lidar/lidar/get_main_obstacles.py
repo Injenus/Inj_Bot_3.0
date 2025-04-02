@@ -12,58 +12,77 @@ class LidarObstacles(Node):
             LaserScan,
             '/scan',
             self.scan_callback,
-            1
+            3
         )
 
-        self.publisher = self.create_publisher(String, 'lidar/obstacles', 1)
-        self.declare_parameter('angle_step', 6)  # Шаг секторов (должен делить 360)
+        self.publisher = self.create_publisher(String, 'lidar/obstacles', 3)
+        self.declare_parameter('angle_step', 10)  # Sector step (must divide 360)
+        self.declare_parameter('smoothing_factor', 0.2)  # EMA smoothing factor (0-1)
+        self.smoothed_medians = {}  # Stores smoothed values per sector
         self.get_logger().info('Run ... ')
 
     def scan_callback(self, msg):
-        # Проверка что angle_step делит 360
+        # Validate parameters
         angle_step = self.get_parameter('angle_step').get_parameter_value().integer_value
         if 360 % angle_step != 0:
             self.get_logger().error(f"angle_step {angle_step} must be a divisor of 360!")
             return
 
-        # Рассчитываем углы с поворотом на 180° для коррекции ориентации лидара
+        smoothing_factor = self.get_parameter('smoothing_factor').get_parameter_value().double_value
+        if not (0 < smoothing_factor <= 1):
+            self.get_logger().error("smoothing_factor must be between 0 and 1!")
+            return
+
+        # Calculate angles with 180° rotation correction
         angles_raw = np.degrees(msg.angle_min + np.arange(len(msg.ranges)) * msg.angle_increment)
-        rotated_angles = (angles_raw + 180) % 360  # Корректируем направление
-        
+        rotated_angles = (angles_raw + 180) % 360
         distances = np.array(msg.ranges)
         half_step = angle_step / 2
 
-        # Генерируем центры секторов [0, angle_step, 2*angle_step, ...]
+        # Process sectors
         centers = np.arange(0, 360, angle_step)
-        median_values = {}
+        current_medians = {}
 
         for center in centers:
-            # Вычисляем границы сектора с учетом перехода через 0°
+            # Calculate sector boundaries
             lower = (center - half_step) % 360
             upper = (center + half_step) % 360
 
-            # Формируем маску для углов
+            # Create angle mask
             if lower < upper:
                 mask = (rotated_angles >= lower) & (rotated_angles < upper)
             else:
-                # Сектор пересекает 0°
                 mask = (rotated_angles >= lower) | (rotated_angles < upper)
 
             valid_distances = distances[mask]
             median = np.median(valid_distances) if valid_distances.size > 0 else float('nan')
-            median_values[round(center)] = float(median)
+            current_medians[round(center)] = float(median)
 
-        # Публикация результатов
+        # Apply EMA smoothing
+        smoothed_medians = {}
+        for center, median in current_medians.items():
+            if np.isfinite(median):
+                if center in self.smoothed_medians:
+                    prev = self.smoothed_medians[center]
+                    smoothed = smoothing_factor * median + (1 - smoothing_factor) * prev
+                else:
+                    smoothed = median
+                smoothed_medians[center] = smoothed
+            else:
+                # Preserve last valid value if available
+                smoothed_medians[center] = self.smoothed_medians.get(center, np.nan)
+
+        self.smoothed_medians = smoothed_medians
+
+        # Publish results
         msg_out = String()
-        msg_out.data = json.dumps(median_values)
+        msg_out.data = json.dumps(smoothed_medians)
         self.publisher.publish(msg_out)
 
 def main(args=None):
     rclpy.init(args=args)
     lidar_obstacles = LidarObstacles()
-
     rclpy.spin(lidar_obstacles)
-
     lidar_obstacles.destroy_node()
     rclpy.shutdown()
 
