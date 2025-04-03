@@ -50,6 +50,7 @@ from std_msgs.msg import UInt8
 from geometry_msgs.msg import Twist
 import copy
 import numpy as np
+import time
 
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'pharma_delivery', 'pharma_delivery')
 if modules_data_path not in sys.path:
@@ -97,7 +98,7 @@ class PharmaDelivery(Node):
         self.arm_counter = [0, 0]
         self.turn_counter = 0
         self.stop_counter = 0
-        self.shaking_timer = [0, 0] # 0 -left   1 - right 
+        self.shaking_timer = [0, 0] # 0 -left   1 - right второе значение - счетчик
 
         self.lidar_lock = False
         self.aruco_lock = False
@@ -236,13 +237,13 @@ class PharmaDelivery(Node):
                 self.error = self.lidar_basic['right'][0] - self.lidar_basic['right'][1] * 1.00375 # компенсация что мы сравниваем не крайние а средний с краним, у котрого длнеа априори меньше
 
             if self.turn_counter == 0: # едем передом
-                self.play_with_flags('polnyi_vperiod.wav', 1)
+                self.play_with_flags('polnyi_vpered.wav', 1)
                 linear_x = conf.LIN_X_SPEED
                 linear_y = 0
                 angular_z = -self.error * conf.P_koef # по часвово должно быть -1, А така как ошибка плюс - доб. занк минус
                 
             elif self.turn_counter == 1: #едем правым бортом
-                self.play_with_flags('pravo_rulia.wav', 1)
+                self.play_with_flags('pravo_rulia.wav', 2)
                 linear_x = 0
                 linear_y = -conf.LIN_Y_SPEED
                 angular_z = -self.error * conf.P_koef # против чаосв - должно быть плюс , ошибка меньше нуля - доб. минус
@@ -367,9 +368,8 @@ class PharmaDelivery(Node):
 
 
         if self.main_state == 8:
-            time.sleep(self.period/2)
             self.stop_counter += 1
-            if self.stop_counter >= conf.confirm_time/(self.period/2):
+            if self.stop_counter >= conf.confirm_time/self.period:
                 self.main_state = 9
 
 
