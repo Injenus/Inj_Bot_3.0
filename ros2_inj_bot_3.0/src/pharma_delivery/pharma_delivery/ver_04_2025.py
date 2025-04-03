@@ -92,7 +92,7 @@ class PharmaDelivery(Node):
 
         self.init_qr_info = {} # словарь хуй знает из чего
         self.turns = [] # пордок поворотов
-        self.roadmap = ['font', 'right'] # фактичсекие перемещения (по идее равны поворотам только font в начале)
+        self.roadmap = ['front', 'right'] # фактичсекие перемещения (по идее равны поворотам только font в начале)
 
         self.arm_counter = [0, 0]
         self.turn_counter = 0
@@ -111,10 +111,11 @@ class PharmaDelivery(Node):
         data = json.loads(msg.data)
         self.qr_data = {
             int(k): (
-                tuple(v[0]), (tuple(p) for p in v[1]), v[2]
+                tuple(v[0]),  # Преобразуем список в кортеж для центра
+                [tuple(p) for p in v[1]],  # Список кортежей для точек
+                v[2]  # Данные QR-кода
             ) for k, v in data.items()
         }
-        #self.qr_data = copy.deepcopy(data)
         self.get_logger().info(f'Получили: {self.qr_data}')
 
     def aruco_callback(self, msg):
@@ -196,7 +197,7 @@ class PharmaDelivery(Node):
             self.publ_table_pos.publish(msg)
         if self.qr_data:
             if len(self.qr_data) == 1:
-                if self.qr_data[2]:
+                if self.qr_data[0][2]:
                     self.play_with_flags('qr_code.wav', 0)
                     self.init_qr_info = copy.deepcopy(self.qr_data)
                     self.get_turns()

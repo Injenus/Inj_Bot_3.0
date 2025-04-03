@@ -66,7 +66,7 @@ class ArucoGrayscaleDetector(Node):
                 result[int(marker_id)] = (
                     (float(center[0]/cv_image.shape[1]), float(center[1]/cv_image.shape[0])),
                     tuple(tuple(map(float, p)) for p in ordered_corners),
-                    int(orientation)
+                    int(orientation) 
                 )
                 # cv2.imwrite(f'/home/inj/Inj_Bot_3.0/test_{i}_{round(center[0]/cv_image.shape[1], 3)}_{round(center[1]/cv_image.shape[0], 3)}.jpg', cv_image)
 

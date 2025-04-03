@@ -30,22 +30,31 @@ class QRCodeDetectorNode(Node):
         self.publisher = self.create_publisher(String, 'qr_codes', 1)
 
     def order_points(self, pts):
-        """Упорядочивает точки в порядке: верхний-левый, верхний-правый, нижний-правый, нижний-левый."""
+        """Упорядочивает точки в порядке: RT → LT → LB → RB."""
         if len(pts) != 4:
             return pts
+
+        # Конвертируем в numpy массив
         pts_np = np.array(pts, dtype="float32")
-        rect = np.zeros((4, 2), dtype="float32")
-        s = pts_np.sum(axis=1)
-        rect[0] = pts_np[np.argmin(s)]
-        rect[2] = pts_np[np.argmax(s)]
-        diff = np.diff(pts_np, axis=1)
-        rect[1] = pts_np[np.argmin(diff)]
-        rect[3] = pts_np[np.argmax(diff)]
-        return [tuple(rect[i].astype(int)) for i in range(4)]
+        
+        # 1. Разделяем точки на верхние и нижние по Y-координате
+        y_sorted = pts_np[np.argsort(pts_np[:, 1])]
+        top = y_sorted[:2]  # Две верхние точки
+        bottom = y_sorted[2:]  # Две нижние точки
+
+        # 2. Сортируем верхние точки по X (от большего к меньшему: RT → LT)
+        top_sorted = top[np.argsort(top[:, 0])[::-1]]
+        
+        # 3. Сортируем нижние точки по X (от меньшего к большему: LB → RB)
+        bottom_sorted = bottom[np.argsort(bottom[:, 0])]
+
+        # Собираем итоговый порядок
+        ordered = np.vstack([top_sorted, bottom_sorted])
+        return [tuple(ordered[i].astype(int)) for i in range(4)]
 
     def image_callback(self, msg):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='mono8')
         except Exception as e:
             self.get_logger().error(f'Ошибка конвертации: {str(e)}')
             return
@@ -58,36 +67,40 @@ class QRCodeDetectorNode(Node):
                 continue
 
             data = obj.data.decode('utf-8')
-            points = [(p.x, p.y) for p in obj.polygon]
+            points = [(int(p.x), int(p.y)) for p in obj.polygon]  # Явное преобразование в int
             ordered_points = self.order_points(points)
             
-            x_coords = [p[0] for p in ordered_points]
-            y_coords = [p[1] for p in ordered_points]
-            x_center = int(np.mean(x_coords))
-            y_center = int(np.mean(y_coords))
+            # Преобразование numpy-значений в стандартные типы Python
+            x_center = int(np.mean([p[0] for p in ordered_points]))/cv_image.shape[1]
+            y_center = int(np.mean([p[1] for p in ordered_points]))/cv_image.shape[0]
 
-            qr_dict[idx] = (
+            # Сохраняем данные как вложенный словарь с примитивными типами
+            qr_dict[str(idx)] = (
                 (x_center, y_center),
                 ordered_points,
                 data
             )
 
         if qr_dict:
-            json_str = json.dumps(qr_dict, default=lambda o: list(o) if isinstance(o, tuple) else o)
-            msg = String()
-            msg.data = json_str
-            self.publisher.publish(msg)
+            # Кастомный сериализатор
+            def custom_serializer(obj):
+                if isinstance(obj, (np.integer, np.floating)):
+                    return int(obj) if isinstance(obj, np.integer) else float(obj)
+                if isinstance(obj, (tuple, list)):
+                    return [custom_serializer(item) for item in obj]
+                return obj
+
+            try:
+                json_str = json.dumps(qr_dict, default=custom_serializer)
+                msg = String()
+                msg.data = json_str
+                self.publisher.publish(msg)
+            except Exception as e:
+                self.get_logger().error(f'Ошибка сериализации: {str(e)}')
 
         self.get_logger().info(f'Обнаружено QR-кодов: {len(qr_dict)}')
-        self.print_qr_info(qr_dict)
+        self.get_logger().info(f'{qr_dict}')
 
-    def print_qr_info(self, qr_dict):
-        for idx, info in qr_dict.items():
-            self.get_logger().info(
-                f'QR {idx}: Центр: {info[0]}, '
-                f'Углы: {info[1]}, '
-                f'Данные: "{info[2]}"'
-            )
 
 def main(args=None):
     rclpy.init(args=args)
