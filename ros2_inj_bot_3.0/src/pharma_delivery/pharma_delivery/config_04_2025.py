@@ -7,7 +7,10 @@ LIN_Y_SPEED = 0.3
 ANG_Z_SPEED = 1.5 # rad/s
 P_koef = 10
 
-thresh_taking_pharma_err = 0.05
+thresh_taking_pharma_err = 0.075
+thresh_lidar_move = 0.003
+thresh_lidar_pharma = 0.002
+
 
 arm_positions = {
     0 : ([142, 133, 130, 132, 0, 128, 42], 'init'),
@@ -26,6 +29,7 @@ lidar_offsets = {
 }
 
 # минимальные расстония до стенки лабиринта
-wall_distances = 0.100
+wall_distance = 0.100
+pharma_distance = lidar_offsets['front'] + 0.03
 
-confirm_time = 2.0 # sec - для всяких остановок 
+confirm_time = 1.5 # sec - для всяких остановок 

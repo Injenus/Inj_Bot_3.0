@@ -12,57 +12,70 @@ import cv2.aruco as aruco
 import json
 import numpy as np
 
+venv_site_packages = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'venv', 'lib', 'python3.11', 'site-packages')
+if venv_site_packages not in sys.path:
+    sys.path.append(venv_site_packages)
+from pyzbar.pyzbar import decode
+
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
 if modules_data_path not in sys.path:
     sys.path.append(modules_data_path)
-
 from _tools import *
 
 class QRCodeDetectorNode(Node):
     def __init__(self):
         super().__init__('qr_code_detector')
         self.bridge = CvBridge()
-        self.detector = cv2.QRCodeDetector()
-        
         self.subscription = self.create_subscription(Image, 'cam/arm_g', self.image_callback, 1)
         self.publisher = self.create_publisher(String, 'qr_codes', 1)
 
+    def order_points(self, pts):
+        """Упорядочивает точки в порядке: верхний-левый, верхний-правый, нижний-правый, нижний-левый."""
+        if len(pts) != 4:
+            return pts
+        pts_np = np.array(pts, dtype="float32")
+        rect = np.zeros((4, 2), dtype="float32")
+        s = pts_np.sum(axis=1)
+        rect[0] = pts_np[np.argmin(s)]
+        rect[2] = pts_np[np.argmax(s)]
+        diff = np.diff(pts_np, axis=1)
+        rect[1] = pts_np[np.argmin(diff)]
+        rect[3] = pts_np[np.argmax(diff)]
+        return [tuple(rect[i].astype(int)) for i in range(4)]
+
     def image_callback(self, msg):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='mono8')
+            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         except Exception as e:
             self.get_logger().error(f'Ошибка конвертации: {str(e)}')
             return
 
-        # Детекция и декодирование QR-кодов
-        ret, decoded_info, points, _ = self.detector.detectAndDecodeMulti(cv_image)
-        
+        decoded_objects = decode(cv_image)
         qr_dict = {}
-        if ret:
-            for i, (data, qr_points) in enumerate(zip(decoded_info, points)):
-                # Преобразование координат углов
-                qr_points = qr_points.reshape(4, 2).astype(int)
-                
-                # Переупорядочивание углов
-                ordered_points = [
-                    tuple(qr_points[0]),  # Верхний-Левый (Top-Left)
-                    tuple(qr_points[1]),  # Верхний-Правый (Top-Right)
-                    tuple(qr_points[2]),  # Нижний-Правый (Bottom-Right)
-                    tuple(qr_points[3])   # Нижний-Левый (Bottom-Left)
-                ]
-                
-                x_center = int(np.mean(qr_points[:, 0]))
-                y_center = int(np.mean(qr_points[:, 1]))
 
-                qr_dict[i] = (
-                    (x_center, y_center),
-                    tuple(ordered_points),
-                    data
-                )
+        for idx, obj in enumerate(decoded_objects):
+            if obj.type != 'QRCODE':
+                continue
+
+            data = obj.data.decode('utf-8')
+            points = [(p.x, p.y) for p in obj.polygon]
+            ordered_points = self.order_points(points)
+            
+            x_coords = [p[0] for p in ordered_points]
+            y_coords = [p[1] for p in ordered_points]
+            x_center = int(np.mean(x_coords))
+            y_center = int(np.mean(y_coords))
+
+            qr_dict[idx] = (
+                (x_center, y_center),
+                ordered_points,
+                data
+            )
+
+        if qr_dict:
             json_str = json.dumps(qr_dict, default=lambda o: list(o) if isinstance(o, tuple) else o)
-
             msg = String()
-            msg.data = json.dumps(json_str, ensure_ascii=False)
+            msg.data = json_str
             self.publisher.publish(msg)
 
         self.get_logger().info(f'Обнаружено QR-кодов: {len(qr_dict)}')
