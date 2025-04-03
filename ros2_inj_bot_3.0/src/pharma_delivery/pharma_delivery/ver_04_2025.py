@@ -30,6 +30,8 @@
 9 - отъехали назад для нормальных манёвров
 10 - едем в палату - хз пока как и что
 
+для каждого распознавания делам мини тряску по горзионтали!! иначе хуй распознаем
+
 для w z - против часовой - ПЛЮС, по часовой - МИНУС
 для lin y = вправо - МИНУС, влево - ПЛЮС
 для lin x - вперёд ПЛЮС, назад - МИНУС
@@ -54,6 +56,13 @@ if modules_data_path not in sys.path:
     sys.path.append(modules_data_path)
 
 import config_04_2025 as conf
+
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+from play_audio import play_audio
+
 
 class PharmaDelivery(Node):
     def __init__(self):
@@ -88,12 +97,15 @@ class PharmaDelivery(Node):
         self.arm_counter = [0, 0]
         self.turn_counter = 0
         self.stop_counter = 0
+        self.shaking_timer = [0, 0] # 0 -left   1 - right 
 
         self.lidar_lock = False
         self.aruco_lock = False
 
         self.last_valid_basic_lidar = {}
 
+        self.audio_flags = [True for i in range(42)] # соствлния карта флагов для послдеоватльности звуков, что чему соотвуеттсвует разобратьсчя придется не сразу, да, но мне пиздец как некогда
+        # просто для КАЖДОЙ (даже если априоре она только 1 раз может) делаем флаг
 
     def qr_code_callback(self, msg):
         data = json.loads(msg.data)
@@ -145,6 +157,37 @@ class PharmaDelivery(Node):
         #self.roadmap = self.turns
         pass
 
+    def servo_shaking(self, mode):
+        mapping = {False: int(2*str(mode)), True: int(3*str(mode))}
+
+        if self.shaking_timer[1] == False:
+            if self.shaking_timer[0] == 0:
+                msg = UInt8()
+                msg.data = mapping[self.shaking_timer[1]]
+                self.publ_table_pos.publish(msg)
+                self.shaking_timer[0] += 1
+            else:
+                self.shaking_timer[0] += 1
+                if self.shaking_timer[0] >= 1/(self.period):
+                    self.shaking_timer[1] = True
+                    self.shaking_timer[0] = 0
+        else:
+            if self.shaking_timer[0] == 0:
+                msg = UInt8()
+                msg.data = msg.data = mapping[self.shaking_timer[1]]
+                self.publ_table_pos.publish(msg)
+                self.shaking_timer[0] += 1
+            else:
+                self.shaking_timer[0] += 1
+                if self.shaking_timer[0] >= 1/(self.period):
+                    self.shaking_timer[1] = False
+                    self.shaking_timer[0] = 0
+
+    def play_with_flags(self, name, idx):
+        if self.audio_flags[idx]:
+            play_audio(name)
+            self.audio_flags[idx] = False
+
 
     def loop(self):
         if self.main_state == 0:
@@ -154,11 +197,13 @@ class PharmaDelivery(Node):
         if self.qr_data:
             if len(self.qr_data) == 1:
                 if self.qr_data[2]:
+                    self.play_with_flags('qr_code.wav', 0)
                     self.init_qr_info = copy.deepcopy(self.qr_data)
                     self.get_turns()
                     self.get_roadmap()
                     self.main_state = 1
                 else:
+                    self.servo_shaking(1)                
                     print('data is empty')
             else:
                 print(f'too much {len(self.qr_data)}')
@@ -190,11 +235,13 @@ class PharmaDelivery(Node):
                 self.error = self.lidar_basic['right'][0] - self.lidar_basic['right'][1] * 1.00375 # компенсация что мы сравниваем не крайние а средний с краним, у котрого длнеа априори меньше
 
             if self.turn_counter == 0: # едем передом
+                self.play_with_flags('polnyi_vperiod.wav', 1)
                 linear_x = conf.LIN_X_SPEED
                 linear_y = 0
                 angular_z = -self.error * conf.P_koef # по часвово должно быть -1, А така как ошибка плюс - доб. занк минус
                 
             elif self.turn_counter == 1: #едем правым бортом
+                self.play_with_flags('pravo_rulia.wav', 1)
                 linear_x = 0
                 linear_y = -conf.LIN_Y_SPEED
                 angular_z = -self.error * conf.P_koef # против чаосв - должно быть плюс , ошибка меньше нуля - доб. минус
@@ -221,9 +268,8 @@ class PharmaDelivery(Node):
                 
 
         if self.main_state == 3:
-            time.sleep(self.period/2)
             self.stop_counter += 1
-            if self.stop_counter >= conf.confirm_time/(self.period/2):
+            if self.stop_counter >= conf.confirm_time/self.period:
                 self.main_state = 4
                 self.stop_counter = 0
 
@@ -316,6 +362,7 @@ class PharmaDelivery(Node):
             twist_msg.linear.x = linear_x
             self.twist_pub.publish(twist_msg)
             self.get_logger().info(f'Go to cure X={linear_x}')
+            self.lidar_lock = False
 
 
         if self.main_state == 8:
@@ -324,7 +371,23 @@ class PharmaDelivery(Node):
             if self.stop_counter >= conf.confirm_time/(self.period/2):
                 self.main_state = 9
 
+
         if self.main_state == 9:
+            self.lidar_lock = True
+            if self.lidar_basic[0] < conf.pharma_for_back_dictance:
+                linear_x = -conf.LIN_X_SPEED
+            else:
+                linear_x = 0
+                self.main_state = 10
+            twist_msg = Twist()
+            twist_msg.linear.x = linear_x
+            self.publ_speed.publish(twist_msg)
+
+        if self.main_state == 10:
+            print('А ЧЕ ДЕЛАТЬ????')
+            
+            
+
 
 
             

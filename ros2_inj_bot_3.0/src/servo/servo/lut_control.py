@@ -4,6 +4,11 @@ import threading
 from std_msgs.msg import UInt8MultiArray
 from std_msgs.msg import UInt8
 
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'pharma_delivery', 'pharma_delivery')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+import config_04_2025 as conf
 
 class LUTcontrol(Node):
     def __init__(self):
@@ -11,5 +16,31 @@ class LUTcontrol(Node):
 
         self.subscriber = self.create_subscription(UInt8, 'servo/lut', self.lut_callback, 3)
         self.publisher = self.create_publisher(UInt8MultiArray, 'servo/to_write', 3)
+
+    def lut_callback(self, msg):
+        
+        idx = msg.data()
+
+        pos = conf.arm_positions[idx][0]
+        servo_msg = UInt8MultiArray()
+        servo_msg.data = bytes(pos)
+        self.servo_pub.publish(servo_msg)
+        self.get_logger().info(f'lut to servo {servo_msg.data}')
+
+    def destroy_node(self):
+        super().destroy_node()
+
+    def main():
+        rclpy.init(args=args)
+        lut = LUTcontrol()
+        rclpy.spin(lut)
+        lut.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
 
         

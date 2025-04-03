@@ -3,6 +3,7 @@ import pygame
 import os
 import sys
 import time
+import subprocess
 
 DEBUG = True  
 
@@ -222,6 +223,17 @@ def main():
         controller.stop()
         if DEBUG:
             print("\nОчистка ресурсов...")
+
+
+def play_audio(file_name):
+    """Запускает аудиофайл в фоновом режиме"""
+    subprocess.Popen([
+        'python3', 
+        'play_audio.py', 
+        '1', 
+        os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'Music', 'Inj_Bot_audio', file_name)
+    ])
+
 
 if __name__ == "__main__":
     try:

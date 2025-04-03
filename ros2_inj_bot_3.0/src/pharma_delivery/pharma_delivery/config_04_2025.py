@@ -17,6 +17,12 @@ arm_positions = {
     1 : ([142-90, 133+75, 130-120, 132, 0, 128, 42],'search_qr'),
     2 : ([142-45, 133+38, 130-60, 132, 0, 128, 42], 'interim_qr_direct'),
     3 : ([142, 133+75, 130-120, 132, 0, 128, 42], 'direct_cam')
+
+    11 : ([142-90-25, 133+75, 130-120, 132, 0, 128, 42], 'search_qr_shake_left'),
+    111 : ([142-90+25, 133+75, 130-120, 0, 128, 42], 'search_qr_shake_right'),
+
+    33 : ([142-25, 133+75, 130-120, 132, 0, 128, 42], 'left_shaking_direct_cam'),
+    333 : ([142+25, 133+75, 130-120, 132, 0, 128, 42], 'right_shaking_direct_cam')
 }
 
 # рассторния от центра лидара до соотв. краёв робота (метры)
@@ -30,6 +36,7 @@ lidar_offsets = {
 
 # минимальные расстония до стенки лабиринта
 wall_distance = 0.100
-pharma_distance = lidar_offsets['front'] + 0.03
+pharma_close_distance = lidar_offsets['front'] + 0.03
+pharma_for_back_dictance = 0.250
 
 confirm_time = 1.5 # sec - для всяких остановок 
