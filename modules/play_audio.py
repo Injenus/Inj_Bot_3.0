@@ -17,7 +17,7 @@ class AudioController:
         self.load(self.current_track)
 
     def load(self, track_index=0):
-        self.current_track = track_index % len(self.file_paths)
+        self.current_track = track_index %  len(self.file_paths)
         pygame.mixer.music.load(self.file_paths[self.current_track])
         if DEBUG:
             print(f"[Audio] Загружен трек {self.current_track}: {self.file_paths[self.current_track]}")
@@ -120,6 +120,8 @@ def main():
     audio_files = []
     if mode == '0':
         audio_files = [
+            os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'vpered.wav'),
+            os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'qr_code.wav'),
             os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'leopold.wav'),
             os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_BACK_IN_BLACK.wav'),
             os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', 'ACDC_HIGHWAY_TO_HELL.wav'),
@@ -151,6 +153,14 @@ def main():
 
     controller = AudioController(audio_files)
     controller.start()  # Автозапуск при старте
+    
+    if mode == '1':
+        try:
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+        finally:
+            controller.stop()
+
     keyboard = find_keyboard()
 
     key_states = {
@@ -227,12 +237,20 @@ def main():
 
 def play_audio(file_name):
     """Запускает аудиофайл в фоновом режиме"""
+    abs_path = os.path.join(os.path.expanduser('~'), 'Music', 'Inj_Bot_audio', file_name)
+    
+    # Получаем абсолютный путь к основному скрипту
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    main_script = os.path.join(script_dir, "play_audio.py")
+    
     subprocess.Popen([
         'python3', 
-        'play_audio.py', 
+        main_script,  # Используем абсолютный путь
         '1', 
-        os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'Music', 'Inj_Bot_audio', file_name)
-    ])
+        abs_path
+    ], 
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL)
 
 
 if __name__ == "__main__":

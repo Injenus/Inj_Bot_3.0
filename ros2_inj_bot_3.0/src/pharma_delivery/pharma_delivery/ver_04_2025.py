@@ -64,6 +64,7 @@ if modules_data_path not in sys.path:
 
 from play_audio import play_audio
 
+play_audio('poiehali.wav')
 
 class PharmaDelivery(Node):
     def __init__(self):
@@ -81,7 +82,7 @@ class PharmaDelivery(Node):
         self.publ_speed = self.create_publisher(Twist, '/cmd_vel', 3)
         self.publ_table_pos = self.create_publisher(UInt8, 'servo/lut', 3)
         
-        self.period = 0.005
+        self.period = 0.030
         self.timer = self.create_timer(self.period, self.loop)
 
         self.main_state = 0
@@ -89,7 +90,13 @@ class PharmaDelivery(Node):
         self.qr_data = {}
         self.aruco_data = {}
         self.lidar_all = {}
-        self.lidar_basic = {}
+        self.lidar_basic = {
+            'front': [5., 5., 5.],
+            'right': [5., 5., 5.],
+            'back': [5., 5., 5.],
+            'left': [5., 5., 5.],
+            'front_aruco': [5., 5., 5.]
+        }
 
         self.init_qr_info = {} # словарь хуй знает из чего
         self.turns = [] # пордок поворотов
@@ -107,6 +114,8 @@ class PharmaDelivery(Node):
 
         self.audio_flags = [True for i in range(42)] # соствлния карта флагов для послдеоватльности звуков, что чему соотвуеттсвует разобратьсчя придется не сразу, да, но мне пиздец как некогда
         # просто для КАЖДОЙ (даже если априоре она только 1 раз может) делаем флаг
+
+        self.publ_speed.publish(Twist())
 
     def qr_code_callback(self, msg):
         data = json.loads(msg.data)
@@ -210,7 +219,8 @@ class PharmaDelivery(Node):
             else:
                 print(f'too much {len(self.qr_data)}')
 
-
+        
+        print(f'1_2 {self.main_state}')
         if self.main_state == 1 or self.main_state == 2:
             self.main_state = 2
             if self.arm_counter[0] < 2/self.period:
@@ -228,48 +238,59 @@ class PharmaDelivery(Node):
         if self.main_state == 2:
             self.lidar_lock = True
             # TODO !!!!!! реашить инкрементацию последователньости повротов и напврвлений !!!
-            key = self.roadmap[self.turn_counter]
-            if key in ['front', 'back']:
-                self.error = self.lidar_basic[key][0] - self.lidar_basic[key][2]
-            if key == 'left':
-                self.error = self.lidar_basic['left'][1] * 1.00375 - self.lidar_basic['left'][2] # 1.00375 СТРОГО ДЛЯ 10град.!!!!!!!!
-            if key == 'right':
-                self.error = self.lidar_basic['right'][0] - self.lidar_basic['right'][1] * 1.00375 # компенсация что мы сравниваем не крайние а средний с краним, у котрого длнеа априори меньше
+            print(self.turn_counter, self.main_state)
+            if self.turn_counter >= len(self.roadmap) and self.main_state == 2:
+                self.main_state = 3
+            else:
+                key = self.roadmap[self.turn_counter]
+                if key in ['front', 'back']:
+                    self.error = self.lidar_basic[key][0] - self.lidar_basic[key][2]
+                if key == 'left':
+                    self.error = self.lidar_basic['left'][1] * 1.00375 - self.lidar_basic['left'][2] # 1.00375 СТРОГО ДЛЯ 10град.!!!!!!!!
+                if key == 'right':
+                    self.error = self.lidar_basic['right'][0] - self.lidar_basic['right'][1] * 1.00375 # компенсация что мы сравниваем не крайние а средний с краним, у котрого длнеа априори меньше
 
-            if self.turn_counter == 0: # едем передом
-                self.play_with_flags('polnyi_vpered.wav', 1)
-                linear_x = conf.LIN_X_SPEED
-                linear_y = 0
-                angular_z = -self.error * conf.P_koef # по часвово должно быть -1, А така как ошибка плюс - доб. занк минус
-                
-            elif self.turn_counter == 1: #едем правым бортом
-                self.play_with_flags('pravo_rulia.wav', 2)
-                linear_x = 0
-                linear_y = -conf.LIN_Y_SPEED
-                angular_z = -self.error * conf.P_koef # против чаосв - должно быть плюс , ошибка меньше нуля - доб. минус
-            
+                if self.turn_counter == 0: # едем передом
+                    self.play_with_flags('polnyi_vpered.wav', 1)
+                    linear_x = conf.LIN_X_SPEED
+                    linear_y = 0.0
+                    angular_z = -self.error * conf.P_koef # по часвово должно быть -1, А така как ошибка плюс - доб. занк минус
+                    
+                elif self.turn_counter == 1: #едем правым бортом
+                    self.play_with_flags('pravo_rulia.wav', 2)
+                    linear_x = 0.0
+                    linear_y = -conf.LIN_Y_SPEED
+                    angular_z = -self.error * conf.P_koef # против чаосв - должно быть плюс , ошибка меньше нуля - доб. минус
 
 
-            self.lidar_lock = False
+                if self.lidar_basic[key][1] <= conf.lidar_offsets[key] + conf.wall_distance:
+                    self.turn_counter += 1
+                    linear_x = 0.0
+                    linear_y = 0.0
+                    angular_z = 0.0
 
-            if self.lidar_basic[key][1] <= conf.lidar_offsets[key] + conf.wall_distance:
-                self.turn_counter += 1
-                linear_x = 0
-                linear_y = 0
-                angular_z = 0
+                    print(self.turn_counter, self.roadmap, len(self.roadmap))
+                    print(f'm {self.main_state}')
+                    if self.turn_counter >= len(self.roadmap):
+                        self.main_state = 3
+                    print(f'm a {self.main_state}')
+                    print(f"\033[31m{self.turn_counter}\033[0m")
 
-            twist_msg = Twist()
-            twist_msg.linear.x = linear_x
-            twist_msg.linear.y = linear_y
-            twist_msg.angular.z = angular_z
-            self.twist_pub.publish(twist_msg)
-            self.get_logger().debug(f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={angular_z}")
+                print(f'm b {self.main_state}')
+                self.lidar_lock = False
 
-            if self.turn_counter == len(self.roadmap):
-                self.main_state == 3
-                
+                twist_msg = Twist()
+                twist_msg.linear.x = linear_x
+                twist_msg.linear.y = linear_y
+                twist_msg.angular.z = angular_z
+                self.publ_speed.publish(twist_msg)
+                self.get_logger().debug(f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={angular_z}")
+
 
         if self.main_state == 3:
+            print('ckesk')
+            self.publ_speed.publish(Twist())
+            self.play_with_flags('stop_mashina.wav', 3)
             self.stop_counter += 1
             if self.stop_counter >= conf.confirm_time/self.period:
                 self.main_state = 4
@@ -277,6 +298,7 @@ class PharmaDelivery(Node):
 
 
         if self.main_state == 4:
+            print('vert')
             angular_z = -conf.ANG_Z_SPEED / 2  # просто предолоэение что изначальнор нужно екрится по часовой
             self.aruco_lock = True
             if self.aruco_data:
@@ -285,7 +307,7 @@ class PharmaDelivery(Node):
                         err = 0.5 - val[0][0]
                         if abs(err) <= conf.thresh_taking_pharma_err:  # арука прмиерно в центре
                             self.main_state = 5
-                            angular_z = 0
+                            angular_z = 0.0
                         elif err > 0:
                             angular_z = conf.ANG_Z_SPEED
                         elif err < 0:
@@ -295,7 +317,7 @@ class PharmaDelivery(Node):
 
             twist_msg = Twist()
             twist_msg.angular.z = angular_z
-            self.twist_pub.publish(twist_msg)
+            self.publ_speed.publish(twist_msg)
             self.get_logger().debug(f"Aruco ang_z={angular_z}")
 
 
@@ -306,7 +328,7 @@ class PharmaDelivery(Node):
             key = 'front_aruco'
             error = self.lidar_basic[key][0] - self.lidar_basic[key][2]
             if abs(error) <= conf.thresh_lidar_pharma:
-                angular_z = 0
+                angular_z = 0.0
                 self.main_state = 6
             elif error > 0: # левый луч длинне правого -  надо вращаться по чаововой - вправо
                 angular_z = -conf.ANG_Z_SPEED / 3
@@ -320,7 +342,7 @@ class PharmaDelivery(Node):
 
             twist_msg = Twist()
             twist_msg.angular.z = angular_z
-            self.twist_pub.publish(twist_msg)
+            self.publ_speed.publish(twist_msg)
             self.get_logger().debug(f"Pharma lidar ang_z={angular_z}")
 
             self.offset_direction_pharma = max(set(self.turn_direction_aruco), key=self.turn_direction_aruco.count) # нашли каких элиентов больше всего
@@ -348,7 +370,7 @@ class PharmaDelivery(Node):
             
             twist_msg = Twist()
             twist_msg.linear.y = linear_y
-            self.twist_pub.publish(twist_msg)
+            self.publ_speed.publish(twist_msg)
             self.get_logger().debug(f"Pharma aruco Y={linear_y}")
 
 
@@ -362,7 +384,7 @@ class PharmaDelivery(Node):
 
             twist_msg = Twist()
             twist_msg.linear.x = linear_x
-            self.twist_pub.publish(twist_msg)
+            self.publ_speed.publish(twist_msg)
             self.get_logger().info(f'Go to cure X={linear_x}')
             self.lidar_lock = False
 
@@ -378,7 +400,7 @@ class PharmaDelivery(Node):
             if self.lidar_basic[0] < conf.pharma_for_back_dictance:
                 linear_x = -conf.LIN_X_SPEED
             else:
-                linear_x = 0
+                linear_x = 0.0
                 self.main_state = 10
             twist_msg = Twist()
             twist_msg.linear.x = linear_x
