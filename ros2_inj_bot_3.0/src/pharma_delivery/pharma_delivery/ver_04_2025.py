@@ -46,6 +46,7 @@
 
 """
 ### TODO: ДОБАВИТЬ МИКРО ПОДВИЖКИ ВО ВРЕМЯ РАСПОЗНАВАНИЙ !!!!!!!
+### TODO: !!!!!!!!!!!!!!!  ПРОШИВКА БЕЗ ЗАНУЛЕНИЯ !!!!!!!!!!!!!!!!
 import os
 import sys
 import rclpy
@@ -275,15 +276,15 @@ class PharmaDelivery(Node):
                 if key in ['right', 'right_one_cell']:
                     self.error = self.lidar_basic['right'][0] - self.lidar_basic['right'][1] * 1.00375 # компенсация что мы сравниваем не крайние а средний с краним, у котрого длнеа априори меньше
 
-                corr = 0.05
-                if abs(self.error) > corr:
-                    # if self.error < 0 :
-                    #     self.error -= (1-corr)*self.error
-                    # # else:
-                    #     self.error -= (1-corr)*self.error
-                    d_err = (1-corr)*self.error
-                    self.error -= d_err
-                    #self.get_logger().debug(f"err {self.error}, tcs{self.error+d_err}")
+                # corr = 0.05
+                # if abs(self.error) > corr:
+                #     # if self.error < 0 :
+                #     #     self.error -= (1-corr)*self.error
+                #     # # else:
+                #     #     self.error -= (1-corr)*self.error
+                #     d_err = (1-corr)*self.error
+                #     self.error -= d_err
+                #     #self.get_logger().debug(f"err {self.error}, tcs{self.error+d_err}")
 
                 if self.turn_counter == 0: # едем передом
                     #self.play_with_flags('polnyi_vpered.wav', 1)
@@ -327,10 +328,14 @@ class PharmaDelivery(Node):
                 #print(f'm b {self.main_state}')
                 self.lidar_lock = False
                 
+                # if angular_z < 0:
+                #     angular_z = 0.2 * angular_z
+                # else:
+                #     angular_z = 1.8 * angular_z
                 twist_msg = Twist()
-                twist_msg.linear.x = self.constrain(linear_x, -0.1, 0.4)
-                twist_msg.linear.y = self.constrain(linear_y, -0.1, 0.4)
-                twist_msg.angular.z = angular_z
+                twist_msg.linear.x = linear_x
+                twist_msg.linear.y = linear_y
+                twist_msg.angular.z = self.constrain(angular_z, -0.9, 0.9)
                 self.publ_speed.publish(twist_msg)
                 #self.get_logger().debug(f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={0}")
 

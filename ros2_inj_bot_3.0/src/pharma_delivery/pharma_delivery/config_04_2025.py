@@ -9,8 +9,8 @@ LIDAR_STEP = 3
 # ANG_Z_SPEED = 2.25 # rad/s
 # P_koef = 2.0
 
-LIN_X_SPEED = 0.2 # m/s
-LIN_Y_SPEED = 0.2
+LIN_X_SPEED = 0.1 # m/s
+LIN_Y_SPEED = 0.1
 ANG_Z_SPEED = 2.25 # rad/s
 P_koef = 100.0
 
@@ -33,14 +33,14 @@ arm_positions = {
 }
 
 # рассторния от центра лидара до соотв. краёв робота (метры)
-wall_distance = 0.15
+wall_distance = 0.150
 lidar_radiues = 0.0507/2
 lidar_offsets = {
     'front':wall_distance - 0.120,
     'left': wall_distance,
     'right': wall_distance,
     'back': 0.120+wall_distance,
-    'right_one_cell': wall_distance + 0.8}
+    'right_one_cell': wall_distance + 0.00008}
 
 # минимальные расстония до стенки лабиринта
 
