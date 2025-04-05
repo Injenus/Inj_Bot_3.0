@@ -19,7 +19,7 @@ class PolarPlotter(Node):
 
         self.data_lock = threading.Lock()
         self.data = {}
-        self.range = 1.5
+        self.range = 5.0
         
         # Инициализация графика
         plt.ion()  # Интерактивный режим
@@ -81,7 +81,7 @@ class PolarPlotter(Node):
             if red_angles:
                 self.ax.scatter(red_angles, red_distances, c='r', s=3, zorder=3)
             if yellow_angles:
-                self.ax.scatter(yellow_angles, yellow_distances, c='yellow', s=3, zorder=2)
+                self.ax.scatter(yellow_angles, yellow_distances, c='yellow', s=6, zorder=2)
             
             # Обновление графика
             self.fig.canvas.draw_idle()

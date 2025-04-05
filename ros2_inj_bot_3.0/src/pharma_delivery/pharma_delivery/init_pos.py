@@ -17,9 +17,19 @@ class InitPosition(Node):
         self.servo_publ = self.create_publisher(UInt8MultiArray, 'servo/to_write', 3)
         self.wheel_publ = self.create_publisher(Twist, '/cmd_vel', 3)
         self.timer = self.create_timer(1/3, self.publish)
+        self.iter = 0
+        self.idx = 0
+
+        self.sequnce = [3,2,1,0]
     
     def publish(self):
-        pos = conf.arm_positions[0][0]
+        self.iter += 1
+        if self.iter >= 5:
+            self.idx += 1
+            self.iter = 0
+        if self.idx >= len(self.sequnce):
+            self.idx = len(self.sequnce) - 1
+        pos = conf.arm_positions[self.sequnce[self.idx]][0]
         servo_msg = UInt8MultiArray()
         servo_msg.data = bytes(pos)
         self.servo_publ.publish(servo_msg)
