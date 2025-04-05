@@ -79,7 +79,7 @@ class PharmaDelivery(Node):
         super().__init__("pharma_delivery")
 
         self.error = 0 # m  Л - П   елс иотрицатлеьная надо подворачивать налево, положит. - направо
-        self.target_aruco = 0
+        self.target_aruco = 3
         self.turn_direction_aruco = [0] # больше нулей - никакого не было  -1 - было против чаосво (влево),  1 - было поч асово (вправо)
         self.offset_direction_pharma = 0 # направление смещения до нужно аруки когда стоит перпендикулярно аптеке
 
@@ -90,10 +90,10 @@ class PharmaDelivery(Node):
         self.publ_speed = self.create_publisher(Twist, '/cmd_vel', 10)
         self.publ_table_pos = self.create_publisher(UInt8, 'servo/lut', 3)
         
-        self.period = 0.010
+        self.period = 0.005
         self.timer = self.create_timer(self.period, self.loop)
 
-        self.main_state = 0
+        self.main_state = 1
 
         self.qr_data = {}
         self.aruco_data = {}
@@ -123,7 +123,6 @@ class PharmaDelivery(Node):
         self.audio_flags = [True for i in range(42)] # соствлния карта флагов для послдеоватльности звуков, что чему соотвуеттсвует разобратьсчя придется не сразу, да, но мне пиздец как некогда
         # просто для КАЖДОЙ (даже если априоре она только 1 раз может) делаем флаг
 
-        self.publ_speed.publish(Twist())
 
     def qr_code_callback(self, msg):
         data = json.loads(msg.data)
@@ -212,6 +211,10 @@ class PharmaDelivery(Node):
             play_audio(name)
             self.audio_flags[idx] = False
 
+    def constrain(self, value, low, high):
+        return min(max(value, low), high)
+
+
 
     def loop(self):
         print('mo', self.main_state)
@@ -286,7 +289,7 @@ class PharmaDelivery(Node):
                     #self.play_with_flags('polnyi_vpered.wav', 1)
                     linear_x = conf.LIN_X_SPEED
                     linear_y = 0.0
-                    angular_z = -self.error * conf.P_koef # по часвово должно быть -1, А така как ошибка плюс - доб. занк минус
+                    angular_z = -self.error * conf.P_koef# по часвово должно быть -1, А така как ошибка плюс - доб. занк минус
                 
                 elif self.turn_counter == 1: #едем правым бортом
                     #self.play_with_flags('pravo_rulia.wav', 2)
@@ -325,8 +328,8 @@ class PharmaDelivery(Node):
                 self.lidar_lock = False
                 
                 twist_msg = Twist()
-                twist_msg.linear.x = linear_x
-                twist_msg.linear.y = linear_y
+                twist_msg.linear.x = self.constrain(linear_x, -0.1, 0.4)
+                twist_msg.linear.y = self.constrain(linear_y, -0.1, 0.4)
                 twist_msg.angular.z = angular_z
                 self.publ_speed.publish(twist_msg)
                 #self.get_logger().debug(f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={0}")
@@ -395,6 +398,7 @@ class PharmaDelivery(Node):
             
 
         if self.main_state == 6:
+            linear_y = 0.0
             if self.offset_direction_pharma == 0: # стоим уже ровно
                 self.main_state = 7
             elif self.offset_direction_pharma == -1: # крутилися против часовой тогда смещаемся вправо

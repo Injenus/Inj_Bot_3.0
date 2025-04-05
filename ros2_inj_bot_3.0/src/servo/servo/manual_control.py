@@ -120,6 +120,7 @@ class KeyboardNode(Node):
             return
         
         data = None
+        offset_0 = -5
         # переключение типа координат
         if '1' in current_keys:
             print(1)
@@ -127,12 +128,18 @@ class KeyboardNode(Node):
         elif '2' in current_keys:
             print(2)
             data = bytes([142-90, 133+75, 130-120, 132, 0, 128, 42])
+        elif '3' in current_keys:
+            data = bytes([142-offset_0-45, 133+38, 130-60, 132, 0, 128, 42])
+        elif '4' in current_keys:
+            data = bytes([142-offset_0, 133+75, 130-120, 132, 0, 128, 42])
+
+        
 
         if data is not None:
             servo_msg = UInt8MultiArray()
             servo_msg.data = data
             self.servo_pub.publish(servo_msg)
-            self.get_logger().debug(
+            self.get_logger().info(
                 f"PUB: {servo_msg.data}",
                 throttle_duration_sec=0.2
             )

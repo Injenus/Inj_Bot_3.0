@@ -23,7 +23,7 @@ class ArucoGrayscaleDetector(Node):
     def __init__(self):
         super().__init__('aruco_detector')
         
-        self.declare_parameter('dictionary_size', 4)
+        self.declare_parameter('dictionary_size', 5)
         dictionary_size = self.get_parameter('dictionary_size').value
         
         self.aruco_dict = aruco.Dictionary_get(

@@ -10,4 +10,5 @@ bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run sllidar_ros2 sllidar_node" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run lidar get_main_obstacles" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run servo one_thread_send_receive" &
-bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run servo lut_control"
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run servo lut_control" &
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run pharma_delivery ver_04_2025"

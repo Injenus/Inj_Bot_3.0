@@ -1,12 +1,18 @@
 # Параметры и константы
 
 
-LIDAR_STEP = 6
+LIDAR_STEP = 3
 
-LIN_X_SPEED = 0.1 # m/s
-LIN_Y_SPEED = 0.05
-ANG_Z_SPEED = 1.0 # rad/s
-P_koef = 10.0
+#aruco
+# LIN_X_SPEED = 0.1 # m/s
+# LIN_Y_SPEED = 0.1
+# ANG_Z_SPEED = 2.25 # rad/s
+# P_koef = 2.0
+
+LIN_X_SPEED = 0.2 # m/s
+LIN_Y_SPEED = 0.2
+ANG_Z_SPEED = 2.25 # rad/s
+P_koef = 100.0
 
 thresh_taking_pharma_err = 0.015
 thresh_lidar_move = 0.003
@@ -27,7 +33,7 @@ arm_positions = {
 }
 
 # рассторния от центра лидара до соотв. краёв робота (метры)
-wall_distance = 0.4
+wall_distance = 0.15
 lidar_radiues = 0.0507/2
 lidar_offsets = {
     'front':wall_distance - 0.120,
