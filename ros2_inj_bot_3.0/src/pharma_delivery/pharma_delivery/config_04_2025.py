@@ -1,11 +1,11 @@
 # Параметры и константы
 
 
-LIDAR_STEP = 10
+LIDAR_STEP = 6
 
-LIN_X_SPEED = 0.15 # m/s
-LIN_Y_SPEED = 0.1
-ANG_Z_SPEED = 2.0 # rad/s
+LIN_X_SPEED = 0.1 # m/s
+LIN_Y_SPEED = 0.05
+ANG_Z_SPEED = 1.0 # rad/s
 P_koef = 10.0
 
 thresh_taking_pharma_err = 0.015
@@ -27,18 +27,18 @@ arm_positions = {
 }
 
 # рассторния от центра лидара до соотв. краёв робота (метры)
+wall_distance = 0.4
 lidar_radiues = 0.0507/2
 lidar_offsets = {
-    'front': 0.010+lidar_radiues,
-    'left': 0.100+lidar_radiues,
-    'right': 0.100+lidar_radiues,
-    'back': 0.260+lidar_radiues,
-    'right_one_cell': 0.100+lidar_radiues+0.8
-}
+    'front':wall_distance - 0.120,
+    'left': wall_distance,
+    'right': wall_distance,
+    'back': 0.120+wall_distance,
+    'right_one_cell': wall_distance + 0.8}
 
 # минимальные расстония до стенки лабиринта
-wall_distance = 0.0442
-pharma_close_distance = lidar_offsets['front'] + 0.03
+
+pharma_close_distance = 0.05
 pharma_for_back_dictance = lidar_offsets['back']
 
 confirm_time = 2.0 # sec - для всяких остановок 

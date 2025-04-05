@@ -87,10 +87,10 @@ class PharmaDelivery(Node):
         self.subs_qr_code = self.create_subscription(String, 'qr_codes', self.qr_code_callback, 3)
         self.subs_lidar = self.create_subscription(String, 'lidar/obstacles', self.lidar_callback, 3)
 
-        self.publ_speed = self.create_publisher(Twist, '/cmd_vel', 3)
+        self.publ_speed = self.create_publisher(Twist, '/cmd_vel', 10)
         self.publ_table_pos = self.create_publisher(UInt8, 'servo/lut', 3)
         
-        self.period = 0.005
+        self.period = 0.010
         self.timer = self.create_timer(self.period, self.loop)
 
         self.main_state = 0
@@ -134,7 +134,7 @@ class PharmaDelivery(Node):
                 v[2]  # Данные QR-кода
             ) for k, v in data.items()
         }
-        self.get_logger().info(f'Получили: {self.qr_data}')
+        #self.get_logger().info(f'Получили: {self.qr_data}')
 
     def aruco_callback(self, msg):
         if not self.aruco_lock:
@@ -147,7 +147,7 @@ class PharmaDelivery(Node):
                 ) for k, v in data.items()
             }
             #self.aruco_data = copy.deepcopy(data)
-            self.get_logger().info(f'Получили: {self.aruco_data}')
+            #self.get_logger().info(f'Получили: {self.aruco_data}')
 
     def lidar_callback(self, msg):
         if not self.lidar_lock:
@@ -167,7 +167,7 @@ class PharmaDelivery(Node):
                 'front_aruco': [data[360-2*angle_step], data[0], data[0+2*angle_step]],
                 'right_one_cell': [data[90-angle_step], data[90], data[90+angle_step]]
             }
-            self.get_logger().info(f'Basic: {self.lidar_basic}')
+            #self.get_logger().info(f'Basic: {self.lidar_basic}')
 
     def get_turns(self):
         #self.turns = self.init_qr_info
@@ -176,6 +176,10 @@ class PharmaDelivery(Node):
     def get_roadmap(self):
         #self.roadmap = self.turns
         pass
+
+    def wheel_stopper(self):
+        msg = Twist()
+        self.publ_speed.publish(msg)
 
     def servo_shaking(self, mode):
         mapping = {False: int(2*str(mode)), True: int(3*str(mode))}
@@ -221,22 +225,22 @@ class PharmaDelivery(Node):
                         s = self.qr_data[0][2]
                         self.play_with_flags('qr_code.wav', 0)
                         self.init_qr_info = copy.deepcopy(self.qr_data)
-                        print(s)
+                        #print(s)
                         data = [(p[0], int(p[1:])) for p in s.split('-') if p]
-                        print(f'PHRAMNA LISTSTSTSR________________ {data[1]}')
+                        #print(f'PHRAMNA LISTSTSTSR________________ {data[1]}')
                         self.target_aruco = int(data[0][1])
-                        print(self.target_aruco)
+                        #print(self.target_aruco)
                         self.get_turns()
                         self.get_roadmap()
                         self.main_state = 1
                     else:
                         self.servo_shaking(1)                
-                        print('data is empty')
+                        #print('data is empty')
                 else:
-                    print(f'too much {len(self.qr_data)}')
+                    #print(f'too much {len(self.qr_data)}')
+                    pass
 
-        
-        print(f'1_2 {self.main_state}')
+    
         if self.main_state == 1 or self.main_state == 2:
             self.main_state = 2
             if self.arm_counter[0] < 2/self.period:
@@ -265,7 +269,7 @@ class PharmaDelivery(Node):
                     self.error = self.lidar_basic[key][0] - self.lidar_basic[key][2]
                 if key == 'left':
                     self.error = self.lidar_basic['left'][1] * 1.00375 - self.lidar_basic['left'][2] # 1.00375 СТРОГО ДЛЯ 10град.!!!!!!!!
-                if key == 'right':
+                if key in ['right', 'right_one_cell']:
                     self.error = self.lidar_basic['right'][0] - self.lidar_basic['right'][1] * 1.00375 # компенсация что мы сравниваем не крайние а средний с краним, у котрого длнеа априори меньше
 
                 corr = 0.05
@@ -276,7 +280,7 @@ class PharmaDelivery(Node):
                     #     self.error -= (1-corr)*self.error
                     d_err = (1-corr)*self.error
                     self.error -= d_err
-                    self.get_logger().debug(f"err {self.error}, tcs{self.error+d_err}")
+                    #self.get_logger().debug(f"err {self.error}, tcs{self.error+d_err}")
 
                 if self.turn_counter == 0: # едем передом
                     #self.play_with_flags('polnyi_vpered.wav', 1)
@@ -289,7 +293,7 @@ class PharmaDelivery(Node):
                     linear_x = 0.0
                     linear_y = -conf.LIN_Y_SPEED
                     # # против чаосв - должно быть плюс , ошибка меньше нуля - доб. минус
-                    angular_z = -self.error * conf.P_koef * 10
+                    angular_z = -self.error * conf.P_koef
                 
                 elif self.turn_counter == 2: #передом
                     linear_x = conf.LIN_X_SPEED
@@ -299,23 +303,25 @@ class PharmaDelivery(Node):
                 elif self.turn_counter == 3: # right side
                     linear_x = 0.0
                     linear_y = -conf.LIN_Y_SPEED
-                    angular_z = -self.error * conf.P_koef * 10
+                    angular_z = -self.error * conf.P_koef
 
                 
                 if self.lidar_basic[key][1] <= conf.lidar_offsets[key] + conf.wall_distance:
                     self.turn_counter += 1
+                    self.wheel_stopper()
+                    #print()
                     linear_x = 0.0
                     linear_y = 0.0
                     angular_z = 0.0
 
-                    print(self.turn_counter, self.roadmap, len(self.roadmap))
-                    print(f'm {self.main_state}')
+                    #print(self.turn_counter, self.roadmap, len(self.roadmap))
+                    #print(f'm {self.main_state}')
                     if self.turn_counter >= len(self.roadmap):
                         self.main_state = 3
-                    print(f'm a {self.main_state}')
-                    print(f"\033[31m{self.turn_counter}\033[0m")
+                    #print(f'm a {self.main_state}')
+                    #print(f"\033[31m{self.turn_counter}\033[0m")
 
-                print(f'm b {self.main_state}')
+                #print(f'm b {self.main_state}')
                 self.lidar_lock = False
                 
                 twist_msg = Twist()
@@ -323,22 +329,22 @@ class PharmaDelivery(Node):
                 twist_msg.linear.y = linear_y
                 twist_msg.angular.z = angular_z
                 self.publ_speed.publish(twist_msg)
-                self.get_logger().debug(f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={0}")
+                #self.get_logger().debug(f"PUB: lin_x={linear_x}, lin_y={linear_y}, ang_z={0}")
 
 
         if self.main_state == 3:
-            print('ckesk')
+            #print('ckesk')
             self.publ_speed.publish(Twist())
             self.play_with_flags('stop_mashina.wav', 3)
             self.stop_counter += 1
-            print(self.stop_counter)
+            #print(self.stop_counter)
             if self.stop_counter >= conf.confirm_time/self.period:
                 self.main_state = 4
                 self.stop_counter = 0
 
 
         if self.main_state == 4:
-            print('vert')
+            #print('vert')
             angular_z = -conf.ANG_Z_SPEED / 2  # просто предолоэение что изначальнор нужно екрится по часовой
             self.aruco_lock = True
             if self.aruco_data:
@@ -358,7 +364,7 @@ class PharmaDelivery(Node):
             twist_msg = Twist()
             twist_msg.angular.z = angular_z
             self.publ_speed.publish(twist_msg)
-            self.get_logger().info(f"Aruco ang_z={angular_z}")
+            #self.get_logger().info(f"Aruco ang_z={angular_z}")
 
 
         if self.main_state == 5:
@@ -383,7 +389,7 @@ class PharmaDelivery(Node):
             twist_msg = Twist()
             twist_msg.angular.z = angular_z
             self.publ_speed.publish(twist_msg)
-            self.get_logger().info(f"Pharma lidar ang_z={angular_z}")
+            #self.get_logger().info(f"Pharma lidar ang_z={angular_z}")
 
             self.offset_direction_pharma = max(set(self.turn_direction_aruco), key=self.turn_direction_aruco.count) # нашли каких элиентов больше всего
             
@@ -411,7 +417,7 @@ class PharmaDelivery(Node):
             twist_msg = Twist()
             twist_msg.linear.y = linear_y
             self.publ_speed.publish(twist_msg)
-            self.get_logger().info(f"Pharma aruco Y={linear_y}")
+            #self.get_logger().info(f"Pharma aruco Y={linear_y}")
 
 
         if self.main_state == 7:
@@ -425,7 +431,7 @@ class PharmaDelivery(Node):
             twist_msg = Twist()
             twist_msg.linear.x = linear_x
             self.publ_speed.publish(twist_msg)
-            self.get_logger().info(f'Go to cure X={linear_x}')
+            #self.get_logger().info(f'Go to cure X={linear_x}')
             self.lidar_lock = False
 
 
@@ -447,7 +453,8 @@ class PharmaDelivery(Node):
             self.publ_speed.publish(twist_msg)
 
         if self.main_state == 10:
-            print('А ЧЕ ДЕЛАТЬ????')
+            pass
+            #print('А ЧЕ ДЕЛАТЬ????')
             
             
 

@@ -321,8 +321,13 @@ uint16_t calculate_checksum(uint8_t* data, uint8_t length) {
 // Обновление мощности мотора
 void update_motor_power(uint8_t motor_index) {
 
+  bool flag_zero = false;
   int32_t error = motor_controllers[motor_index].target_rpm - 
                 motor_controllers[motor_index].measured_rpm;
+
+  if (motor_controllers[motor_index].target_rpm == 0){
+    flag_zero = true;
+  }
 
   if (REGULATOR_MODE == 0){
     // Пропорциональное регулирование
@@ -350,6 +355,9 @@ void update_motor_power(uint8_t motor_index) {
 //  Serial.print(',');
   // Управление выходами
   uint32_t pwm_value = abs(motor_controllers[motor_index].current_pwm);
+  if (flag_zero){
+    pwm_value = 0;
+  }
 
   if(motor_controllers[motor_index].current_pwm < -PWM_DEADZONE){
     ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, 0);
