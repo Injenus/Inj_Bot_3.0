@@ -1,0 +1,28 @@
+rosbag2_bagfile_information:
+  version: 7
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 44128197807
+  starting_time:
+    nanoseconds_since_epoch: 1743919568536101447
+  message_count: 8827
+  topics_with_message_count:
+    - topic_metadata:
+        name: /wheel/target_rpm
+        type: std_msgs/msg/Int32MultiArray
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+        type_description_hash: RIHS01_84a7346323525d1b4dfca899df3820f245e54009dac5a6b69217d14fdefd1701
+      message_count: 8827
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - omni_pharm_3_0.mcap
+  files:
+    - path: omni_pharm_3_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1743919568536101447
+      duration:
+        nanoseconds: 44128197807
+      message_count: 8827
+  custom_data: ~

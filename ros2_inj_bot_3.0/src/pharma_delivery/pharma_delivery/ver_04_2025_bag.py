@@ -75,9 +75,9 @@ modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'module
 if modules_data_path not in sys.path:
     sys.path.append(modules_data_path)
 
-# from play_audio import play_audio
+from play_audio import play_audio
 
-# play_audio('poiehali.wav')
+play_audio('poiehali.wav')
 
 class PharmaDelivery(Node):
     def __init__(self):
@@ -98,7 +98,7 @@ class PharmaDelivery(Node):
         self.period = 0.005
         self.timer = self.create_timer(self.period, self.loop)
 
-        self.main_state = 0
+        self.main_state = 1
 
         self.qr_data = {}
         self.aruco_data = {}
@@ -213,10 +213,10 @@ class PharmaDelivery(Node):
                     self.shaking_timer[1] = False
                     self.shaking_timer[0] = 0
 
-    # def play_with_flags(self, name, idx):
-    #     if self.audio_flags[idx]:
-    #         play_audio(name)
-    #         self.audio_flags[idx] = False
+    def play_with_flags(self, name, idx):
+        if self.audio_flags[idx]:
+            play_audio(name)
+            self.audio_flags[idx] = False
 
     def constrain(self, value, low, high):
         return min(max(value, low), high)
@@ -234,28 +234,22 @@ class PharmaDelivery(Node):
         print('mo', self.main_state)
         if self.main_state == 0:
             msg = UInt8()
-            msg.data = 4
+            msg.data = 1
             self.publ_table_pos.publish(msg)
             if self.qr_data:
                 if len(self.qr_data) == 1:
                     if self.qr_data[0][2]:
                         s = self.qr_data[0][2]
-                        #self.play_with_flags('qr_code.wav', 0)
+                        self.play_with_flags('qr_code.wav', 0)
                         self.init_qr_info = copy.deepcopy(self.qr_data)
                         #print(s)
                         data = [(p[0], int(p[1:])) for p in s.split('-') if p]
                         #print(f'PHRAMNA LISTSTSTSR________________ {data[1]}')
                         self.target_aruco = int(data[0][1])
-                        print(self.target_aruco)
-                        print('#################################################################################')
+                        #print(self.target_aruco)
                         self.get_turns()
                         self.get_roadmap()
                         self.main_state = 1
-                        msg = UInt8()
-                        msg.data = 4
-                        self.publ_table_pos.publish(msg)
-                        self.destroy_node()
-                        rclpy.shutdown()
                     else:
                         self.servo_shaking(1)                
                         #print('data is empty')
@@ -266,10 +260,11 @@ class PharmaDelivery(Node):
     
         if self.main_state == 1 or self.main_state == 2:
             self.main_state = 2
+            self.destroy_node()
             if self.arm_counter[0] < 2/self.period:
                 self.arm_counter[0] += 1
                 msg = UInt8()
-                msg.data = 4
+                msg.data = 3
                 self.publ_table_pos.publish(msg)
             elif self.arm_counter[1] < 2/self.period:
                 self.arm_counter[1] += 1
@@ -385,7 +380,7 @@ class PharmaDelivery(Node):
         if self.main_state == 3:
             #print('ckesk')
             self.publ_speed.publish(Twist())
-            #self.play_with_flags('stop_mashina.wav', 3)
+            self.play_with_flags('stop_mashina.wav', 3)
             self.stop_counter += 1
             #print(self.stop_counter)
             if self.stop_counter >= conf.confirm_time/self.period:
@@ -507,31 +502,33 @@ class PharmaDelivery(Node):
             pass
             #print('А ЧЕ ДЕЛАТЬ????')
             
-            
-
-
-
-            
-
-
-
-            
-
-
+        
 
 
     def destroy_node(self):
         super().destroy_node()
 
+def play_rosbag(bag_dir):
+    rclpy.init()
+    play_options = PlayOptions()
+    play_options.storage_id = "sqlite3"
+    play_options.uri = bag_dir
+    player = Player()
+    player.play(play_options)
+    rclpy.shutdown()
+
 def main(args=None):
     rclpy.init(args=args)
     pharma_delivery = PharmaDelivery()
     rclpy.spin(pharma_delivery)
-    # pharma_delivery.destroy_node()
-    # rclpy.shutdown()
+    pharma_delivery.destroy_node()
+    rclpy.shutdown()
+
+
 
 if __name__ == '__main__':
     main()
+    play_rosbag9()
 
                                     
 

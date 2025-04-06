@@ -1,7 +1,7 @@
 # Параметры и константы
 
 
-LIDAR_STEP = 3
+LIDAR_STEP = 5
 
 #aruco
 # LIN_X_SPEED = 0.1 # m/s
@@ -12,7 +12,7 @@ LIDAR_STEP = 3
 LIN_X_SPEED = 0.1 # m/s
 LIN_Y_SPEED = 0.1
 ANG_Z_SPEED = 2.25 # rad/s
-P_koef = 100.0
+P_koef = 10.0
 
 thresh_taking_pharma_err = 0.015
 thresh_lidar_move = 0.003
@@ -24,6 +24,7 @@ arm_positions = {
     1 : ([142-offset_0-90, 133+75, 130-120, 132, 0, 128, 42],'search_qr'),
     2 : ([142-offset_0-45, 133+38, 130-60, 132, 0, 128, 42], 'interim_qr_direct'),
     3 : ([142-offset_0, 133+75, 130-120, 132, 0, 128, 42], 'direct_cam'),
+    4 : ([142-offset_0-45, 133+75, 130-120, 132, 0, 128, 42], 'direct_45_cam'),
 
     11 : ([142-offset_0-90-25, 133+75, 130-120, 132, 0, 128, 42], 'search_qr_shake_left'),
     111 : ([142-offset_0-90+25, 133+75, 130-120, 0, 128, 42], 'search_qr_shake_right'),
