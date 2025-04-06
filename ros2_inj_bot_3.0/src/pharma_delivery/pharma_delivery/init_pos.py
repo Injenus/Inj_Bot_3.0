@@ -20,7 +20,7 @@ class InitPosition(Node):
         self.iter = 0
         self.idx = 0
 
-        self.sequnce = [3,2,1,0]
+        self.sequnce = [3,4]
     
     def publish(self):
         self.iter += 1

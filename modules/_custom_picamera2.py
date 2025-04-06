@@ -27,7 +27,7 @@ class Rpi_Camera():
             w,h = 1280, 720
         elif resolution == 3:
             w,h, = 640, 480
-        self.w, self.h = w, h
+        self.w, self.h = 1920, 1080
         self.camera_config = self.cam.create_preview_configuration(main={"format": "RGB888", "size": (self.w, self.h)})
         self.cam.configure(self.camera_config)
         self.red_gain = 1.49

@@ -40,10 +40,10 @@ class BinocularSavingVideo(Node):
             h, w = frame.shape[:2]
             self.out = cv2.VideoWriter(self.video_path, self.fourcc, self.frame_rate, (w, h))
 
-        self.out.write(frame)
+        #self.out.write(frame)
 
-        # cv2.imshow("Binocular", resize(2, frame))
-        # cv2.waitKey(1)
+        cv2.imshow("Binocular", resize(2, frame))
+        cv2.waitKey(1)
 
         self.get_logger().info("Got binocular frame")
 

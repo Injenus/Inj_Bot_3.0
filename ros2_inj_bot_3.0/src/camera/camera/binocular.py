@@ -18,6 +18,7 @@ class BinocularCameraPublisher(Node):
         self.bridge = CvBridge()
 
         self.publisher = self.create_publisher(Image, 'cam/binocular', 1)
+        self.publ_gray = self.create_publisher(Image, "cam/binocular_g", 1)
 
         generated_value = self._get_cam_index()
         self.declare_parameter('cam_idx', generated_value)
@@ -39,10 +40,15 @@ class BinocularCameraPublisher(Node):
         ret, frame = self.cam.read()
 
         if ret:
+            frame = cv2.rotate(frame,cv2.ROTATE_180)
             #frame = resize(4, frame)
             image_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
             self.publisher.publish(image_msg)
             self.get_logger().info('Published frame from Binocular_Cam')
+            
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray_msg = self.bridge.cv2_to_imgmsg(gray_frame, 'mono8')
+            self.publ_gray.publish(gray_msg)
 
     def _get_cam_index(self):
 
@@ -70,11 +76,9 @@ class BinocularCameraPublisher(Node):
 def main(args=None):
     rclpy.init(args=args)
     binocular_cam = BinocularCameraPublisher()
-    try:
-        rclpy.spin(binocular_cam)
-    except:
-        binocular_cam.destroy_node()
-        rclpy.shutdown()
+    rclpy.spin(binocular_cam)
+    binocular_cam.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
