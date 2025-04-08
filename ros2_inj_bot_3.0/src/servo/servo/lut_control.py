@@ -21,11 +21,14 @@ class LUTcontrol(Node):
 
     def lut_callback(self, msg):
         idx = msg.data
-        pos = conf.arm_positions[idx][0]
-        servo_msg = UInt8MultiArray()
-        servo_msg.data = bytes(pos)
-        self.publisher.publish(servo_msg)
-        self.get_logger().info(f'lut to servo {servo_msg.data}')
+        if idx in conf.arm_positions:
+            pos = conf.arm_positions[idx][0]
+            servo_msg = UInt8MultiArray()
+            servo_msg.data = bytes(pos)
+            self.publisher.publish(servo_msg)
+            self.get_logger().info(f'lut to servo {servo_msg.data}')
+        else:
+            self.get_logger().info(f'Nonexistent command')
 
     def destroy_node(self):
         super().destroy_node()

@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 import threading
 from std_msgs.msg import UInt8MultiArray
+from std_msgs.msg import UInt8
 
 
 class KeyboardNode(Node):
@@ -21,7 +22,28 @@ class KeyboardNode(Node):
             ecodes.KEY_7: '7',
             ecodes.KEY_8: '8',
             ecodes.KEY_9: '9',
-            ecodes.KEY_ESC: 'Esc'
+            ecodes.KEY_ESC: 'Esc',
+            ecodes.KEY_D: 'd',
+            ecodes.KEY_T: 't',
+            ecodes.KEY_H: 'h',
+            ecodes.KEY_U: 'u',
+            ecodes.KEY_F: 'f',
+            ecodes.KEY_X: 'x',
+            ecodes.KEY_S: 's',
+            ecodes.KEY_E: 'e',
+            ecodes.KEY_N: 'n'
+        }
+
+        self.letter_convert = {
+            'd': 10,
+            't': 20,
+            'h': 30,
+            'u': 40,
+            'f': 50,
+            'x': 60,
+            's': 70,
+            'e': 80,
+            'n': 90
         }
 
         self.device = self.find_keyboard_device()
@@ -43,10 +65,9 @@ class KeyboardNode(Node):
         # Таймер для обработки нажатий
         self.timer = self.create_timer(1/200, self.process_keys)
 
-        self.servo_pub = self.create_publisher(UInt8MultiArray, 'servo/to_write', 1)
+        #self.servo_pub = self.create_publisher(UInt8MultiArray, 'servo/to_write', 1)
+        self.publ_table_pos = self.create_publisher(UInt8, 'servo/lut', 3)
 
-
-    
 
     def find_keyboard_device(self):
         """Поиск и выбор клавиатуры с подробной отладкой"""
@@ -120,30 +141,30 @@ class KeyboardNode(Node):
             return
         
         data = None
-        offset_0 = -5
-        # переключение типа координат
-        if '1' in current_keys:
-            print(1)
-            data = bytes([142, 133, 130, 132, 0, 128, 42])
-        elif '2' in current_keys:
-            print(2)
-            data = bytes([142-90, 133+75, 130-120, 132, 0, 128, 42])
-        elif '3' in current_keys:
-            data = bytes([142-offset_0-45, 133+38, 130-60, 132, 0, 128, 42])
-        elif '4' in current_keys:
-            data = bytes([142-offset_0, 133+75, 130-120, 132, 0, 128, 42])
+        add = 0
 
-        
+        for key in current_keys:
+            if key in self.letter_convert:
+                add = self.letter_convert[key]
+                break
+
+        for key in current_keys:
+            try:
+                key = int(key)
+            except:
+                pass
+                # if key in self.letter_convert:
+                #     add = self.letter_convert[key]
+            if isinstance(key, int):
+                data = key + add
+                self.get_logger().info(f'Command: {data}')
+                break
 
         if data is not None:
-            servo_msg = UInt8MultiArray()
-            servo_msg.data = data
-            self.servo_pub.publish(servo_msg)
-            self.get_logger().info(
-                f"PUB: {servo_msg.data}",
-                throttle_duration_sec=0.2
-            )
-        
+            lut_msg = UInt8()
+            lut_msg.data = data
+            self.publ_table_pos.publish(lut_msg)
+
 
     def destroy_node(self):
         self.stop_event.set()
@@ -152,11 +173,9 @@ class KeyboardNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     detect_key = KeyboardNode()
-    try:
-        rclpy.spin(detect_key)
-    except:
-        detect_key.destroy_node()
-        rclpy.shutdown()
+    rclpy.spin(detect_key)
+    detect_key.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
