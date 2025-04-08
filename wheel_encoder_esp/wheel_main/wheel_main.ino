@@ -355,9 +355,9 @@ void update_motor_power(uint8_t motor_index) {
 //  Serial.print(',');
   // Управление выходами
   uint32_t pwm_value = abs(motor_controllers[motor_index].current_pwm);
-  if (flag_zero){
-    pwm_value = 0;
-  }
+  // if (flag_zero){
+  //   pwm_value = 0;
+  // }
 
   if(motor_controllers[motor_index].current_pwm < -PWM_DEADZONE){
     ledcWrite(motor_controllers[get_real_motor_idx(motor_index)].pwm_channel_a, 0);

@@ -9,7 +9,7 @@
 #define ACC_AXIC 1  // 0-X, 1-Y, 2-Z
 
 #define SAMPLES 100
-#define EEPROM_THRESH 10 
+#define EEPROM_THRESH 10
 
 //int accBuffer[SAMPLES];
 //int idxBuffer = 0;          // Текущая позиция для записи
@@ -117,7 +117,7 @@ int16_t PID(const float& currVal) {
     static float I_koeff = 0.6;
     static float D_koeff = 0.01;
     static float dt = SAMPLES*mainPeriod/1000.;
-    static float maxIntegral = 1000000.;
+    static float maxIntegral = 100000.;
 
     float error = -(currVal - target);
 
@@ -126,15 +126,17 @@ int16_t PID(const float& currVal) {
     I = constrain(I, -maxIntegral, maxIntegral);
     float D = D_koeff * (error - prevError) / dt;
 
-//    Serial.println(P);
-//    Serial.println(I);
-//    Serial.println(D);
+    Serial.println(P);
+    Serial.println(I);
+    Serial.println(D);
     
 
     float outputVal = P + I + D;
     
-    int16_t servoAngle = (int16_t)(constrain(outputVal, servoSettings.minAng, servoSettings.maxAng));
+    int16_t servoAngle = (int16_t)(constrain(outputVal, servoSettings.minAng, servoSettings.maxAng)- 40);
     prevError = error;
+
+    //if (is_neg) servoAngle -= (int16_t)target / 1.5;
     
     return servoAngle;
 }
