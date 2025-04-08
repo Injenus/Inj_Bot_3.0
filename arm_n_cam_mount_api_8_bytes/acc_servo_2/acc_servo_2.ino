@@ -1,6 +1,6 @@
-#include <ServoSmooth.h>
 #include <EEPROM.h>
 #include <Wire.h>
+#include <Servo.h>
 
 #define ADXL345_ADDR 0x53       // Адрес датчика
 #define REG_POWER_CTL 0x2D      // Регистр управления питанием
@@ -8,16 +8,13 @@
 #define REG_DATAX0 0x32         // Начальный регистр данных оси X
 #define ACC_AXIC 1  // 0-X, 1-Y, 2-Z
 
-#define SAMPLES 15
-#define EEPROM_THRESH 10
-
-//int accBuffer[SAMPLES];
-//int idxBuffer = 0;          // Текущая позиция для записи
-//bool bufferFilled = false; // Флаг заполнения буфера
+#define SAMPLES 20
+#define EEPROM_THRESH 15
 
 const uint16_t eepromAddr = 42;
 
-ServoSmooth servo;
+Servo servo;
+uint8_t const servoPin = 9;
 
 struct ServoSettings {
   int minMcs = 618;
@@ -25,8 +22,8 @@ struct ServoSettings {
   int minAng = 0;
   int maxAng = 240;
 
-  int acc = 300;
-  int _speed = 1000;
+  // int acc = 100;
+  // int _speed = 1000;
 };
 ServoSettings servoSettings;
 
@@ -35,7 +32,6 @@ struct Pos {
   int prevAng = 120;
 };
 Pos pos;
-Pos pos_debug;
 
 struct AutoDataServo {
   //int init_acc, plus_acc, minus_acc;
@@ -49,11 +45,11 @@ uint32_t hardUpdPosTimer = 0;
 uint32_t hardUpdPosPeriod = 500;
 
 uint32_t mainTimer = 0;
-uint32_t mainPeriod = 1;
+uint32_t mainPeriod = 2;
 
 int16_t accBuff[SAMPLES];
-int32_t accVal = 0;
-int32_t prevAccVal = 0;
+int16_t accVal = 0;
+int16_t prevAccVal = 0;
 
 int anglesToMcs(int angles) {
   int from_a_min = servoSettings.minAng;
@@ -77,27 +73,18 @@ int16_t getAccData() {
   Wire.beginTransmission(ADXL345_ADDR);
   Wire.write(REG_DATAX0);      // Указываем начальный регистр данных
   if (Wire.endTransmission(false) != 0) {
-    return 0; //ошибка передачи
-  };
+    return 0; // Ошибка передачи
+  }
 
   // Запрашиваем 6 байтов (по 2 на каждую ось)
   Wire.requestFrom(ADXL345_ADDR, 6, true);
-  uint32_t start = millis();
+
   if (Wire.available() >= 6) {
-    if (millis() - start > 10) {
-      return 0; // таймаут
-    }
     xRaw = Wire.read() | (Wire.read() << 8);
     yRaw = Wire.read() | (Wire.read() << 8);
     zRaw = Wire.read() | (Wire.read() << 8);
   }
-//  Serial.print("X,Y,Z: ");
-//  Serial.print(xRaw);
-//  Serial.print(',');
-//  Serial.print(yRaw);
-//  Serial.print(',');
-//  Serial.println(zRaw);
-
+  
   switch (ACC_AXIC) {
     case 0:
       return xRaw;
@@ -132,10 +119,10 @@ int16_t PID(const float& currVal) {
     I = constrain(I, -maxIntegral, maxIntegral);
     float D = D_koeff * (error - prevError) / dt;
 
-//    Serial.println(P);
-//    Serial.println(I);
-//    Serial.println(D);
-//    
+    Serial.println(P);
+    Serial.println(I);
+    Serial.println(D);
+    
 
     float outputVal = P + I + D;
     
@@ -169,11 +156,11 @@ void setup() {
 
   initError = pos.currAng;
 
-  servo.attach(9, servoSettings.minMcs, servoSettings.maxMcs);
+  servo.attach(servoPin, servoSettings.minMcs, servoSettings.maxMcs);
   servo.writeMicroseconds(anglesToMcs(pos.currAng));
-  servo.setAutoDetach(false);
-  servo.setSpeed(servoSettings._speed);
-  servo.setAccel(servoSettings.acc);
+  // servo.setAutoDetach(false);
+  // servo.setSpeed(servoSettings._speed);
+  // servo.setAccel(servoSettings.acc);
 
 }
 
@@ -184,71 +171,57 @@ void loop() {
   static int16_t pid = 0;
   static int16_t iterCounter = 0;
   
-  servo.tick();
+  // servo.tick();
 
-  // if (abs(pos.currAng - pos.prevAng) > EEPROM_THRESH) {
-  //   pos.prevAng = pos.currAng
-  //   static uint32_t eepromTimer;
-  //   if (millis() - eepromTimer > 5000) { // Запись раз в 5 секунд
+  // if (millis() - hardUpdPosTimer > hardUpdPosPeriod) {
+  //   hardUpdPosTimer = millis();
+  //   pos.currAng = mcsToAngle(servo.readMicroseconds());
+  //   if (abs(pos.currAng - pos.prevAng) > EEPROM_THRESH) {
+  //     pos.prevAng = pos.currAng;
   //     EEPROM.put(eepromAddr, pos);
-  //     eepromTimer = millis();
+  //     Serial.println("EEEEPROOOM###################################################-------------");
+  //     if (isEepromAcc) isEepromAcc=false;
+  //   }
+  //   if (abs(getAccData()) < 15){
+  //     if (!isEepromAcc){
+  //       pos.currAng = mcsToAngle(servo.readMicroseconds());
+  //       EEPROM.put(eepromAddr, pos);
+  //       Serial.println("EEEEPROOOM######2222222222222222222222222222######################-------------");
+  //       isEepromAcc = true;        
+  //     }
+      
   //   }
   // }
 
-
-  if (millis() - hardUpdPosTimer > hardUpdPosPeriod) {
-    hardUpdPosTimer = millis();
-    pos.currAng = mcsToAngle(servo.getCurrent());
-    if (abs(pos.currAng - pos.prevAng) > EEPROM_THRESH) {
-      pos.prevAng = pos.currAng;
-      EEPROM.put(eepromAddr, pos);
-      Serial.println("EEEEPROOOM###################################################-------------");
-      if (isEepromAcc) isEepromAcc=false;
-    }
-    if (abs(getAccData()) < 15){
-      if (!isEepromAcc){
-        pos.currAng = mcsToAngle(servo.getCurrent());
-        EEPROM.put(eepromAddr, pos);
-        Serial.println("EEEEPROOOM######2222222222222222222222222222######################-------------");
-        isEepromAcc = true;        
-      }
-      
-    }
-  }
-
   if (millis() - mainTimer > mainPeriod){
-    static float k = 0.5;
     mainTimer = millis();
     if (counter == SAMPLES){
       counter = 0;
-      accVal = ((float)accVal / SAMPLES)*k + (float)prevAccVal*(1-k);
+      accVal = (float)accVal / SAMPLES;
 
       
-      if (iterCounter < 20){
-        //Serial.println(-initError);
-        pid = PID(-initError);
-        pid = initError;
-        //Serial.println("IIIIIIINNNIIIIIIIIITTTTTTTTT");
-        iterCounter++;
-      }
-      else{
-        pid = PID(accVal);
-      }
-      //Serial.println(pid);
+      // if (iterCounter < 8){
+      //   //Serial.println(-initError);
+      //   pid = PID(-initError);
+      //   pid = initError;
+      //   //Serial.println("IIIIIIINNNIIIIIIIIITTTTTTTTT");
+      //   iterCounter++;
+      // }
+      // else{
+      //   pid = PID(accVal);
+      // }
+      // //Serial.println(pid);
+      
+      // servo.writeMicroseconds(anglesToMcs(pid));
+      
+      servo.writeMicroseconds
 
-      if (abs(mcsToAngle(servo.getCurrent()) - pid) > 3){
-        servo.setTarget(anglesToMcs(pid));
-      }
-
-      Serial.println("aver, pid, curr, eeprom");
+      Serial.println("aver, pid,  curr");
       Serial.print(accVal);
       Serial.print(",  ");
       Serial.print(pid);
       Serial.print(",  ");
-      Serial.print(mcsToAngle(servo.getCurrent()));
-      EEPROM.get(eepromAddr, pos_debug);
-      Serial.print(",  ");
-      Serial.println(pos_debug.currAng);
+      Serial.println(mcsToAngle(servo.readMicroseconds()));
       
       prevAccVal = accVal;
       accVal = 0;
