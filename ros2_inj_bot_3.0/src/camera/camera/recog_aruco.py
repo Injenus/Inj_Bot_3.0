@@ -36,7 +36,7 @@ class ArucoGrayscaleDetector(Node):
         self.parameters = aruco.DetectorParameters_create()
         self.bridge = CvBridge()
         
-        self.subscription = self.create_subscription(Image, 'cam/binocular_g', self.image_callback, 2)
+        self.subscription = self.create_subscription(Image, 'cam/arm_g', self.image_callback, 2)
         self.publisher = self.create_publisher(String, 'aruco_markers', 2)
 
     def image_callback(self, msg):

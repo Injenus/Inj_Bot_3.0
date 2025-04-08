@@ -26,7 +26,7 @@ class QRCodeDetectorNode(Node):
     def __init__(self):
         super().__init__('qr_code_detector')
         self.bridge = CvBridge()
-        self.subscription = self.create_subscription(Image, 'cam/binocular_g', self.image_callback, 1)
+        self.subscription = self.create_subscription(Image, 'cam/arm_g', self.image_callback, 1)
         self.publisher = self.create_publisher(String, 'qr_codes', 1)
 
     def order_points(self, pts):
