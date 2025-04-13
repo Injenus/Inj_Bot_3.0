@@ -29,18 +29,22 @@ class Uiiaiuiiai(Node):
     def __init__(self):
         super().__init__('uiiaiuiiai')
 
+        self.main_state = 0
+        self.first_speed = 5.0
+        self.second_speed = -20.0
+
         self.publ_twist = self.create_publisher(Twist, '/cmd_vel', 3)
 
         self.timer = self.create_timer(0.005, self.loop)
 
 
-        self.pause = self.create_timer(2.0, self.wait)
+        self.pause = self.create_timer(2.4, self.wait)
         self.pause.reset() # отмена пертиодического вызова
 
-        self.resume = self.create_timer(3.0, self.change_direction)
+        self.resume = self.create_timer(3.6, self.change_direction)
         self.resume.reset()
 
-        self.node_stop = self.create_timer(5.1, self.destroy_node)
+        self.node_stop = self.create_timer(5.8, self.destroy_node)
         self.node_stop.reset()
 
 
@@ -60,20 +64,22 @@ class Uiiaiuiiai(Node):
             play_audio('uiiaiuiiai.wav')
             self.main_state = 1
 
-        elif self.main_state == 1:
-            msg.angular.z = 3.14
+        if self.main_state == 1:
+            msg.angular.z = self.first_speed
 
-        elif self.main_state == 2:
+        if self.main_state == 2:
             msg.angular.z = 0.0
 
-        elif self.main_state == 3:
-            msg.angular.z = -6.28
+        if self.main_state == 3:
+            msg.angular.z = self.second_speed
 
         self.publ_twist.publish(msg)
 
     
     def destroy_node(self):
         self.main_state = 4
+        msg = Twist()
+        self.publ_twist.publish(msg)
         self.node_stop.cancel()
         super().destroy_node()
 
