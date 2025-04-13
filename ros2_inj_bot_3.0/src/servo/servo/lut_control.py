@@ -6,11 +6,11 @@ from std_msgs.msg import UInt8
 import os
 import sys
 
-modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'pharma_delivery', 'pharma_delivery')
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'servo', 'servo')
 if modules_data_path not in sys.path:
     sys.path.append(modules_data_path)
 
-import config_04_2025 as conf
+import config_servo as conf
 
 class LUTcontrol(Node):
     def __init__(self):
