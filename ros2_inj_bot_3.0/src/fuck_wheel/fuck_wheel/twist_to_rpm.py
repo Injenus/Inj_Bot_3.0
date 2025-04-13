@@ -86,10 +86,10 @@ class TwistToRPM(Node):
         rpm_msg.data = self.target_rpms
         self.rpm_pub.publish(rpm_msg)
         
-        self.get_logger().info(
-            f"Целевые: {self.target_rpms}",
-            throttle_duration_sec=1.0
-        )
+        # self.get_logger().info(
+        #     f"Целевые: {self.target_rpms}",
+        #     throttle_duration_sec=1.0
+        # )
 
 def main():
     rclpy.init()

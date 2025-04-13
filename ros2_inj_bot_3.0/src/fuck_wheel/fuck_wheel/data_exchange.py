@@ -108,9 +108,10 @@ class WheelSerialReadWrite(Node):
             msg = Int32MultiArray()
             msg.data = parsed
             self.receive_data_publisher.publish(msg)
-            self.get_logger().info(f'Publ data: {msg.data}')
+            #self.get_logger().info(f'Publ data: {msg.data}')
         else:
-            self.get_logger().info('Nothing to publ., timeout')
+            #self.get_logger().info('Nothing to publ., timeout')
+            pass
 
 
     def destroy_node(self):

@@ -23,9 +23,9 @@ class KeyboardNode(Node):
     def __init__(self):
         super().__init__('detect_key')
 
-        self.LINEAR_SPEED_X = 0.3 # м/с
-        self.LINEAR_SPEED_Y = 0.3  # м/с
-        self.ANGULAR_SPEED = 1.5 # рад/с
+        self.LINEAR_SPEED_X = 0.12 # м/с
+        self.LINEAR_SPEED_Y = 0.12  # м/с
+        self.ANGULAR_SPEED = 4.0 # рад/с
 
         with open(os.path.join(receive_data_path, 'config_arm.json'), 'r') as file:
             self.config_arm = json.load(file)
@@ -48,7 +48,7 @@ class KeyboardNode(Node):
 
         self.arm = ArmIKP(self.config_arm['length'], actual_ang_range, specific_valid_area, specific_theta_angles, global_valid_area)
 
-        self.SERVO_FREQ = 100
+        self.SERVO_FREQ = 200
         self.SERVO_MIN_LINEAR_STEP = 10 # мм, всё что меньше НЕ считается изменением текущих линейных (xyz, rh) координат
         self.SERVO_MIN_ANG_STEP = 3 # град., всё что меньше НЕ считается изменениеми текущих угловых координат (theta)
 
