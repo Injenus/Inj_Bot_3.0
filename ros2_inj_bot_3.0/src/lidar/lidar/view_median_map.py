@@ -19,7 +19,7 @@ class PolarPlotter(Node):
 
         self.data_lock = threading.Lock()
         self.data = {}
-        self.range = 2.75
+        self.range = 3
         
         # Инициализация графика
         plt.ion()  # Интерактивный режим

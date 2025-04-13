@@ -37,8 +37,8 @@ struct ServoSettings {
   int minAng[servoNum] = {0, 0, 0, 0, 0, 42, 98};
   int maxAng[servoNum] = {284, 266, 260, 264, 1, 215, 218};
   // int offsetAng[servoNum] = {15, 6, 3, 5, 0, 0, 0};
-  int armAcc = 80;
-  int armSpeed = 100;
+  int armAcc = 42;
+  int armSpeed = 84;
   int camAcc = 480;
   int camSpeed = 1080;
 };
