@@ -106,26 +106,30 @@ class ArmActions(Node):
     def get_actions_for_state(self, state):
         """Определение последовательности действий (как в вашем оригинальном коде)"""
         return {
-            -2: [{'command': 10, 'delay': 0.8}],
-            -1: [{'command': 11, 'delay': 0.2}],
+            -2: [{'safe_init': 10, 'delay': 0.8}],
+            -1: [{'init_(search_fruit)': 11, 'delay': 0.2}],
             0: [
-                {'command': 12, 'delay': 0.5},
-                {'command': 11, 'delay': 0.5}
+                {'knock_down': 12, 'delay': 0.5},
+                {'init': 11, 'delay': 0.5}
             ],
             1: [
-                {'command': 13, 'delay': 1.0},
-                {'command': 14, 'delay': 1.0},
-                {'command': 15, 'delay': 1.0},
-                {'command': 18, 'delay': 1.0},
-                {'command': 11, 'delay': 0.2}
+                {'down': 13, 'delay': 1.0},
+                {'lengthing': 14, 'delay': 1.0},
+                {'up': 15, 'delay': 1.0},
+                {'turn': 18, 'delay': 1.0},
+                {'init': 11, 'delay': 0.2}
             ],
             2: [
-                {'command': 16, 'delay': 1.0},
-                {'command': 11, 'delay': 2.0}
+                {'long_throw': 16, 'delay': 1.0},
+                {'init': 11, 'delay': 2.0}
             ],
             3: [
-                {'command': 17, 'delay': 1.0},
-                {'command': 11, 'delay': 2.0}
+                {'short_throw': 17, 'delay': 1.0},
+                {'init': 11, 'delay': 2.0}
+            ],
+            4: [
+                {'safe_turn_for_direct': 18, 'delay': 0.4},
+                {'direct_folded': 5, 'delay': 0.3}
             ]
         }.get(state, [])
 
