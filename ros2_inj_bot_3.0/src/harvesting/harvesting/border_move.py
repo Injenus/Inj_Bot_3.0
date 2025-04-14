@@ -3,7 +3,9 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import UInt8
 from geometry_msgs.msg import Twist
+from threading import Lock
 import json
+import copy
 
 class PID():
     def __init__(self, p,i,d, min_v, max_v, dt, max_integral=-1):
@@ -24,10 +26,10 @@ class PID():
     def calculate(self, err):
         self.err = err
         P = self.p*self.err
-        I = max(min(self.integral + self.err*self.dt, self.max_integral), -self.max_integral)
-        D = (self.err - self.prev_err)/ self.dt
+        I = max(min(self.i*(self.integral + self.err*self.dt, self.max_integral)), -self.max_integral)
+        D = self.d*(self.err - self.prev_err)/ self.dt
         self.prev_err = self.err
-        return P+I+D
+        return  max(min(P+I+D, self.max_v), self.min_v)
     
 
 
@@ -47,8 +49,8 @@ class BorderMove(Node):
         self.target_border_dist = 0.28 + self.lidar_r # m
         self.front_turn_dist = 0.25 + self.lidar_r
 
-        self.lidar_lock = False
-        self.mode_lock = False
+        self.lidar_lock = Lock()
+        self.mode_lock = Lock()
         self.lidar_basic = {
                 0: -1,
                 90: -1,
@@ -65,11 +67,11 @@ class BorderMove(Node):
 
         
     def update_mode(self, msg):
-        if not self.mode_lock:
+        with self.mode_lock:
             self.mode = msg.data
 
     def update_distances(self, msg):
-        if not self.lidar_lock:
+        with self.lidar_lock:
             data = json.loads(msg.data)
             data = {int(k): v for k, v in data.items()}
 
@@ -85,34 +87,38 @@ class BorderMove(Node):
                 180: data[180],
                 270: data[270]
             }
+            if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
+                raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
+            if any(value < 0 for value in self.lidar_basic.values()):
+                raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
 
 
     def send_speed(self):
+        with self.mode_lock:
+            current_mode = self.mode
+        with self.lidar_lock:
+            lidar_data = copy.deepcopy(self.lidar_basic)
+
         msg = Twist()
-        self.mode_lock = True
 
-        if self.mode:
+        if current_mode:
             ang_w = 0.0
-            self.lidar_lock = True
-            
 
-            side_error = self.target_border_dist - self.lidar_basic[90]
+            side_error = self.target_border_dist - lidar_data[90]
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side err {side_error}, {ang_w}')
 
-            if self.lidar_basic[0] < self.front_turn_dist:
-                ang_w = self.pid_front.calculate(self.front_turn_dist - self.lidar_basic[0]) # always >0 because move by ccw
-                self.get_logger().info(f'font err {self.front_turn_dist - self.lidar_basic[0]}, {ang_w}')
+            if lidar_data[0] < self.front_turn_dist:
+                ang_w = self.pid_front.calculate(self.front_turn_dist - lidar_data[0]) # always >0 because move by ccw
+                self.get_logger().info(f'font err {self.front_turn_dist - lidar_data[0]}, {ang_w}')
 
             msg.linear.x = self.base_x_speed
             msg.angular.z = ang_w
 
-            self.lidar_lock = False
         else:
             msg.linear.x = 0.0
             msg.angular.z = 0.0
 
-        self.mode_lock = False
         self.publisher.publish(msg)
 
 
