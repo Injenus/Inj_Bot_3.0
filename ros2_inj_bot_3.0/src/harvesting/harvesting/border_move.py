@@ -114,6 +114,7 @@ class BorderMove(Node):
 
         self.lidar_lock = Lock()
         self.mode_lock = Lock()
+        
         self.lidar_basic = {
                 0: -1,
                 90: -1,
@@ -134,12 +135,12 @@ class BorderMove(Node):
 
         
     def update_mode(self, msg):
-        # with self.mode_lock:
+        with self.mode_lock:
         #     if msg.data == 1 and self.mode == 0:
         #         self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
         #         self.total_time = 0.0  # Сброс времени
         #     self.mode = msg.data
-        self.mode = msg.data
+            self.mode = msg.data
 
 
     def update_distances(self, msg):
@@ -151,13 +152,14 @@ class BorderMove(Node):
             if self.mode == 0:
                 self.mode = 1
         #
+        with self.lidar_lock:
+            self.lidar_basic = {
+                0: data[0],
+                90: data[90],
+                180: data[180],
+                270: data[270]
+            }
 
-        self.lidar_basic = {
-            0: data[0],
-            90: data[90],
-            180: data[180],
-            270: data[270]
-        }
         if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
             raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
         if any(value < 0 for value in self.lidar_basic.values()):
