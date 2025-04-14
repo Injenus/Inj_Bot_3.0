@@ -132,7 +132,6 @@ class BorderMove(Node):
         self.total_time = 0.0
         self.max_tuning_time = 42.0  # Максимальное время настройки (30 сек)
 
-
         
     def update_mode(self, msg):
         with self.mode_lock:
@@ -186,6 +185,10 @@ class BorderMove(Node):
                 self.pid_side.p = self.autotuner.params[0]
                 self.pid_side.i = self.autotuner.params[1]
                 self.pid_side.d = self.autotuner.params[2]
+            else:
+                with ('pid.txt', 'a') as file:
+                    file.write('\n')
+                    file.write(f'p={self.pid_side.p}, i={self.pid_side.i}, d={self.pid_side.d}')
 
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side err {side_error}, {ang_w}')
