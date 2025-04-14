@@ -143,26 +143,25 @@ class BorderMove(Node):
 
 
     def update_distances(self, msg):
-        with self.lidar_lock:
-            data = json.loads(msg.data)
-            data = {int(k): v for k, v in data.items()}
+        data = json.loads(msg.data)
+        data = {int(k): v for k, v in data.items()}
 
-            #
-            if any(value == -1 for value in self.lidar_basic.values()): ## TODO КОСТЫЛЬ ДЛЯ ДЕБАГА!!! УБРАТЬ!!!
-                if self.mode == 0:
-                    self.mode = 1
-            #
+        #
+        if any(value == -1 for value in self.lidar_basic.values()): ## TODO КОСТЫЛЬ ДЛЯ ДЕБАГА!!! УБРАТЬ!!!
+            if self.mode == 0:
+                self.mode = 1
+        #
 
-            self.lidar_basic = {
-                0: data[0],
-                90: data[90],
-                180: data[180],
-                270: data[270]
-            }
-            if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
-                raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
-            if any(value < 0 for value in self.lidar_basic.values()):
-                raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
+        self.lidar_basic = {
+            0: data[0],
+            90: data[90],
+            180: data[180],
+            270: data[270]
+        }
+        if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
+            raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
+        if any(value < 0 for value in self.lidar_basic.values()):
+            raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
 
 
     def send_speed(self):
@@ -174,7 +173,7 @@ class BorderMove(Node):
         msg = Twist()
 
         if current_mode:
-            ang_w = 0.0
+            ang_w = 0.0 
 
             side_error = self.target_border_dist - lidar_data[90]
             front_error = self.front_turn_dist - lidar_data[0] if lidar_data[0] != -1 else 0

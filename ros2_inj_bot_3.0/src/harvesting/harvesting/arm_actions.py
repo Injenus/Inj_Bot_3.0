@@ -3,6 +3,8 @@ from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String, UInt8
 import json
+import time
+from threading import Lock
 
 class ArmActions(Node):
     def __init__(self):
@@ -34,7 +36,8 @@ class ArmActions(Node):
     def parse_command(self, command):
         """Парсинг команд"""
         states = {
-            'stop': -1, # в положение для сенса объектов
+            'init_safe': 2, # поворот из абсолютного инита вбок
+            'init': -1, # в положение для сенса объектов
             'knock_down': 0,
             'pick': 1,
             'throw_short_side': 2,
@@ -44,13 +47,14 @@ class ArmActions(Node):
 
     def execute_action(self):
         """Основной цикл выполнения действий"""
-        if self.current_state == -1:
-            if self.last_state != -1:
-                self.cleanup_action(self.last_state)
-            return
+        with
 
         try:
-            if self.current_state == 0:
+            if self.current_state == -2:
+                self.safe_init()
+            if self.current_state == -1:
+                self.init()
+            elif self.current_state == 0:
                 self.knock_down_action()
             elif self.current_state == 1:
                 self.pick_action()
@@ -68,25 +72,46 @@ class ArmActions(Node):
         msg.data = number
         self.publisher.publish(msg)
 
+    def safe_init(self):
+        """Поворот вбок перед всем, чтобы не ёбнуть периферию"""
+        self.publish_command(10)
+
+    def init(self):
+        """Возврат в положение для сёрча"""
+        self.publish_command(11)
+
     def knock_down_action(self):
         """Действие для сбивания"""
-        self.publish_command(-2)
-        self.publish_command(-1)
+        self.publish_command(12)
+        time.sleep(0.5)
+        self.publish_command(11)
+        time.sleep(0.5)
 
     def pick_action(self):
         """Действие для подбора"""
-        self.publish_command(-3)
-        self.publish_command(-4)
-        self.publish_command(-5)
-        self.publish_command(-1)
+        self.publish_command(13)
+        time.sleep(1.)
+        self.publish_command(14)
+        time.sleep(1.)
+        self.publish_command(15)
+        time.sleep(1.)
+        self.publish_command(18)
+        time.sleep(1.)
+        self.publish_command(11)
 
     def throw_short_side_action(self):
         """Бросок на короткую дистанцию"""
-        pass
+        self.publish_command(16)
+        time.sleep(1.0)
+        self.publish_command(11)
+        time.sleep(2.0)
 
     def throw_long_side_action(self):
         """Бросок на длинную дистанцию"""
-        pass
+        self.publish_command(17)
+        time.sleep(1.0)
+        self.publish_command(11)
+        time.sleep(2.0)
 
     def cleanup_action(self, previous_state):
         """Очистка ресурсов предыдущего действия"""
