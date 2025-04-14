@@ -124,6 +124,7 @@ class BorderMove(Node):
         
         self.base_x_speed = 0.12
         self.max_abs_z_speed = 3.0
+        self.base_w_speed = 1.5
 
         self.pid_side = PID(25, 0, 0, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
         self.pid_front = PID(20, 0, 0, 0, self.max_abs_z_speed, self.dt)
@@ -174,7 +175,8 @@ class BorderMove(Node):
         msg = Twist()
 
         if current_mode:
-            ang_w = 0.0 
+            ang_w = 0.0
+            lin_x = 0.0 
 
             side_error = self.target_border_dist - lidar_data[90]
             front_error = self.front_turn_dist - lidar_data[0] if lidar_data[0] != -1 else 0
@@ -192,12 +194,14 @@ class BorderMove(Node):
 
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side err {side_error}, {ang_w}')
+            lin_x = self.base_x_speed
 
             if lidar_data[0] < self.front_turn_dist:
-                ang_w = self.pid_front.calculate(front_error)
+                #ang_w = self.pid_front.calculate(front_error)
+                ang_w = self.base_w_speed
                 self.get_logger().info(f'font err {front_error}, {ang_w}')
 
-            msg.linear.x = self.base_x_speed
+            msg.linear.x = lin_x
             msg.angular.z = ang_w
 
             self.total_time += self.dt
