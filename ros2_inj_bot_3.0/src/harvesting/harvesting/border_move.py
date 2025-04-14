@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from std_msgs.msg import UInt8
+from std_msgs.msg import Int8
 from geometry_msgs.msg import Twist
 from threading import Lock
 import json
@@ -101,13 +101,13 @@ class BorderMove(Node):
         super().__init__("border_move")
 
         self.dt = 0.005
-        self.mode_subs = self.create_subscription(UInt8, 'border_move', self.update_mode, 3)
+        self.mode_subs = self.create_subscription(Int8, 'border_move', self.update_mode, 3)
         self.lidar_subs = self.create_subscription(String, 'lidar/obstacles', self.update_distances, 3)
         self.publisher = self.create_publisher(Twist, '/cmd_vel', 3)
 
         self.timer = self.create_timer(self.dt, self.send_speed)
         
-        self.mode = 0 # 0 - stop, 1 -move
+        self.mode = 0 # 0 - stop, 1 -move, -1 - reverse
         self.lidar_r = 0.025
         self.target_border_dist = 0.28 + self.lidar_r # m
         self.front_turn_dist = 0.25 + self.lidar_r
@@ -194,12 +194,13 @@ class BorderMove(Node):
 
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side err {side_error}, {ang_w}')
-            lin_x = self.base_x_speed
+            lin_x = self.base_x_speed * current_mode
 
-            if lidar_data[0] < self.front_turn_dist:
-                #ang_w = self.pid_front.calculate(front_error)
-                ang_w = self.base_w_speed
-                self.get_logger().info(f'font err {front_error}, {ang_w}')
+            if current_mode == 1:
+                if lidar_data[0] < self.front_turn_dist:
+                    #ang_w = self.pid_front.calculate(front_error)
+                    ang_w = self.base_w_speed
+                    self.get_logger().info(f'font err {front_error}, {ang_w}')
 
             msg.linear.x = lin_x
             msg.angular.z = ang_w

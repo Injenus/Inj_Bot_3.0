@@ -13,6 +13,8 @@
 из 6 - возвращемся в 5
 
 для брсока ПО ДЛИННОМУ РЕБРУ (давайте может нахуй, короткого хватит?)
+
+короткое
 """
 
 import rclpy
@@ -27,4 +29,9 @@ import copy
 class MoveToBox():
     def __int__(self):
         super().__init__('move_to_box')
+
+        self.subs_block_number = self.create_subscription(UInt8, 'block_num', self.update_block_num, 10)
+        self.subs_mode = self.create_subscription(UInt8, 'mode', self.update_mode, 10)
+
+
 
