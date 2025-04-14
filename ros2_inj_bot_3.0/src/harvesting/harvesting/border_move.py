@@ -26,10 +26,73 @@ class PID():
     def calculate(self, err):
         self.err = err
         P = self.p*self.err
-        I = max(min(self.i*(self.integral + self.err*self.dt, self.max_integral)), -self.max_integral)
+        self.integral = max(min(self.integral + self.err*self.dt, self.max_integral), -self.max_integral)
+        I = self.i * self.integral
         D = self.d*(self.err - self.prev_err)/ self.dt
         self.prev_err = self.err
         return  max(min(P+I+D, self.max_v), self.min_v)
+    
+
+class AutoTuner:
+    def __init__(self, initial_params, dt):
+        self.params = copy.deepcopy(initial_params)
+        self.dt = dt
+        self.tuning_mode = True
+        self.stage = 0  # 0-P, 1-I, 2-D
+        self.error_history = []
+        self.accumulated_error = 0.0
+        self.best_error = float('inf')
+        self.best_params = copy.deepcopy(initial_params)
+        self.tuning_time = 0.0  # Заменяем расстояние на время
+        self.tuning_interval = 2.0  # Интервал настройки в секундах
+        self.delta = [0.5, 0.01, 0.01]  # шаги для P, I, D
+
+    def update_error(self, error):
+        if not self.tuning_mode:
+            return
+
+        self.accumulated_error += abs(error) * self.dt
+        self.tuning_time += self.dt  # Накопление времени
+
+        if self.tuning_time >= self.tuning_interval:
+            self.adjust_params()
+            self.tuning_time = 0.0
+
+    def adjust_params(self):
+        if self.accumulated_error < self.best_error:
+            self.best_error = self.accumulated_error
+            self.best_params = copy.deepcopy(self.params)
+            self.delta[self.stage] *= 1.1
+        else:
+            self.params[self.stage] -= self.delta[self.stage]
+            self.delta[self.stage] *= -0.8
+
+        self.params[self.stage] = max(self.params[self.stage] + self.delta[self.stage], 0)
+        
+        # if abs(self.delta[self.stage]) < 0.001:
+        #     self.stage += 1
+        #     if self.stage >= 3:
+        #         self.tuning_mode = False
+        #         self.params = copy.deepcopy(self.best_params)
+        #     self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
+
+        # self.accumulated_error = 0.0
+
+        if abs(self.delta[self.stage]) < 0.001:
+            if not self.stage_completed:
+                self.stage += 1
+                if self.stage >= 3:
+                    self.tuning_mode = False
+                    self.params = self.best_params.copy()
+                else:
+                    # Сброс для следующего этапа
+                    self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
+                    self.best_error = float('inf')
+                self.stage_completed = True
+        else:
+            self.stage_completed = False
+
+        self.accumulated_error = 0.0
     
 
 
@@ -59,16 +122,25 @@ class BorderMove(Node):
             }
         
         self.base_x_speed = 0.12
-        self.max_abs_z_speed = 4.0
+        self.max_abs_z_speed = 3.0
 
         self.pid_side = PID(25, 0, 0, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
         self.pid_front = PID(20, 0, 0, 0, self.max_abs_z_speed, self.dt)
+        
+        self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
+        self.total_time = 0.0
+        self.max_tuning_time = 42.0  # Максимальное время настройки (30 сек)
 
 
         
     def update_mode(self, msg):
-        with self.mode_lock:
-            self.mode = msg.data
+        # with self.mode_lock:
+        #     if msg.data == 1 and self.mode == 0:
+        #         self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
+        #         self.total_time = 0.0  # Сброс времени
+        #     self.mode = msg.data
+        self.mode = msg.data
+
 
     def update_distances(self, msg):
         with self.lidar_lock:
@@ -105,22 +177,32 @@ class BorderMove(Node):
             ang_w = 0.0
 
             side_error = self.target_border_dist - lidar_data[90]
+            front_error = self.front_turn_dist - lidar_data[0] if lidar_data[0] != -1 else 0
+
+            # Обновление с использованием времени
+            if self.autotuner.tuning_mode and self.total_time < self.max_tuning_time:
+                self.autotuner.update_error(side_error)  # Убираем параметр расстояния
+                self.pid_side.p = self.autotuner.params[0]
+                self.pid_side.i = self.autotuner.params[1]
+                self.pid_side.d = self.autotuner.params[2]
+
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side err {side_error}, {ang_w}')
 
             if lidar_data[0] < self.front_turn_dist:
-                ang_w = self.pid_front.calculate(self.front_turn_dist - lidar_data[0]) # always >0 because move by ccw
-                self.get_logger().info(f'font err {self.front_turn_dist - lidar_data[0]}, {ang_w}')
+                ang_w = self.pid_front.calculate(front_error)
+                self.get_logger().info(f'font err {front_error}, {ang_w}')
 
             msg.linear.x = self.base_x_speed
             msg.angular.z = ang_w
+
+            self.total_time += self.dt
 
         else:
             msg.linear.x = 0.0
             msg.angular.z = 0.0
 
         self.publisher.publish(msg)
-
 
 
 def main(args=None):
