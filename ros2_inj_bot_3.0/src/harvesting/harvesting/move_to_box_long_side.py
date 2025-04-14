@@ -60,7 +60,6 @@ class MoveToBox():
         self.waiter = [0, int(round(3.0 / dt))]
     
 
-
     def update_block_num(self, msg):
         with self.block_locker:
             self.block_number = msg.data
