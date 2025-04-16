@@ -107,7 +107,7 @@ class BorderMove(Node):
 
         self.timer = self.create_timer(self.dt, self.send_speed)
         
-        self.mode = 0 # 0 - stop, 1 -move, -1 - reverse
+        self.mode = 1 # 0 - stop, 1 -move, -1 - reverse
         self.lidar_r = 0.025
         self.target_border_dist = 0.28 + self.lidar_r # m
         self.front_turn_dist = 0.25 + self.lidar_r
@@ -129,9 +129,9 @@ class BorderMove(Node):
         self.pid_side = PID(25, 0, 0, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
         self.pid_front = PID(20, 0, 0, 0, self.max_abs_z_speed, self.dt)
         
-        self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
-        self.total_time = 0.0
-        self.max_tuning_time = 42.0  # Максимальное время настройки (30 сек)
+        # self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
+        # self.total_time = 0.0
+        # self.max_tuning_time = 42.0  # Максимальное время настройки (30 сек)
 
         
     def update_mode(self, msg):
@@ -181,16 +181,16 @@ class BorderMove(Node):
             side_error = self.target_border_dist - lidar_data[90]
             front_error = self.front_turn_dist - lidar_data[0] if lidar_data[0] != -1 else 0
 
-            # Обновление с использованием времени
-            if self.autotuner.tuning_mode and self.total_time < self.max_tuning_time:
-                self.autotuner.update_error(side_error)  # Убираем параметр расстояния
-                self.pid_side.p = self.autotuner.params[0]
-                self.pid_side.i = self.autotuner.params[1]
-                self.pid_side.d = self.autotuner.params[2]
-            else:
-                with ('pid.txt', 'a') as file:
-                    file.write('\n')
-                    file.write(f'p={self.pid_side.p}, i={self.pid_side.i}, d={self.pid_side.d}')
+            # # Обновление с использованием времени
+            # if self.autotuner.tuning_mode and self.total_time < self.max_tuning_time:
+            #     self.autotuner.update_error(side_error)  # Убираем параметр расстояния
+            #     self.pid_side.p = self.autotuner.params[0]
+            #     self.pid_side.i = self.autotuner.params[1]
+            #     self.pid_side.d = self.autotuner.params[2]
+            # else:
+            #     with open('pid.txt', 'a') as file:
+            #         file.write('\n')
+            #         file.write(f'p={self.pid_side.p}, i={self.pid_side.i}, d={self.pid_side.d}')
 
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side err {side_error}, {ang_w}')
@@ -205,7 +205,7 @@ class BorderMove(Node):
             msg.linear.x = lin_x
             msg.angular.z = ang_w
 
-            self.total_time += self.dt
+            # self.total_time += self.dt
 
         else:
             msg.linear.x = 0.0
