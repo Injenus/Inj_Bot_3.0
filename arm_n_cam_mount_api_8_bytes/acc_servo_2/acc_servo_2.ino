@@ -1,10 +1,18 @@
 #include <Servo.h>
 #include <EEPROM.h>
+#include <Wire.h>
 
 #define SERVO_PIN 9
 #define CALIBRATION_DELAY 500  // Время на перемещение сервы
 #define FILTER_SAMPLES 10      // Усреднение показаний
 #define ACC_AXIC 1
+
+#define ADXL345_ADDR 0x53       // Адрес датчика
+#define REG_POWER_CTL 0x2D      // Регистр управления питанием
+#define REG_DATA_FORMAT 0x31    // Регистр формата данных
+#define REG_DATAX0 0x32         // Начальный регистр данных оси X
+#define ACC_AXIC 1  // 0-X, 1-Y, 2-Z
+
 
 Servo servo;
 int16_t rawAccel;             // "Сырое" значение акселерометра
@@ -184,8 +192,8 @@ int8_t determineDirection() {
   } else {
     correctionDirection = 1; // По умолчанию, если не удалось определить
   }
-  Serial.println(correctionDirection)
-  return 
+  Serial.println(correctionDirection);
+  return;
 }
 
 // Чтение и фильтрация данных акселерометра
