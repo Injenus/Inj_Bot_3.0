@@ -19,7 +19,7 @@ struct ServoSettings {
   int minMcs = 618;
   int maxMcs = 2291;
   int minAng = 0;
-  int maxAng = 240;
+  int maxAng = 100;
 
   int acc = 100;
   int _speed = 1000;
