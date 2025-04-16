@@ -175,6 +175,7 @@ void loop() {
             //            Serial.print(": ");
             //            Serial.println(anglesToMcs(servoPosAng.pos[i], i));
             //servo[i].writeMicroseconds(anglesToMcs(servoPosAng.pos[i], i));
+            
             if (i != 3) {
               servo[i].setTarget(anglesToMcs(servoPosAng.pos[i], i));
             }
