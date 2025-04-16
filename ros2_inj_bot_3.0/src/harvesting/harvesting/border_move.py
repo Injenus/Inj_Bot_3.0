@@ -33,66 +33,66 @@ class PID():
         return  max(min(P+I+D, self.max_v), self.min_v)
     
 
-class AutoTuner:
-    def __init__(self, initial_params, dt):
-        self.params = copy.deepcopy(initial_params)
-        self.dt = dt
-        self.tuning_mode = True
-        self.stage = 0  # 0-P, 1-I, 2-D
-        self.error_history = []
-        self.accumulated_error = 0.0
-        self.best_error = float('inf')
-        self.best_params = copy.deepcopy(initial_params)
-        self.tuning_time = 0.0  # Заменяем расстояние на время
-        self.tuning_interval = 2.0  # Интервал настройки в секундах
-        self.delta = [0.5, 0.01, 0.01]  # шаги для P, I, D
+# class AutoTuner:
+#     def __init__(self, initial_params, dt):
+#         self.params = copy.deepcopy(initial_params)
+#         self.dt = dt
+#         self.tuning_mode = True
+#         self.stage = 0  # 0-P, 1-I, 2-D
+#         self.error_history = []
+#         self.accumulated_error = 0.0
+#         self.best_error = float('inf')
+#         self.best_params = copy.deepcopy(initial_params)
+#         self.tuning_time = 0.0  # Заменяем расстояние на время
+#         self.tuning_interval = 2.0  # Интервал настройки в секундах
+#         self.delta = [0.5, 0.01, 0.01]  # шаги для P, I, D
 
-    def update_error(self, error):
-        if not self.tuning_mode:
-            return
+#     def update_error(self, error):
+#         if not self.tuning_mode:
+#             return
 
-        self.accumulated_error += abs(error) * self.dt
-        self.tuning_time += self.dt  # Накопление времени
+#         self.accumulated_error += abs(error) * self.dt
+#         self.tuning_time += self.dt  # Накопление времени
 
-        if self.tuning_time >= self.tuning_interval:
-            self.adjust_params()
-            self.tuning_time = 0.0
+#         if self.tuning_time >= self.tuning_interval:
+#             self.adjust_params()
+#             self.tuning_time = 0.0
 
-    def adjust_params(self):
-        if self.accumulated_error < self.best_error:
-            self.best_error = self.accumulated_error
-            self.best_params = copy.deepcopy(self.params)
-            self.delta[self.stage] *= 1.1
-        else:
-            self.params[self.stage] -= self.delta[self.stage]
-            self.delta[self.stage] *= -0.8
+#     def adjust_params(self):
+#         if self.accumulated_error < self.best_error:
+#             self.best_error = self.accumulated_error
+#             self.best_params = copy.deepcopy(self.params)
+#             self.delta[self.stage] *= 1.1
+#         else:
+#             self.params[self.stage] -= self.delta[self.stage]
+#             self.delta[self.stage] *= -0.8
 
-        self.params[self.stage] = max(self.params[self.stage] + self.delta[self.stage], 0)
+#         self.params[self.stage] = max(self.params[self.stage] + self.delta[self.stage], 0)
         
-        # if abs(self.delta[self.stage]) < 0.001:
-        #     self.stage += 1
-        #     if self.stage >= 3:
-        #         self.tuning_mode = False
-        #         self.params = copy.deepcopy(self.best_params)
-        #     self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
+#         # if abs(self.delta[self.stage]) < 0.001:
+#         #     self.stage += 1
+#         #     if self.stage >= 3:
+#         #         self.tuning_mode = False
+#         #         self.params = copy.deepcopy(self.best_params)
+#         #     self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
 
-        # self.accumulated_error = 0.0
+#         # self.accumulated_error = 0.0
 
-        if abs(self.delta[self.stage]) < 0.001:
-            if not self.stage_completed:
-                self.stage += 1
-                if self.stage >= 3:
-                    self.tuning_mode = False
-                    self.params = self.best_params.copy()
-                else:
-                    # Сброс для следующего этапа
-                    self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
-                    self.best_error = float('inf')
-                self.stage_completed = True
-        else:
-            self.stage_completed = False
+#         if abs(self.delta[self.stage]) < 0.001:
+#             if not self.stage_completed:
+#                 self.stage += 1
+#                 if self.stage >= 3:
+#                     self.tuning_mode = False
+#                     self.params = self.best_params.copy()
+#                 else:
+#                     # Сброс для следующего этапа
+#                     self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
+#                     self.best_error = float('inf')
+#                 self.stage_completed = True
+#         else:
+#             self.stage_completed = False
 
-        self.accumulated_error = 0.0
+#         self.accumulated_error = 0.0
     
 
 
@@ -133,6 +133,9 @@ class BorderMove(Node):
         # self.total_time = 0.0
         # self.max_tuning_time = 42.0  # Максимальное время настройки (30 сек)
 
+        with open('errs_pid.txt', 'a') as f:
+            f.write('\n\n')
+
         
     def update_mode(self, msg):
         with self.mode_lock:
@@ -148,9 +151,9 @@ class BorderMove(Node):
         data = {int(k): v for k, v in data.items()}
 
         #
-        if any(value == -1 for value in self.lidar_basic.values()): ## TODO КОСТЫЛЬ ДЛЯ ДЕБАГА!!! УБРАТЬ!!!
-            if self.mode == 0:
-                self.mode = 1
+        # if any(value == -1 for value in self.lidar_basic.values()): ## TODO КОСТЫЛЬ ДЛЯ ДЕБАГА!!! УБРАТЬ!!!
+        #     if self.mode == 0:
+        #         self.mode = 1
         #
         with self.lidar_lock:
             self.lidar_basic = {
@@ -160,10 +163,20 @@ class BorderMove(Node):
                 270: data[270]
             }
 
-        if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
-            raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
-        if any(value < 0 for value in self.lidar_basic.values()):
-            raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
+        with self.mode_lock:
+            mode = self.mode
+            if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
+                self.mode = -2
+                self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
+                #raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
+            else:
+                self.mode = mode
+            if any(value < 0 for value in self.lidar_basic.values()):
+                self.mode = -3
+                #raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
+                self.get_logger().info(f"NEGATIVE LIDAR DATA")
+            else:
+                self.mode = mode
 
 
     def send_speed(self):
@@ -193,14 +206,18 @@ class BorderMove(Node):
             #         file.write(f'p={self.pid_side.p}, i={self.pid_side.i}, d={self.pid_side.d}')
 
             ang_w = self.pid_side.calculate(side_error)
-            self.get_logger().info(f'side err {side_error}, {ang_w}')
+            self.get_logger().info(f'side {side_error}, {ang_w}')
+            with open('errs_pid.txt', 'a') as f:
+                f.write(f'side {side_error}, {ang_w}')
             lin_x = self.base_x_speed * current_mode
 
             if current_mode == 1:
                 if lidar_data[0] < self.front_turn_dist:
                     #ang_w = self.pid_front.calculate(front_error)
                     ang_w = self.base_w_speed
-                    self.get_logger().info(f'font err {front_error}, {ang_w}')
+                    self.get_logger().info(f'font {front_error}, {ang_w}')
+                    with open('errs_pid.txt', 'a') as f:
+                        f.write(f'font {front_error}, {ang_w}')
 
             msg.linear.x = lin_x
             msg.angular.z = ang_w
