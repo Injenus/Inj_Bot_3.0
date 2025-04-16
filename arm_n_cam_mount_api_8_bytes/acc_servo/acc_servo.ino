@@ -119,7 +119,7 @@ int16_t PID(const float& currVal) {
     static float dt = SAMPLES*mainPeriod/1000.;
     static float maxIntegral = 100000.;
 
-    float error = -(currVal - target);
+    float error = -(currVal - target)-64;
 
     float P = P_koeff * error;
     I += I_koeff * error * dt;
