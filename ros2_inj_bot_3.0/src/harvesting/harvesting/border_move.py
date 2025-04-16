@@ -208,7 +208,7 @@ class BorderMove(Node):
             ang_w = self.pid_side.calculate(side_error)
             self.get_logger().info(f'side {side_error}, {ang_w}')
             with open('errs_pid.txt', 'a') as f:
-                f.write(f'side {side_error}, {ang_w}')
+                f.write(f'side {side_error}, {ang_w}\n')
             lin_x = self.base_x_speed * current_mode
 
             if current_mode == 1:
@@ -217,7 +217,7 @@ class BorderMove(Node):
                     ang_w = self.base_w_speed
                     self.get_logger().info(f'font {front_error}, {ang_w}')
                     with open('errs_pid.txt', 'a') as f:
-                        f.write(f'font {front_error}, {ang_w}')
+                        f.write(f'font {front_error}, {ang_w}\n')
 
             msg.linear.x = lin_x
             msg.angular.z = ang_w

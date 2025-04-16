@@ -78,7 +78,8 @@ class ObjectDataset(Dataset):
   def __init__(self, root_dir, split='train', img_size=256):
     self.root_dir = root_dir
     self.img_size = img_size
-    self.labels_df = pd.read_csv(os.path.join(root_dir, 'labels.csv'))
+    # self.labels_df = pd.read_csv(os.path.join(root_dir, 'labels.csv'))
+    self.labels_df = pd.read_csv('buff/dataset/labels.csv')
     
     # Разделение данных
     split_idx = int(0.8 * len(self.labels_df))
