@@ -18,8 +18,8 @@ ServoSmooth servo;
 struct ServoSettings {
   int minMcs = 618;
   int maxMcs = 2291;
-  int minAng = 0;
-  int maxAng = 100;
+  int minAng = 100;
+  int maxAng = 140;
 
   int acc = 100;
   int _speed = 1000;
@@ -169,7 +169,7 @@ int16_t PID(const float& currVal) {
     Serial.println(D);
     
 
-    float outputVal = P + I + D;
+    float outputVal = P + I + D -180;
     
     int16_t servoAngle = (int16_t)(constrain(outputVal, servoSettings.minAng, servoSettings.maxAng)- 40);
     prevError = error;
