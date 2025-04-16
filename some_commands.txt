@@ -2,3 +2,6 @@ sudo nano /boot/firmware/config.txt
 lsusb -v 2>/dev/null | grep -E "(Bus|bMaxPower)"
 lsusb -t
 Device Manager → Raspberry Pi Configuration → USB Configuration → USB Current Limit (UEFI)
+
+kill -9 $(jobs -p) 
+

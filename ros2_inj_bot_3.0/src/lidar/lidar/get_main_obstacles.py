@@ -57,7 +57,7 @@ class LidarObstacles(Node):
             else:
                 mask = (rotated_angles >= lower) | (rotated_angles < upper)
 
-            sector_data = np.where(np.isinf(distances[mask]), 5.0, distances[mask])  # Замена inf на 5.0
+            sector_data = np.where(np.isinf(distances[mask]), 3.5, distances[mask])  # Замена inf на 5.0
 
             clean_data = sector_data[~np.isnan(sector_data)]
             
