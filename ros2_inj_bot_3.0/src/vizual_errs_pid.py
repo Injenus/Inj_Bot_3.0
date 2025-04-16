@@ -1,108 +1,84 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
-def parse_blocks(filename):
-    """Чтение файла и разделение на блоки данных по пустым строкам"""
-    blocks = []
-    current_block = []
-    
-    with open(filename, 'r') as file:
-        for line in file:
-            line = line.strip()
-            if not line:  # Найдена пустая строка
-                if current_block:  # Сохраняем текущий блок
-                    blocks.append(current_block)
-                    current_block = []
-            else:
-                current_block.append(line)
-    
-    if current_block:  # Добавляем последний блок
-        blocks.append(current_block)
-    
-    return blocks
+# Чтение данных из файла
+with open('errs_pid.txt', 'r') as file:
+    lines = file.readlines()
 
-def process_block(block, iteration):
-    """Обработка одного блока данных и построение графиков"""
+# Разделение данных на итерации по пустым строкам
+iterations = []
+current_iter = []
+for line in lines:
+    line = line.strip()
+    if not line:
+        if current_iter:
+            iterations.append(current_iter)
+            current_iter = []
+    else:
+        current_iter.append(line)
+if current_iter:
+    iterations.append(current_iter)
+
+# Обработка каждой итерации
+for idx, iter_data in enumerate(iterations, 1):
     side_errors = []
     side_velocities = []
     font_errors = []
     font_velocities = []
-    time_ms = []
     
-    for i, line in enumerate(block):
+    # Парсинг данных для side и font
+    for line in iter_data:
         if line.startswith('side'):
-            try:
-                _, values = line.split()
-                error, velocity = map(float, values.split(','))
-                side_errors.append(error)
-                side_velocities.append(velocity)
-            except Exception as e:
-                print(f"Ошибка в строке {i} блока {iteration}: {e}")
-        
+            parts = line.split()
+            error = float(parts[1].strip(','))
+            velocity = float(parts[2])
+            side_errors.append(error)
+            side_velocities.append(velocity)
         elif line.startswith('font'):
-            try:
-                _, values = line.split()
-                error, velocity = map(float, values.split(','))
-                font_errors.append(error)
-                font_velocities.append(velocity)
-            except Exception as e:
-                print(f"Ошибка в строке {i} блока {iteration}: {e}")
+            parts = line.split()
+            error = float(parts[1].strip(','))
+            velocity = float(parts[2])
+            font_errors.append(error)
+            font_velocities.append(velocity)
     
-    # Создаем временную шкалу (5 мс на каждую пару side-font)
-    time_ms = [i * 5 for i in range(len(side_errors))]
+    # Временные метки (5 мс на шаг)
+    time = np.arange(len(side_errors)) * 5  # в миллисекундах
     
-    # Построение графиков для текущего блока
-    if side_errors:
-        plt.figure(figsize=(10, 5))
-        plt.plot(time_ms, side_errors, 'b-o', markersize=4)
-        plt.title(f'Ошибка (side) - Итерация {iteration}')
-        plt.xlabel('Время, мс')
-        plt.ylabel('Ошибка')
-        plt.grid(True)
-        plt.savefig(f'side_error_{iteration}.png')
-        plt.close()
-
-    if side_velocities:
-        plt.figure(figsize=(10, 5))
-        plt.plot(time_ms, side_velocities, 'r-o', markersize=4)
-        plt.title(f'Угловая скорость (side) - Итерация {iteration}')
-        plt.xlabel('Время, мс')
-        plt.ylabel('Скорость')
-        plt.grid(True)
-        plt.savefig(f'side_velocity_{iteration}.png')
-        plt.close()
-
-    if font_errors:
-        plt.figure(figsize=(10, 5))
-        plt.plot(time_ms, font_errors, 'g-o', markersize=4)
-        plt.title(f'Ошибка (font) - Итерация {iteration}')
-        plt.xlabel('Время, мс')
-        plt.ylabel('Ошибка')
-        plt.grid(True)
-        plt.savefig(f'font_error_{iteration}.png')
-        plt.close()
-
-    if font_velocities:
-        plt.figure(figsize=(10, 5))
-        plt.plot(time_ms, font_velocities, 'm-o', markersize=4)
-        plt.title(f'Угловая скорость (font) - Итерация {iteration}')
-        plt.xlabel('Время, мс')
-        plt.ylabel('Скорость')
-        plt.grid(True)
-        plt.savefig(f'font_velocity_{iteration}.png')
-        plt.close()
-
-# Основная логика выполнения
-filename = 'errs_pid.txt'
-blocks = parse_blocks(filename)
-
-if not blocks:
-    print("Файл не содержит данных!")
-else:
-    for i, block in enumerate(blocks, 1):
-        print(f"Обработка блока {i} ({len(block)} строк)")
-        process_block(block, i)
+    # Построение графиков
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    fig.suptitle(f'Итерация {idx}', fontsize=16)
     
-    print(f"\nСоздано графиков: {4 * len(blocks)}")
-    print("Имена файлов:")
-    print(*[f"side_error_{i}.png, side_velocity_{i}.png,\nfont_error_{i}.png, font_velocity_{i}.png" 
-          for i in range(1, len(blocks)+1)], sep='\n')
+    # Ошибка (side)
+    axes[0, 0].plot(time, side_errors, 'r-', label='Ошибка')
+    axes[0, 0].set_title('Ошибка (side)')
+    axes[0, 0].set_xlabel('Время (мс)')
+    axes[0, 0].set_ylabel('Ошибка')
+    axes[0, 0].grid(True)
+    
+    # Угловая скорость (side)
+    axes[0, 1].plot(time, side_velocities, 'b-', label='Угловая скорость')
+    axes[0, 1].set_title('Угловая скорость (side)')
+    axes[0, 1].set_xlabel('Время (мс)')
+    axes[0, 1].set_ylabel('Скорость')
+    axes[0, 1].grid(True)
+    
+    # Ошибка (font)
+    axes[1, 0].plot(time, font_errors, 'g-', label='Ошибка')
+    axes[1, 0].set_title('Ошибка (font)')
+    axes[1, 0].set_xlabel('Время (мс)')
+    axes[1, 0].set_ylabel('Ошибка')
+    axes[1, 0].grid(True)
+    
+    # Угловая скорость (font)
+    axes[1, 1].plot(time, font_velocities, 'm-', label='Угловая скорость')
+    axes[1, 1].set_title('Угловая скорость (font)')
+    axes[1, 1].set_xlabel('Время (мс)')
+    axes[1, 1].set_ylabel('Скорость')
+    axes[1, 1].grid(True)
+    
+    # Сохранение в PNG
+    plt.tight_layout()
+    plt.savefig(f'iteration_{idx}_summary.png')
+    plt.close()
+
+print("Графики успешно сохранены в текущую директорию.")

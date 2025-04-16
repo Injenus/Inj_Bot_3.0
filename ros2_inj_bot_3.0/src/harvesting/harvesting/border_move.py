@@ -110,7 +110,7 @@ class BorderMove(Node):
         self.mode = 1 # 0 - stop, 1 -move, -1 - reverse
         self.lidar_r = 0.025
         self.target_border_dist = 0.28 + self.lidar_r # m
-        self.front_turn_dist = 0.25 + self.lidar_r
+        self.front_turn_dist = 0.28 + self.lidar_r
 
         self.lidar_lock = Lock()
         self.mode_lock = Lock()
@@ -126,8 +126,8 @@ class BorderMove(Node):
         self.max_abs_z_speed = 3.0
         self.base_w_speed = 1.5
 
-        self.pid_side = PID(25, 1, 1, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
-        self.pid_front = PID(20, 1, 5, 0.0, self.max_abs_z_speed, self.dt)
+        self.pid_side = PID(30, 0, 0, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
+        self.pid_front = PID(20, 0, 0, 0.0, self.max_abs_z_speed, self.dt)
         
         # self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
         # self.total_time = 0.0
@@ -206,10 +206,13 @@ class BorderMove(Node):
             #         file.write(f'p={self.pid_side.p}, i={self.pid_side.i}, d={self.pid_side.d}')
 
             ang_w = self.pid_side.calculate(side_error)
+            #ang_w = (side_error/abs(side_error))*(1+side_error)**2
             self.get_logger().info(f'side {side_error}, {ang_w}')
             with open('errs_pid.txt', 'a') as f:
                 f.write(f'side {side_error}, {ang_w}\n')
             lin_x = self.base_x_speed * current_mode
+            if abs(side_error) > 0.007:
+                lin_x /= 5
 
             if current_mode == 1:
                 if lidar_data[0] < self.front_turn_dist:
