@@ -126,8 +126,8 @@ class BorderMove(Node):
         self.max_abs_z_speed = 3.0
         self.base_w_speed = 1.5
 
-        self.pid_side = PID(25, 0, 0, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
-        self.pid_front = PID(20, 0, 0, 0, self.max_abs_z_speed, self.dt)
+        self.pid_side = PID(25, 1, 1, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
+        self.pid_front = PID(20, 1, 5, 0.0, self.max_abs_z_speed, self.dt)
         
         # self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
         # self.total_time = 0.0

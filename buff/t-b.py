@@ -221,44 +221,48 @@ def visualize_predictions(model, device, num_samples=3):
   dataset = ObjectDataset('dataset')
   model.eval()
   
-  plt.figure(figsize=(15, 5))
-  for i in range(num_samples):
-    image, true_mask, true_label = dataset[i]
+  # plt.figure(figsize=(15, 5))
+  # for i in range(num_samples):
+  #   image, true_mask, true_label = dataset[i]
     
-    with torch.no_grad():
-        seg_pred, cls_pred = model(image.unsqueeze(0).to(device))
+  #   with torch.no_grad():
+  #       seg_pred, cls_pred = model(image.unsqueeze(0).to(device))
     
-    # Постобработка
-    pred_mask = (torch.sigmoid(seg_pred) > 0.5).cpu().squeeze()
-    pred_label = torch.argmax(cls_pred).item()
+  #   # Постобработка
+  #   pred_mask = (torch.sigmoid(seg_pred) > 0.5).cpu().squeeze()
+  #   pred_label = torch.argmax(cls_pred).item()
     
-    # Визуализация
-    plt.subplot(3, 3, i*3+1)
-    plt.imshow(image.permute(1, 2, 0).numpy() * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406])
-    plt.title(f"Original Image\nTrue Class: {true_label}")
-    plt.axis('off')
+  #   # Визуализация
+  #   plt.subplot(3, 3, i*3+1)
+  #   plt.imshow(image.permute(1, 2, 0).numpy() * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406])
+  #   plt.title(f"Original Image\nTrue Class: {true_label}")
+  #   plt.axis('off')
     
-    plt.subplot(3, 3, i*3+2)
-    plt.imshow(true_mask.squeeze(), cmap='gray')
-    plt.title("True Mask")
-    plt.axis('off')
+  #   plt.subplot(3, 3, i*3+2)
+  #   plt.imshow(true_mask.squeeze(), cmap='gray')
+  #   plt.title("True Mask")
+  #   plt.axis('off')
     
-    plt.subplot(3, 3, i*3+3)
-    plt.imshow(pred_mask, cmap='gray')
-    plt.title(f"Predicted Mask\nPred Class: {pred_label}")
-    plt.axis('off')
+  #   plt.subplot(3, 3, i*3+3)
+  #   plt.imshow(pred_mask, cmap='gray')
+  #   plt.title(f"Predicted Mask\nPred Class: {pred_label}")
+  #   plt.axis('off')
   
-  plt.tight_layout()
-  plt.show()
+  # plt.tight_layout()
+  # plt.show()
 
 if __name__ == '__main__':
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   print(f"Using device: {device}")
   
-  # Обучение
-  model = train_model()
+  # # Обучение
+  # model = train_model()
   
-  # Сохранение модели
-  torch.save(model.state_dict(), 'object_detector.pth')
+  # # Сохранение модели
+  # torch.save(model.state_dict(), 'object_detector.pth')
+
+  model = DualTaskModel(num_class=3).to(self.device)
+  model.load_state_dict(torch.load(model_path, map_location=self.device))
+  #model.eval()
 
   visualize_predictions(model, device)
