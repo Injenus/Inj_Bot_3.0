@@ -24,6 +24,13 @@ import json
 import copy
 import math
 
+import sys, os
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'harvesting', 'harvesting')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+import config as conf
+
 class MoveToBox():
     def __int__(self):
         super().__init__('move_to_box_short')
@@ -38,11 +45,10 @@ class MoveToBox():
 
         self.block_number = 0
         self.mode = 0
-        #self.state = 0
         
-        self.dist_toler = 0.007
-        self.basic_x = 0.15
-        self.basic_w = 1.5
+        self.dist_toler = conf.distance_tolerance
+        self.basic_x = conf.base_linear_x_speed
+        self.basic_w = conf.base_angular_w_speed
 
         self.mode_locker = Lock()
         self.block_locker = Lock()
@@ -51,9 +57,9 @@ class MoveToBox():
         self.block_state = 0
         self.box_state = 0
 
-        dt = 0.005
+        dt = conf.dt
         self.timer = self.create_timer(dt, self.loop)
-        self.waiter = [0, int(round(3.0 / dt))]
+        self.waiter = [0, int(round(conf.wait_seconds / dt))]
     
 
     def update_block_num(self, msg):
@@ -109,7 +115,7 @@ class MoveToBox():
             if self.block_state == 0:
 
                 if block_num == 1:
-                    if lidar_data[0] > 1.2:
+                    if lidar_data[0] > conf.front_dist_to_get_middle_cell:
                         lin_x = self.basic_x
                     else:
                         self.block_state = 1
@@ -118,13 +124,13 @@ class MoveToBox():
                     self.block_state = 1
 
                 elif block_num == 3:
-                    if lidar_data[0] < 1.2:
+                    if lidar_data[0] < conf.front_dist_to_get_middle_cell:
                         lin_x = -self.basic_x
                     else:
                         self.block_state = 1
 
                 elif block_num == 4:
-                    if lidar_data[180] < 1.0:
+                    if lidar_data[180] < conf.back_dist_to_get_middle_cell:
                         lin_x = self.basic_x
                     else:
                         self.block_state = 2
@@ -133,7 +139,7 @@ class MoveToBox():
                     self.block_state = 2
 
                 elif block_num == 6:
-                    if lidar_data[180] > 1.0:
+                    if lidar_data[180] > conf.back_dist_to_get_middle_cell:
                         lin_x = -self.basic_x
                     else:
                         self.block_state = 2
@@ -141,20 +147,20 @@ class MoveToBox():
 
             elif self.block_state in [1, 2]:
 
-                if self.box_state == 0:
-                    if lidar_data[180] > 0.25 + 0.3:
-                        ang_w = -self.basic_w
+                if self.box_state == 0: # находимся в средней ячекйи, слева ящик
+                    if lidar_data[180] > conf.back_dist_to_turn_to_box:
+                        ang_w = -self.basic_w # вращение по часовой
                     else:
                         self.box_state = 1
 
-                elif self.box_state == 1:
-                    if lidar_data[180] > 0.23:
+                elif self.box_state == 1: # находмся спиной к коробке
+                    if lidar_data[180] > conf.back_dist_to_box:
                         lin_x = -self.basic_x
                     else:
                         self.box_state = 2
 
-                elif self.box_state == 3:
-                    if lidar_data[270] > 0.25:
+                elif self.box_state == 3:# находимся задом к коробке вполнтую
+                    if lidar_data[270] > conf.left_lidar_dist_to_turn_to_box:
                         ang_w = self.basic_w
                     else:
                         self.box_state = 4
@@ -173,21 +179,22 @@ class MoveToBox():
                         self.box_state = 6
                 
                 elif self.box_state == 6:
-                    if lidar_data[0] > 0.6:
+                    if lidar_data[0] > conf.front_dist_to_go_away_from_box:
                         ang_w = -self.basic_w
                     else:
                         self.box_state = 7
 
                 elif self.box_state == 7:
-                    if lidar_data[0] > 0.2:
+                    if lidar_data[0] > conf.front_dist_to_go_to_border:
                         lin_x = self.basic_x
                     else:
                         self.box_state = 8
                 
                 elif self.box_state == 8:
-                    if lidar_data[90] > 0.28:
-                        ang_w = self.basic_w
-                    else:
+                    # if lidar_data[90] > 0.28:
+                    #     ang_w = self.basic_w
+                    # else:
+                    if 1:
                         self.box_state = 9
                         msg = UInt8
                         msg.data = 1

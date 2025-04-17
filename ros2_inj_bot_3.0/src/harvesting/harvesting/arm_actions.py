@@ -7,6 +7,13 @@ import time
 import threading
 import queue
 
+import sys, os
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'harvesting', 'harvesting')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+import config as conf
+
 class ArmActionExecutor:
     """Класс для последовательного выполнения действий в фоновом потоке"""
     def __init__(self, publish_callback):
@@ -20,7 +27,7 @@ class ArmActionExecutor:
         """Основной цикл обработки задач"""
         while not self.stop_event.is_set():
             try:
-                action = self.task_queue.get(timeout=0.1)
+                action = self.task_queue.get(timeout=conf.dt_arm_action)
                 action()
             except queue.Empty:
                 continue
@@ -45,7 +52,7 @@ class ArmActions(Node):
         self.subscription = self.create_subscription(String, 'arm_action', self.command_callback, 10)
         self.publisher = self.create_publisher(UInt8, 'servo/lut', 10)
         
-        self.action_timer = self.create_timer(0.1, self.execute_action)
+        self.action_timer = self.create_timer(conf.dt_arm_action, self.execute_action)
 
         self.state_lock = threading.Lock()
 
@@ -106,30 +113,31 @@ class ArmActions(Node):
     def get_actions_for_state(self, state):
         """Определение последовательности действий (как в вашем оригинальном коде)"""
         return {
-            -2: [{'safe_init': 10, 'delay': 0.8}],
-            -1: [{'init_(search_fruit)': 11, 'delay': 0.2}],
+            -2: [{'safe_init': 10, 'delay': conf.delay_init_safe}],
+            -1: [{'init_(search_fruit)': 11, 'delay': conf.delay_init}],
             0: [
-                {'knock_down': 12, 'delay': 0.5},
-                {'init': 11, 'delay': 0.5}
+                {'knock_down': 12, 'delay': conf.delay_1_knock},
+                {'init': 11, 'delay': conf.delay_init}
             ],
             1: [
-                {'down': 13, 'delay': 1.0},
-                {'lengthing': 14, 'delay': 1.0},
-                {'up': 15, 'delay': 1.0},
-                {'turn': 18, 'delay': 1.0},
-                {'init': 11, 'delay': 0.2}
+                {'down': 13, 'delay': conf.delay_1_pick},
+                {'lengthing': 14, 'delay': conf.delay_2_pick},
+                {'up': 15, 'delay': conf.delay_3_pick},
+                {'turn': 18, 'delay': conf.delay_4_pick},
+                {'init': 11, 'delay': conf.delay_init}
             ],
             2: [
-                {'long_throw': 16, 'delay': 1.0},
-                {'init': 11, 'delay': 2.0}
+                {'short_throw': 17, 'delay': conf.delay_throw_short},
+                {'init': 11, 'delay': conf.delay_init}
             ],
             3: [
-                {'short_throw': 17, 'delay': 1.0},
-                {'init': 11, 'delay': 2.0}
+                {'long_throw': 16, 'delay': conf.delay_throw_long},
+                {'init': 11, 'delay': conf.delay_init}
             ],
             4: [
                 {'safe_turn_for_direct': 18, 'delay': 0.4},
-                {'direct_folded': 5, 'delay': 0.3}
+                {'direct_folded': 5, 'delay': 0.3},
+                {'init': 11, 'delay': conf.delay_init}
             ]
         }.get(state, [])
 

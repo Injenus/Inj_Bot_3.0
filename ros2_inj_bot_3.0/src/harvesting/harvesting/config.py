@@ -1,0 +1,37 @@
+"""
+Всевозможные прааметры, ичспользущиеся в пакте
+"""
+
+dt = 0.005 # базовый период всех циклов управления
+
+    ### arm_action  ###
+dt_arm_action = 0.1 # период основго цикла обработки задач (фактически обновления очреди)
+delay_init_safe = 0.8
+delay_init = 0.2
+delay_1_knock, delay_2_knock = 0.5, 0.5
+delay_1_pick,delay_2_pick,delay_3_pick, delay_4_pick = 1.0, 1.2, 2.0, 2.0 
+delay_throw_short = 2.5
+delay_throw_long = 2.5
+                        
+    ### border_move ###
+lidar_r = 0.025 # радиус башки лидара
+target_border_dist = 0.28 # целевое расстоние от края башки лидара до бордюра
+front_turn_dist = 0.28 # растсоние спереди от края башки лиидара,Ю при котором тнаичнается поврот
+base_linear_x_speed = 0.12
+base_angular_w_speed = 1.5
+max_abs_angular_w_speed = 3.0
+min_abs_angular_w_speed = 0.0
+side_p, side_i, side_d = 30, 0, 0
+front_p, front_i, front_d = 20, 0, 0
+tolerance_side_error = 0.007
+
+    ### move_to_box_short_side  ###
+distance_tolerance = 0.007 # допуск для всех расстояний в манёвре
+wait_seconds = 3.0 # сколько сеунд ждать после инита броска
+front_dist_to_get_middle_cell = 1.2 # расстоние до переднего бордюра, чтобы оказаться в нужном положении в средней ячейки на парвой стороне !!!УЧТИ ЛИДАР И ГАБАРИТЫ!!!
+back_dist_to_get_middle_cell = 1.6 # расстояние до заднего барьера, чтобы оказаться в нужном положении в средней ячейки на левой стороне !!!УЧТИ ЛИДАР И ГАБАРИТЫ!!!
+back_dist_to_turn_to_box = 0.55 # целевое от ящика через зад для поврота
+back_dist_to_box = 0.3 # целевое до ящика через зад зщадним ходом
+left_lidar_dist_to_turn_to_box = 0.25 # крутимся пока не растсоние от левого борртт ждо коробки
+front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсотгнеем этого растсония
+front_dist_to_go_to_border = 0.28 #едем пока не это растсоние

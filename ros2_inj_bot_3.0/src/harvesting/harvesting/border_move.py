@@ -8,6 +8,13 @@ from threading import Lock
 import json
 import copy
 
+import sys, os
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'harvesting', 'harvesting')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+import config as conf
+
 class PID():
     def __init__(self, p,i,d, min_v, max_v, dt, max_integral=-1):
         self.p = p
@@ -38,7 +45,7 @@ class BorderMove(Node):
     def __init__(self):
         super().__init__("border_move")
 
-        self.dt = 0.005
+        self.dt = conf.dt
         self.mode_subs = self.create_subscription(Int8, 'border_move', self.update_mode, 3)
         self.lidar_subs = self.create_subscription(String, 'lidar/obstacles', self.update_distances, 3)
         self.publ_twist = self.create_publisher(Twist, '/cmd_vel', 3)
@@ -48,9 +55,9 @@ class BorderMove(Node):
         self.timer = self.create_timer(self.dt, self.send_speed)
         
         self.mode = 1 # 0 - stop, 1 -move, -1 - reverse
-        self.lidar_r = 0.025
-        self.target_border_dist = 0.28 + self.lidar_r # m
-        self.front_turn_dist = 0.28 + self.lidar_r
+        self.lidar_r = conf.lidar_r
+        self.target_border_dist = conf.target_border_dist + self.lidar_r # m
+        self.front_turn_dist = conf.front_turn_dist + self.lidar_r
 
         self.lidar_lock = Lock()
         self.mode_lock = Lock()
@@ -62,12 +69,12 @@ class BorderMove(Node):
                 270: -1
             }
         
-        self.base_x_speed = 0.12
-        self.max_abs_z_speed = 3.0
-        self.base_w_speed = 1.5
+        self.base_x_speed = conf.base_linear_x_speed
+        self.max_abs_z_speed = conf.max_abs_angular_w_speed
+        self.base_w_speed = conf.base_angular_w_speed
 
-        self.pid_side = PID(30, 0, 0, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
-        self.pid_front = PID(20, 0, 0, 0.0, self.max_abs_z_speed, self.dt)
+        self.pid_side = PID(conf.side_p, conf.side_i, conf.side_d, -self.max_abs_z_speed, self.max_abs_z_speed, self.dt)
+        self.pid_front = PID(conf.front_p, conf.front_i, conf.front_d, conf.min_abs_angular_w_speed, self.max_abs_z_speed, self.dt)
         
         # self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
         # self.total_time = 0.0
@@ -130,7 +137,7 @@ class BorderMove(Node):
             with open('errs_pid.txt', 'a') as f:
                 f.write(f'side {side_error}, {ang_w}\n')
             lin_x = self.base_x_speed * current_mode
-            if abs(side_error) > 0.007:
+            if abs(side_error) > conf.tolerance_side_error:
                 lin_x /= 5
 
             if current_mode == 1:
