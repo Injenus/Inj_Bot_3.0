@@ -5,3 +5,8 @@ Device Manager → Raspberry Pi Configuration → USB Configuration → USB Curr
 
 kill -9 $(jobs -p) 
 
+
+sudo nano /etc/udev/rules.d/99-usb-custom.rules
+
+sudo udevadm control --reload-rules
+sudo udevadm trigger
