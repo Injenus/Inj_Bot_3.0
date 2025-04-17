@@ -46,10 +46,9 @@ class BorderMove(Node):
         super().__init__("border_move")
 
         self.dt = conf.dt
-        self.mode_subs = self.create_subscription(Int8, 'border_move', self.update_mode, 3)
+        self.mode_subs = self.create_subscription(Int8, 'border_mode', self.update_mode, 3)
         self.lidar_subs = self.create_subscription(String, 'lidar/obstacles', self.update_distances, 3)
         self.publ_twist = self.create_publisher(Twist, '/cmd_vel', 3)
-        self.publ_status = self.create_publisher(UInt8, 'border_status', 10)
 
 
         self.timer = self.create_timer(self.dt, self.send_speed)

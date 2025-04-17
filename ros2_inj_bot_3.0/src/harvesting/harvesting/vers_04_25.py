@@ -61,11 +61,21 @@
     
 """
 
+"""
+"""
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import UInt8
 from std_msgs.msg import Int8
+from std_msgs.msg import UInt8MultiArray
+from std_msgs.msg import Twist
+from std_msgs.msg import String
+from threading import Lock
+import json
+import copy
+
 
 
 import sys, os
@@ -74,3 +84,53 @@ if modules_data_path not in sys.path:
     sys.path.append(modules_data_path)
 
 import config as conf
+
+class Coordinator(Node):
+    def __init__(self):
+        super().__init__('coordinator')
+
+        self.border_publ = self.create.publisher(Int8, 'border_mode', 3)
+        self.arm_publ = self.create.publisher(String, 'arm_action', 10)
+        self.throw_short_publ = self.create.publisher(UInt8MultiArray, 'throw_short_mode', 10)
+        
+        self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
+        self.classific_subs = self.create_subscription(String, 'img_claasif', self.friut_callback, 5)
+
+        self.timer = self.create_timer(conf.dt, self.loop)
+
+        self.border_mode = 0
+        self.arm_command = ''
+        self.throw_short_mode = [0, 0]
+
+        self.fruit_classif = {}
+        self.fruit_lock = Lock()
+        self.throw_short_status = 0
+
+        
+    def friut_callback(self, msg):
+        with self.fruit_lock:
+            self.fruit_classif = json.loads(msg.data)
+
+    def throw_short_callback(self, msg):
+        self.throw_short_status = msg.data
+
+
+    def send_border_mode(self, number):
+        assert isinstance(number, int)
+        msg = Int8(data = number)
+        self.border_publ.publish(msg)
+
+    def send_arm_action(self, stroka):
+        assert isinstance(stroka, str)
+        msg = String(data = stroka)
+        self.arm_publ.publish(msg)
+
+    def send_throw_short_mode(self, mode_block):
+        assert isinstance(mode_block, list)
+        assert len(mode_block) == 2
+        msg = UInt8MultiArray(data=mode_block)
+        self.throw_short_publ.publish(msg)
+
+
+    def loop(self):
+        pass

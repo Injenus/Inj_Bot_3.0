@@ -60,7 +60,7 @@ class ArmActions(Node):
         """Асинхронная обработка входящих команд"""
         try:
             command = json.loads(msg.data)
-            new_state = self.parse_command(command)
+            new_state = conf.arm_states_table.get(command, -1)
 
             with self.state_lock:
                 if new_state != self.current_state:
@@ -71,17 +71,6 @@ class ArmActions(Node):
         except (json.JSONDecodeError, KeyError) as e:
             self.get_logger().error(f"Invalid command: {e}")
 
-    def parse_command(self, command):
-        """Парсинг команд"""
-        states = {
-            'init_safe': -2, # поворот из абсолютного инита вбок
-            'init': -1, # в положение для сенса объектов
-            'knock_down': 0,
-            'pick': 1,
-            'throw_short_side': 2,
-            'throw_long_side': 3
-        }
-        return states.get(command, -1)
 
     # def execute_action(self):
     #     """Основной цикл выполнения действий"""

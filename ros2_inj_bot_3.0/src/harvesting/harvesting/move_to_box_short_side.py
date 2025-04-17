@@ -19,6 +19,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import UInt8
 from geometry_msgs.msg import Twist
+from std_msgs.msg import UInt8MultiArray
 from threading import Lock
 import json
 import copy
@@ -35,8 +36,7 @@ class MoveToBox():
     def __int__(self):
         super().__init__('move_to_box_short')
 
-        self.subs_block_number = self.create_subscription(UInt8, 'block_num', self.update_block_num, 10)
-        self.subs_mode = self.create_subscription(UInt8, 'mode', self.update_mode, 10)
+        self.subs_mode = self.create_subscription(UInt8MultiArray, 'throw_short_mode', self.update_mode, 10)
         self.subs_lidar = self.create_subscription(String, 'lidar/obstacles', self.update_distances, 3)
 
         self.publ_twist = self.create_publisher(Twist, '/cmd_vel', 3)
@@ -68,9 +68,15 @@ class MoveToBox():
                 self.block_number = msg.data
 
     def update_mode(self, msg):
+        if len(msg.data) != 2:
+            raise ValueError
+        mode, block_num = msg.data
         with self.mode_locker:
-            if msg.data != self.mode:
-                self.mode = msg.data
+            if mode != self.mode:
+                self.mode = mode
+        with self.block_locker:
+            if block_num != self.block_number:
+                self.block_number = block_num
 
 
     def update_distances(self, msg):

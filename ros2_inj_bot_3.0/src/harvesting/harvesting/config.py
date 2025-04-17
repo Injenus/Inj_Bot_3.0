@@ -12,6 +12,14 @@ delay_1_knock, delay_2_knock = 0.5, 0.5
 delay_1_pick,delay_2_pick,delay_3_pick, delay_4_pick = 1.0, 1.2, 2.0, 2.0 
 delay_throw_short = 2.5
 delay_throw_long = 2.5
+arm_states_table = {
+        'init_safe': -2, # поворот из абсолютного инита вбок
+        'init': -1, # в положение для сенса объектов
+        'knock_down': 0, #сбитие
+        'pick': 1, # взятие
+        'throw_short_side': 2, # бросок по короткой
+        'throw_long_side': 3 # брсоок по длинной, но легаси ебаное
+    }
                         
     ### border_move ###
 lidar_r = 0.025 # радиус башки лидара
@@ -34,4 +42,4 @@ back_dist_to_turn_to_box = 0.55 # целевое от ящика через за
 back_dist_to_box = 0.3 # целевое до ящика через зад зщадним ходом
 left_lidar_dist_to_turn_to_box = 0.25 # крутимся пока не растсоние от левого борртт ждо коробки
 front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсотгнеем этого растсония
-front_dist_to_go_to_border = 0.28 #едем пока не это растсоние
+front_dist_to_go_to_border = 0.28 # едем пока не это растсоние
