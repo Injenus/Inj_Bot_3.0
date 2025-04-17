@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import Int8
+from std_msgs.msg import UInt8
 from geometry_msgs.msg import Twist
 from threading import Lock
 import json
@@ -33,69 +34,6 @@ class PID():
         return  max(min(P+I+D, self.max_v), self.min_v)
     
 
-# class AutoTuner:
-#     def __init__(self, initial_params, dt):
-#         self.params = copy.deepcopy(initial_params)
-#         self.dt = dt
-#         self.tuning_mode = True
-#         self.stage = 0  # 0-P, 1-I, 2-D
-#         self.error_history = []
-#         self.accumulated_error = 0.0
-#         self.best_error = float('inf')
-#         self.best_params = copy.deepcopy(initial_params)
-#         self.tuning_time = 0.0  # Заменяем расстояние на время
-#         self.tuning_interval = 2.0  # Интервал настройки в секундах
-#         self.delta = [0.5, 0.01, 0.01]  # шаги для P, I, D
-
-#     def update_error(self, error):
-#         if not self.tuning_mode:
-#             return
-
-#         self.accumulated_error += abs(error) * self.dt
-#         self.tuning_time += self.dt  # Накопление времени
-
-#         if self.tuning_time >= self.tuning_interval:
-#             self.adjust_params()
-#             self.tuning_time = 0.0
-
-#     def adjust_params(self):
-#         if self.accumulated_error < self.best_error:
-#             self.best_error = self.accumulated_error
-#             self.best_params = copy.deepcopy(self.params)
-#             self.delta[self.stage] *= 1.1
-#         else:
-#             self.params[self.stage] -= self.delta[self.stage]
-#             self.delta[self.stage] *= -0.8
-
-#         self.params[self.stage] = max(self.params[self.stage] + self.delta[self.stage], 0)
-        
-#         # if abs(self.delta[self.stage]) < 0.001:
-#         #     self.stage += 1
-#         #     if self.stage >= 3:
-#         #         self.tuning_mode = False
-#         #         self.params = copy.deepcopy(self.best_params)
-#         #     self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
-
-#         # self.accumulated_error = 0.0
-
-#         if abs(self.delta[self.stage]) < 0.001:
-#             if not self.stage_completed:
-#                 self.stage += 1
-#                 if self.stage >= 3:
-#                     self.tuning_mode = False
-#                     self.params = self.best_params.copy()
-#                 else:
-#                     # Сброс для следующего этапа
-#                     self.delta[self.stage] = 0.5 if self.stage == 0 else 0.01
-#                     self.best_error = float('inf')
-#                 self.stage_completed = True
-#         else:
-#             self.stage_completed = False
-
-#         self.accumulated_error = 0.0
-    
-
-
 class BorderMove(Node):
     def __init__(self):
         super().__init__("border_move")
@@ -103,7 +41,9 @@ class BorderMove(Node):
         self.dt = 0.005
         self.mode_subs = self.create_subscription(Int8, 'border_move', self.update_mode, 3)
         self.lidar_subs = self.create_subscription(String, 'lidar/obstacles', self.update_distances, 3)
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 3)
+        self.publ_twist = self.create_publisher(Twist, '/cmd_vel', 3)
+        self.publ_status = self.create_publisher(UInt8, 'border_status', 10)
+
 
         self.timer = self.create_timer(self.dt, self.send_speed)
         
@@ -136,25 +76,15 @@ class BorderMove(Node):
         with open('errs_pid.txt', 'a') as f:
             f.write('\n\n')
 
-        
+    
     def update_mode(self, msg):
         with self.mode_lock:
-        #     if msg.data == 1 and self.mode == 0:
-        #         self.autotuner = AutoTuner([25.0, 0.0, 0.0], self.dt)
-        #         self.total_time = 0.0  # Сброс времени
-        #     self.mode = msg.data
             self.mode = msg.data
-
 
     def update_distances(self, msg):
         data = json.loads(msg.data)
         data = {int(k): v for k, v in data.items()}
 
-        #
-        # if any(value == -1 for value in self.lidar_basic.values()): ## TODO КОСТЫЛЬ ДЛЯ ДЕБАГА!!! УБРАТЬ!!!
-        #     if self.mode == 0:
-        #         self.mode = 1
-        #
         with self.lidar_lock:
             self.lidar_basic = {
                 0: data[0],
@@ -194,17 +124,6 @@ class BorderMove(Node):
             side_error = self.target_border_dist - lidar_data[90]
             front_error = self.front_turn_dist - lidar_data[0] if lidar_data[0] != -1 else 0
 
-            # # Обновление с использованием времени
-            # if self.autotuner.tuning_mode and self.total_time < self.max_tuning_time:
-            #     self.autotuner.update_error(side_error)  # Убираем параметр расстояния
-            #     self.pid_side.p = self.autotuner.params[0]
-            #     self.pid_side.i = self.autotuner.params[1]
-            #     self.pid_side.d = self.autotuner.params[2]
-            # else:
-            #     with open('pid.txt', 'a') as file:
-            #         file.write('\n')
-            #         file.write(f'p={self.pid_side.p}, i={self.pid_side.i}, d={self.pid_side.d}')
-
             ang_w = self.pid_side.calculate(side_error)
             #ang_w = (side_error/abs(side_error))*(1+side_error)**2
             self.get_logger().info(f'side {side_error}, {ang_w}')
@@ -225,13 +144,11 @@ class BorderMove(Node):
             msg.linear.x = lin_x
             msg.angular.z = ang_w
 
-            # self.total_time += self.dt
-
         else:
             msg.linear.x = 0.0
             msg.angular.z = 0.0
 
-        self.publisher.publish(msg)
+        self.publ_twist.publish(msg)
 
 
 def main(args=None):
