@@ -164,6 +164,7 @@ class KeyboardNode(Node):
             lut_msg = UInt8()
             lut_msg.data = data
             self.publ_table_pos.publish(lut_msg)
+            print(data)
 
 
     def destroy_node(self):

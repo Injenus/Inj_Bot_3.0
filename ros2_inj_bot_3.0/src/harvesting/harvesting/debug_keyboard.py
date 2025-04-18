@@ -13,7 +13,7 @@ from std_msgs.msg import String
 from std_msgs.msg import UInt8
 from std_msgs.msg import Int8
 from std_msgs.msg import UInt8MultiArray
-from std_msgs.msg import Twist
+from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 from threading import Lock
 import json
@@ -32,14 +32,12 @@ class DebugKeyboard(Node):
     def __init__(self):
         super().__init__('debug_keyboard')
 
-        self.border_publ = self.create.publisher(Int8, 'border_mode', 3)
-        self.arm_publ = self.create.publisher(String, 'arm_action', 10)
-        self.throw_short_publ = self.create.publisher(UInt8MultiArray, 'throw_short_mode', 10)
+        self.border_publ = self.create_publisher(Int8, 'border_mode', 3)
+        self.arm_publ = self.create_publisher(String, 'arm_action', 10)
+        self.throw_short_publ = self.create_publisher(UInt8MultiArray, 'throw_short_mode', 10)
         
         self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
-        self.classific_subs = self.create_subscription(String, 'img_claasif', self.friut_callback, 5)
-
-        self.timer = self.create_timer(conf.dt, self.loop)
+        #self.classific_subs = self.create_subscription(String, 'img_claasif', self.friut_callback, 5)
 
         self.arm_state = {value: key for key, value in conf.arm_states_table.items()}
 
@@ -93,7 +91,7 @@ class DebugKeyboard(Node):
         msg = String(data = stroka)
         self.arm_publ.publish(msg)
 
-    def send_throw_short_mode(self, mode_block):
+    def throw_short_callback(self, mode_block):
         assert isinstance(mode_block, list)
         assert len(mode_block) == 2
         msg = UInt8MultiArray(data=mode_block)
@@ -181,7 +179,7 @@ class DebugKeyboard(Node):
         pref = next((key for key in priority_pref if key in current_keys), None)
 
         priority_mode = ['0', '1', '2', '3', '4', '5']
-        mode = int(next((key for key in priority_mode if key in current_keys), None))
+        mode = int(next((key for key in priority_mode if key in current_keys), -42))
 
         if pref and mode != -42:
             data = [pref, mode]

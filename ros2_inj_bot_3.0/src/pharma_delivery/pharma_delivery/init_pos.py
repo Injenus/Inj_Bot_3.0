@@ -29,7 +29,7 @@ class InitPosition(Node):
             self.iter = 0
         if self.idx >= len(self.sequnce):
             self.idx = len(self.sequnce) - 1
-        pos = conf.arm_positions[self.sequnce[self.idx]][0]
+        pos = conf.arm_positions[self.sequnce[0]][0]
         servo_msg = UInt8MultiArray()
         servo_msg.data = bytes(pos)
         self.servo_publ.publish(servo_msg)

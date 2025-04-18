@@ -98,7 +98,7 @@ class ServoSerialReadWrite(Node):
             msg = UInt8MultiArray()
             msg.data = parsed_data
             self.receive_data_publisher.publish(msg)
-            self.get_logger().info(f'Publ data: {msg.data}')
+            #self.get_logger().info(f'Publ data: {msg.data}')
         else:
             self.get_logger().info('Nothing to publ., timeout')
 
@@ -111,11 +111,11 @@ class ServoSerialReadWrite(Node):
 def main(args=None):
     rclpy.init(args=args)
     servo_data_exchange = ServoSerialReadWrite()
-    try:
-        rclpy.spin(servo_data_exchange)
-    except:
-        servo_data_exchange.destroy_node()
-        rclpy.shutdown()
+
+    rclpy.spin(servo_data_exchange)
+
+    servo_data_exchange.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
