@@ -41,6 +41,8 @@ class DebugKeyboard(Node):
 
         self.timer = self.create_timer(conf.dt, self.loop)
 
+        self.arm_state = {value: key for key, value in conf.arm_states_table.items()}
+
         self.arm_keys = {
             ecodes.KEY_0: '0',
             ecodes.KEY_1: '1',
@@ -75,7 +77,9 @@ class DebugKeyboard(Node):
         self.read_thread.start()
         
         # Таймер для обработки нажатий
-        self.timer = self.create_timer(1/200, self.process_keys)
+        self.dt = 1/200
+        self.timer = self.create_timer(self.dt, self.process_keys)
+        self.waiter = [0, 5/self.dt]
 
 
 
@@ -185,11 +189,28 @@ class DebugKeyboard(Node):
         if data:
 
             if data[0] == 'b':
-                msg = Int8(data = data[1])
-                self.border_publ.publish(msg)
+                if self.waiter[0] == 0:
+                    if data[1] in [0,1]:
+                        msg = Int8(data = data[1])
+                        self.border_publ.publish(msg)
+                else:
+                    self.waiter[1] += self.dt
+                    if self.waiter[0] > self.waiter[1]:
+                        self.waiter[0] = 0
 
             elif data[0] == 'a':
-                
+                if self.waiter[0] == 0:
+                    if data[1] in [0,1,2,3,4,5]:
+                        id_com = data[1]- 2
+                        msg = String(data = self.arm_state[id_com])
+                        self.arm_publ.publish(msg)
+            
+
+            elif data[0] == 't':
+                if data[1] in [1, 2, 3, 4, 5, 6]:
+                    msg = UInt8MultiArray(data = [1, data[1]])
+                elif data[1] == 0:
+                    msg = UInt8MultiArray(data = [0, 0])
 
 
     def destroy_node(self):
