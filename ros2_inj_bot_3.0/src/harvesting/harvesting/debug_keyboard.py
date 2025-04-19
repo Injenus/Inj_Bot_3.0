@@ -32,6 +32,7 @@ class DebugKeyboard(Node):
     def __init__(self):
         super().__init__('debug_keyboard')
 
+        self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 3)
         self.border_publ = self.create_publisher(Int8, 'border_mode', 3)
         self.arm_publ = self.create_publisher(String, 'arm_action', 10)
         self.throw_short_publ = self.create_publisher(UInt8MultiArray, 'throw_short_mode', 10)
@@ -174,7 +175,7 @@ class DebugKeyboard(Node):
         pref = ''
         mode = -42
         
-        priority_pref = ['b', 'a', 't']  # Порядок приоритета
+        priority_pref = ['b', 'a', 't', 's']  # Порядок приоритета
         pref = next((key for key in priority_pref if key in current_keys), None)
 
         priority_mode = ['0', '1', '2', '3', '4', '5']
@@ -209,6 +210,12 @@ class DebugKeyboard(Node):
                 elif data[1] == 0:
                     msg = UInt8MultiArray(data = [0, 0])
                 self.throw_short_publ.publish(msg)
+
+            elif data[0] == 's':
+                if data[1] in [0,1,2]:
+                    msg = Int8(data = data[1]-1)
+
+                self.start_finish_publ.publish(msg)
 
 
     def destroy_node(self):
