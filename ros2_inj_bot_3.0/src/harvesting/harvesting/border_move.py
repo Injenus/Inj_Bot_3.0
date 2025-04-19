@@ -53,7 +53,7 @@ class BorderMove(Node):
 
         self.timer = self.create_timer(self.dt, self.send_speed)
         
-        self.mode = 1 # 0 - stop, 1 -move, -1 - reverse
+        self.mode = 0 # 0 - stop, 1 -move, -1 - reverse
         self.lidar_r = conf.lidar_r
         self.target_border_dist = conf.target_border_dist + self.lidar_r # m
         self.front_turn_dist = conf.front_turn_dist + self.lidar_r
@@ -79,8 +79,10 @@ class BorderMove(Node):
         # self.total_time = 0.0
         # self.max_tuning_time = 42.0  # Максимальное время настройки (30 сек)
 
-        with open('errs_pid.txt', 'a') as f:
-            f.write('\n\n')
+        # with open('errs_pid.txt', 'a') as f:
+        #     f.write('\n\n')
+
+        self.can_stop = False
 
     
     def update_mode(self, msg):
@@ -103,14 +105,14 @@ class BorderMove(Node):
             mode = self.mode
             if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
                 self.mode = -2
-                self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
+                #self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
                 #raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
             else:
                 self.mode = mode
             if any(value < 0 for value in self.lidar_basic.values()):
                 self.mode = -3
                 #raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
-                self.get_logger().info(f"NEGATIVE LIDAR DATA")
+                #self.get_logger().info(f"NEGATIVE LIDAR DATA")
             else:
                 self.mode = mode
 
@@ -121,9 +123,11 @@ class BorderMove(Node):
         with self.lidar_lock:
             lidar_data = copy.deepcopy(self.lidar_basic)
 
-        msg = Twist()
+        
 
         if current_mode:
+            self.can_stop = True
+            msg = Twist()
             ang_w = 0.0
             lin_x = 0.0 
 
@@ -132,9 +136,9 @@ class BorderMove(Node):
 
             ang_w = self.pid_side.calculate(side_error)
             #ang_w = (side_error/abs(side_error))*(1+side_error)**2
-            self.get_logger().info(f'side {side_error}, {ang_w}')
-            with open('errs_pid.txt', 'a') as f:
-                f.write(f'side {side_error}, {ang_w}\n')
+            self.get_logger().info(f'side {side_error}, {ang_w}', throttle_duration_sec=0.2)
+            # with open('errs_pid.txt', 'a') as f:
+            #     f.write(f'side {side_error}, {ang_w}\n')
             lin_x = self.base_x_speed * current_mode
             if abs(side_error) > conf.tolerance_side_error:
                 lin_x /= 5
@@ -143,19 +147,18 @@ class BorderMove(Node):
                 if lidar_data[0] < self.front_turn_dist:
                     #ang_w = self.pid_front.calculate(front_error)
                     ang_w = self.base_w_speed
-                    self.get_logger().info(f'font {front_error}, {ang_w}')
-                    with open('errs_pid.txt', 'a') as f:
-                        f.write(f'font {front_error}, {ang_w}\n')
+                    #self.get_logger().info(f'font {front_error}, {ang_w}')
+                    # with open('errs_pid.txt', 'a') as f:
+                    #     f.write(f'font {front_error}, {ang_w}\n')
 
             msg.linear.x = lin_x
             msg.angular.z = ang_w
 
-        else:
-            msg.linear.x = 0.0
-            msg.angular.z = 0.0
-
-        self.publ_twist.publish(msg)
-
+            self.publ_twist.publish(msg)
+            self.get_logger().info(f'tw {msg.linear.x} {msg.angular.z}', throttle_duration_sec=0.3)
+        elif self.can_stop:
+            self.publ_twist.publish(Twist())
+            self.can_stop = False
 
 def main(args=None):
     rclpy.init(args=args)

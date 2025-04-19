@@ -57,7 +57,7 @@ class ServoSerialReadWrite(Node):
         while self.send_attempts > 0:
             send_data.send_to_serial(self.serial_port, self.last_data)
             self.send_attempts -= 1
-            print(f'Send to driver {self.last_data}')
+            #print(f'Send to driver {self.last_data}')
 
         start_time = time.time()
         max_runtime = 0.025

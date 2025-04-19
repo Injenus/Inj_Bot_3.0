@@ -87,7 +87,7 @@ class LidarObstacles(Node):
         # Publish results
         msg_out = String()
         msg_out.data = json.dumps(smoothed_medians)
-        print(msg_out.data)
+        #print(msg_out.data)
         self.publisher.publish(msg_out)
 
 def main(args=None):

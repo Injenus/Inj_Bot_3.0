@@ -92,9 +92,8 @@ class DebugKeyboard(Node):
         self.arm_publ.publish(msg)
 
     def throw_short_callback(self, mode_block):
-        assert isinstance(mode_block, list)
-        assert len(mode_block) == 2
-        msg = UInt8MultiArray(data=mode_block)
+        assert isinstance(mode_block.data, int)
+        msg = UInt8MultiArray(data=[mode_block.data, 0])
         self.throw_short_publ.publish(msg)
 
 
@@ -209,6 +208,7 @@ class DebugKeyboard(Node):
                     msg = UInt8MultiArray(data = [1, data[1]])
                 elif data[1] == 0:
                     msg = UInt8MultiArray(data = [0, 0])
+                self.throw_short_publ.publish(msg)
 
 
     def destroy_node(self):

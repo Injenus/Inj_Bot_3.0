@@ -32,8 +32,8 @@ if modules_data_path not in sys.path:
 
 import config as conf
 
-class MoveToBox():
-    def __int__(self):
+class MoveToBox(Node):
+    def __init__(self):
         super().__init__('move_to_box_short')
 
         self.subs_mode = self.create_subscription(UInt8MultiArray, 'throw_short_mode', self.update_mode, 10)
@@ -60,7 +60,14 @@ class MoveToBox():
         dt = conf.dt
         self.timer = self.create_timer(dt, self.loop)
         self.waiter = [0, int(round(conf.wait_seconds / dt))]
-    
+
+        self.lidar_basic = {
+                0: -1,
+                90: -1,
+                180: -1,
+                270: -1
+            }
+        self.can_stop = False
 
     def update_block_num(self, msg):
         with self.block_locker:
@@ -74,9 +81,11 @@ class MoveToBox():
         with self.mode_locker:
             if mode != self.mode:
                 self.mode = mode
+                print(f'mode {self.mode}')
         with self.block_locker:
             if block_num != self.block_number:
                 self.block_number = block_num
+                print(f'block_number {self.block_number}')
 
 
     def update_distances(self, msg):
@@ -95,20 +104,20 @@ class MoveToBox():
             mode = self.mode
             if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
                 self.mode = -2
-                self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
+                #self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
                 #raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
             else:
                 self.mode = mode
             if any(value < 0 for value in self.lidar_basic.values()):
                 self.mode = -3
                 #raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
-                self.get_logger().info(f"NEGATIVE LIDAR DATA")
+                #self.get_logger().info(f"NEGATIVE LIDAR DATA")
             else:
                 self.mode = mode
 
         
     def loop(self):
-        lin_x, ang_w = 0.0, 0.0
+        lin_x, ang_z = 0.0, 0.0
         with self.mode_locker:
             mode = self.mode
         with self.block_locker:
@@ -117,6 +126,8 @@ class MoveToBox():
             lidar_data = self.lidar_basic
 
         if mode == 1:
+
+            self.can_stop = True
 
             if self.block_state == 0:
 
@@ -153,72 +164,82 @@ class MoveToBox():
 
             elif self.block_state in [1, 2]:
 
+                self.get_logger().info(f'{self.box_state}', throttle_duration_sec=0.3)
+
                 if self.box_state == 0: # находимся в средней ячекйи, слева ящик
+                    #print(lidar_data[180])
                     if lidar_data[180] > conf.back_dist_to_turn_to_box:
-                        ang_w = -self.basic_w # вращение по часовой
+                        ang_z = -self.basic_w # вращение по часовой
                     else:
                         self.box_state = 1
 
                 elif self.box_state == 1: # находмся спиной к коробке
+                    #print(lidar_data[180])
                     if lidar_data[180] > conf.back_dist_to_box:
                         lin_x = -self.basic_x
                     else:
                         self.box_state = 2
 
-                elif self.box_state == 3:# находимся задом к коробке вполнтую
+                elif self.box_state == 2:# находимся задом к коробке вполнтую
+                    #print(lidar_data[270])
                     if lidar_data[270] > conf.left_lidar_dist_to_turn_to_box:
-                        ang_w = self.basic_w
+                        ang_z = self.basic_w
                     else:
-                        self.box_state = 4
+                        self.box_state = 3
 
-                elif self.box_state == 4:
+                elif self.box_state == 3:
                     msg = String()
                     msg.data = 'throw_short_side'
                     self.publ_arm.publish(msg)
-                    self.box_state = 5
+                    self.box_state = 4
                 
-                elif self.box_state == 5:
+                elif self.box_state == 4:
                     if self.waiter[0] < self.waiter[1]:
                         self.waiter[0] += 1
                     else:
                         self.waiter[0] = 0
-                        self.box_state = 6
+                        self.box_state = 5
                 
-                elif self.box_state == 6:
+                elif self.box_state == 5:
+                    #print(lidar_data[0])
                     if lidar_data[0] > conf.front_dist_to_go_away_from_box:
-                        ang_w = -self.basic_w
+                        ang_z = -self.basic_w
                     else:
-                        self.box_state = 7
+                        self.box_state = 6
 
-                elif self.box_state == 7:
+                elif self.box_state == 6:
+                    #print(lidar_data[0])
                     if lidar_data[0] > conf.front_dist_to_go_to_border:
                         lin_x = self.basic_x
                     else:
-                        self.box_state = 8
+                        self.box_state = 7
                 
-                elif self.box_state == 8:
+                elif self.box_state == 7:
                     # if lidar_data[90] > 0.28:
                     #     ang_w = self.basic_w
                     # else:
                     if 1:
-                        self.box_state = 9
-                        msg = UInt8
+                        self.box_state = 8
+                        msg = UInt8()
                         msg.data = 1
                         self.publ_status.publish(msg)
 
                         with self.mode_locker:
                             self.mode = 0
-        
 
+            msg = Twist()
+            msg.linear.x = lin_x
+            msg.angular.z = ang_z
+            self.publ_twist.publish(msg)
+        
         elif mode == 0:
-            pass
+            if self.can_stop:
+                self.publ_twist.publish(Twist())
+                self.can_stop = False
         elif mode in [-2, -3]:
             pass # обычно, если лидар упал нахуй. если нет - то мб прошло бы от мелких дрожаний, но похуй
 
-        msg = Twist()
-        msg.linear.x = lin_x
-        msg.angular.w = ang_w
-        self.publ_twist.publish(msg)
+        
         
         
 

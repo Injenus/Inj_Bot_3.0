@@ -101,7 +101,7 @@ class WheelSerialReadWrite(Node):
                     print("Invalid packet received")
 
             if time.time() - start_time > max_runtime:
-                print(time.time() - start_time, max_runtime)
+                #print(time.time() - start_time, max_runtime)
                 intime = False
 
         if intime:
