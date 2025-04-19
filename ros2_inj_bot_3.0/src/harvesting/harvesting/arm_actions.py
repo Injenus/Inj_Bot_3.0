@@ -47,12 +47,12 @@ class ArmActions(Node):
 
         self.arm_act_executor = ArmActionExecutor(self.publish_command)
 
-        self.current_state = -1
+        self.current_state = -3
         
         self.subscription = self.create_subscription(String, 'arm_action', self.command_callback, 10)
         self.publisher = self.create_publisher(UInt8, 'servo/lut', 10)
         
-        self.action_timer = self.create_timer(conf.dt_arm_action, self.execute_action)
+        #self.action_timer = self.create_timer(conf.dt_arm_action, self.execute_action)
 
         self.state_lock = threading.Lock()
 
@@ -66,119 +66,99 @@ class ArmActions(Node):
             if new_state != self.current_state:
                 self.get_logger().info(f"State changed: {new_state}")
                 self.current_state = new_state
-                self.arm_act_executor.add_action(lambda: self.execute_action_sequence(new_state))
+                self.arm_act_executor.add_action(lambda: self.execute_action(new_state))
+                print('y')
 
-
-    # def execute_action(self):
-    #     """Основной цикл выполнения действий"""
-    #     with self.state_lock:
-    #         try:
-    #             if self.current_state == -2:
-    #                 self.safe_init()
-    #             if self.current_state == -1:
-    #                 self.init()
-    #             elif self.current_state == 0:
-    #                 self.knock_down_action()
-    #             elif self.current_state == 1:
-    #                 self.pick_action()
-    #             elif self.current_state == 2:
-    #                 self.throw_short_side_action()
-    #             elif self.current_state == 3:
-    #                 self.throw_long_side_action()
-                    
-    #         except Exception as e:
-    #             self.get_logger().error(f"Action failed: {e}")
 
     def execute_action(self, state):
         """Выполнение последовательности действий для состояния"""
         actions = self.get_actions_for_state(state)
         for action in actions:
-            self.publish_command(action['command'])
-            time.sleep(action['delay'])  # Блокирующий sleep только в рабочем потоке
+            self.publish_command(action['command'])  # Теперь берем правильный ключ
+            self.get_logger().info(f"Executing: {action['name']} ({action['command']})")
+            time.sleep(action['delay'])
+            #time.sleep(5.0)
 
     def get_actions_for_state(self, state):
-        """Определение последовательности действий (как в вашем оригинальном коде)"""
+        """Словарь константных команд с правильными ключами"""
         return {
-            -2: [{'search_fruit_pre': 10, 'delay': conf.delay_init_safe}
-                 ],
-            -1: [{'pre_knock_down_fruit': 23, 'delay': conf.delay_init},
-                 {'search_fruit': 11, 'delay': conf.delay_init}
-                 ],
+            -2: [
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay}
+            ],
+            -1: [
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}
+            ],
             0: [
-                {'knock_down': 12, 'delay': conf.delay_1_knock},
-                {'init': 11, 'delay': conf.delay_init}
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
+                {'command': 12, 'name': 'knock_down_fruit', 'delay': 2*conf.st_delay},
+                {'command': 24, 'name': 'after_knock_down_fruit', 'delay': 2*conf.st_delay},
+                {'command': 12, 'name': 'knock_down_fruit', 'delay': 2*conf.st_delay},
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': 2*conf.st_delay}
             ],
             1: [
-                {'down': 13, 'delay': conf.delay_1_pick},
-                {'lengthing': 14, 'delay': conf.delay_2_pick},
-                {'up': 15, 'delay': conf.delay_3_pick},
-                {'turn': 18, 'delay': conf.delay_4_pick},
-                {'init': 11, 'delay': conf.delay_init}
+                {'command': 13, 'name': '_', 'delay': conf.st_delay},
+                {'command': 25, 'name': '_', 'delay': conf.st_delay},
+                {'command': 26, 'name': '_', 'delay': conf.st_delay},
+                {'command': 27, 'name': '_', 'delay': conf.st_delay},
+                {'command': 28, 'name': '_', 'delay': conf.st_delay},
+                {'command': 29, 'name': '_', 'delay': conf.st_delay},
+                {'command': 30, 'name': '_', 'delay': conf.st_delay},
+                {'command': 31, 'name': '_', 'delay': conf.st_delay},
+                {'command': 32, 'name': '_', 'delay': conf.st_delay},
+                {'command': 33, 'name': '_', 'delay': conf.st_delay},
+                {'command': 15, 'name': '_', 'delay': conf.st_delay},
+                {'command': 34, 'name': '_', 'delay': conf.st_delay},
+                {'command': 38, 'name': '_', 'delay': conf.st_delay},
+                {'command': 35, 'name': '_', 'delay': conf.st_delay},
+                {'command': 36, 'name': '_', 'delay': conf.st_delay},                
             ],
             2: [
-                {'short_throw': 17, 'delay': conf.delay_throw_short},
-                {'init': 11, 'delay': conf.delay_init}
+                {'command': 17, 'name': '_', 'delay': conf.st_delay},
+                {'command': 37, 'name': '_', 'delay': conf.st_delay},
+
+                {'command': 39, 'name': '_', 'delay': conf.st_delay},
+                {'command': 40, 'name': '_', 'delay': conf.st_delay},
+                {'command': 41, 'name': '_', 'delay': conf.st_delay},
+                {'command': 42, 'name': '_', 'delay': conf.st_delay},
+                {'command': 43, 'name': '_', 'delay': conf.st_delay},
+                {'command': 44, 'name': '_', 'delay': conf.st_delay},
+                {'command': 45, 'name': '_', 'delay': conf.st_delay},
+                {'command': 46, 'name': '_', 'delay': conf.st_delay},
+                {'command': 47, 'name': '_', 'delay': conf.st_delay},
+                {'command': 48, 'name': '_', 'delay': conf.st_delay},
+                {'command': 49, 'name': '_', 'delay': conf.st_delay},
+                {'command': 50, 'name': '_', 'delay': conf.st_delay},
+                {'command': 51, 'name': '_', 'delay': conf.st_delay},
+                {'command': 52, 'name': '_', 'delay': conf.st_delay},
+                {'command': 53, 'name': '_', 'delay': conf.st_delay},
+                {'command': 54, 'name': '_', 'delay': conf.st_delay},
+                {'command': 55, 'name': '_', 'delay': conf.st_delay},
+                {'command': 56, 'name': '_', 'delay': conf.st_delay},
+
+                {'command': 50, 'name': '_', 'delay': conf.st_delay},
+                {'command': 47, 'name': '_', 'delay': conf.st_delay},
+                {'command': 43, 'name': '_', 'delay': conf.st_delay},
+                {'command': 39, 'name': '_', 'delay': conf.st_delay},
+                {'command': 37, 'name': '_', 'delay': conf.st_delay},
+
+                {'command': 17, 'name': '_', 'delay': conf.st_delay},
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': 3*conf.st_delay},
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay},
             ],
-            3: [
-                {'long_throw': 16, 'delay': conf.delay_throw_long},
-                {'init': 11, 'delay': conf.delay_init}
-            ],
-            4: [
-                {'safe_turn_for_direct': 18, 'delay': 0.4},
-                {'direct_folded': 5, 'delay': 0.3},
-                {'init': 11, 'delay': conf.delay_init}
-            ]
+
+
         }.get(state, [])
 
     def publish_command(self, number):
         """Потокобезопасная публикация"""
         msg = UInt8()
         msg.data = number
+        print('pppuuuublbll',msg.data)
         self.publisher.publish(msg)
 
-    # def safe_init(self):
-    #     """Поворот вбок перед всем, чтобы не ёбнуть периферию"""
-    #     self.publish_command(10)
-    #     time.sleep(0.8)
-
-    # def init(self):
-    #     """Возврат в положение для сёрча"""
-    #     self.publish_command(11)
-    #     time.sleep(0.2)
-
-    # def knock_down_action(self):
-    #     """Действие для сбивания"""
-    #     self.publish_command(12)
-    #     time.sleep(0.5)
-    #     self.publish_command(11)
-    #     time.sleep(0.5)
-
-    # def pick_action(self):
-    #     """Действие для подбора"""
-    #     self.publish_command(13)
-    #     time.sleep(1.)
-    #     self.publish_command(14)
-    #     time.sleep(1.)
-    #     self.publish_command(15)
-    #     time.sleep(1.)
-    #     self.publish_command(18)
-    #     time.sleep(1.)
-    #     self.publish_command(11)
-    #     time.sleep(0.2)
-
-    # def throw_short_side_action(self):
-    #     """Бросок на короткую дистанцию"""
-    #     self.publish_command(16)
-    #     time.sleep(1.0)
-    #     self.publish_command(11)
-    #     time.sleep(2.0)
-
-    # def throw_long_side_action(self):
-    #     """Бросок на длинную дистанцию"""
-    #     self.publish_command(17)
-    #     time.sleep(1.0)
-    #     self.publish_command(11)
-    #     time.sleep(2.0)
 
     def destroy_node(self):
         self.arm_act_executor.shutdown()

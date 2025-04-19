@@ -28,7 +28,7 @@ class LUTcontrol(Node):
             self.publisher.publish(servo_msg)
             self.get_logger().info(f'lut to servo {servo_msg.data}')
         else:
-            self.get_logger().info(f'Nonexistent command')
+            self.get_logger().info(f'Non existent command')
 
     def destroy_node(self):
         super().destroy_node()

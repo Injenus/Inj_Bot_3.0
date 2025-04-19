@@ -201,7 +201,7 @@ class DebugKeyboard(Node):
                 if data[1] in [0,1,2,3,4,5]:
                     id_com = data[1]- 2
                     msg = String(data = self.arm_state[id_com])
-                    self.get_logger().info(f'{self.arm_state[id_com]}', throttle_duration_sec=0.4)
+                    self.get_logger().info(f'{self.arm_state[id_com]}')
                     self.arm_publ.publish(msg)
             
 
@@ -215,9 +215,7 @@ class DebugKeyboard(Node):
                     self.throw_short_publ.publish(msg)
 
             elif data[0] == 's':
-                print('s')
                 if data[1] in [0,1,2]:
-                    print(data[1]-1)
                     msg = Int8(data = data[1]-1)
                     self.start_finish_publ.publish(msg)
 

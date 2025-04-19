@@ -108,9 +108,7 @@ class StartFinish(Node):
                     self.mode = 0
 
             elif self.mode == -1:
-                print(lidar_data[180], self.target_back_dist)
                 if lidar_data[180] < self.target_back_dist:
-                    print("BBBBBBBBBBBBBBBBBBBBBBBB")
                     self.get_logger().info(f'sf {lidar_data[180]}', throttle_duration_sec=0.3)
                     msg = Twist()
                     msg.linear.x = self.base_x_speed
