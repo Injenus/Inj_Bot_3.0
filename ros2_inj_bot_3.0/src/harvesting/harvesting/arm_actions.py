@@ -45,7 +45,7 @@ class ArmActions(Node):
     def __init__(self):
         super().__init__('arm_actions')
 
-        self.executor = ArmActionExecutor(self.publish_command)
+        self.arm_act_executor = ArmActionExecutor(self.publish_command)
 
         self.current_state = -1
         
@@ -58,18 +58,15 @@ class ArmActions(Node):
 
     def command_callback(self, msg):
         """Асинхронная обработка входящих команд"""
-        try:
-            command = json.loads(msg.data)
-            new_state = conf.arm_states_table.get(command, -1)
+        command = msg.data
+        new_state = conf.arm_states_table.get(command, -1)
+        print(new_state)
 
-            with self.state_lock:
-                if new_state != self.current_state:
-                    self.get_logger().info(f"State changed: {new_state}")
-                    self.current_state = new_state
-                    self.executor.add_action(lambda: self.execute_action_sequence(new_state))
-
-        except (json.JSONDecodeError, KeyError) as e:
-            self.get_logger().error(f"Invalid command: {e}")
+        with self.state_lock:
+            if new_state != self.current_state:
+                self.get_logger().info(f"State changed: {new_state}")
+                self.current_state = new_state
+                self.arm_act_executor.add_action(lambda: self.execute_action_sequence(new_state))
 
 
     # def execute_action(self):
@@ -92,7 +89,7 @@ class ArmActions(Node):
     #         except Exception as e:
     #             self.get_logger().error(f"Action failed: {e}")
 
-    def execute_action_sequence(self, state):
+    def execute_action(self, state):
         """Выполнение последовательности действий для состояния"""
         actions = self.get_actions_for_state(state)
         for action in actions:
@@ -102,8 +99,11 @@ class ArmActions(Node):
     def get_actions_for_state(self, state):
         """Определение последовательности действий (как в вашем оригинальном коде)"""
         return {
-            -2: [{'safe_init': 10, 'delay': conf.delay_init_safe}],
-            -1: [{'init_(search_fruit)': 11, 'delay': conf.delay_init}],
+            -2: [{'search_fruit_pre': 10, 'delay': conf.delay_init_safe}
+                 ],
+            -1: [{'pre_knock_down_fruit': 23, 'delay': conf.delay_init},
+                 {'search_fruit': 11, 'delay': conf.delay_init}
+                 ],
             0: [
                 {'knock_down': 12, 'delay': conf.delay_1_knock},
                 {'init': 11, 'delay': conf.delay_init}
@@ -181,16 +181,16 @@ class ArmActions(Node):
     #     time.sleep(2.0)
 
     def destroy_node(self):
-        self.executor.shutdown()
+        self.arm_act_executor.shutdown()
         super().destroy_node()
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = ArmActions()
-    executor = MultiThreadedExecutor()
-    executor.add_node(node)
-    executor.spin()
+    arm_executor = MultiThreadedExecutor()
+    arm_executor.add_node(node)
+    arm_executor.spin()
     node.destroy_node()
     rclpy.shutdown()
 

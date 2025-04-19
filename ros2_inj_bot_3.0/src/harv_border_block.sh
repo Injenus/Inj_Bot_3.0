@@ -9,4 +9,6 @@ bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run fuck_wheel twist_to_rpm" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting border_move" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting debug_keyboard" &
-bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting move_to_box_short_side"
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting move_to_box_short_side" &
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting start_fihish" &
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting arm_actions"

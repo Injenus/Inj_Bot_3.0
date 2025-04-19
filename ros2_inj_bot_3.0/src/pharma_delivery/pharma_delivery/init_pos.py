@@ -23,17 +23,17 @@ class InitPosition(Node):
         self.sequnce = [3,4]
     
     def publish(self):
-        self.iter += 1
-        if self.iter >= 5:
-            self.idx += 1
-            self.iter = 0
-        if self.idx >= len(self.sequnce):
-            self.idx = len(self.sequnce) - 1
-        pos = conf.arm_positions[self.sequnce[0]][0]
-        servo_msg = UInt8MultiArray()
-        servo_msg.data = bytes(pos)
-        self.servo_publ.publish(servo_msg)
-        self.get_logger().info(f'sended {pos}')
+        # self.iter += 1
+        # if self.iter >= 5:
+        #     self.idx += 1
+        #     self.iter = 0
+        # if self.idx >= len(self.sequnce):
+        #     self.idx = len(self.sequnce) - 1
+        # pos = conf.arm_positions[self.sequnce[0]][0]
+        # servo_msg = UInt8MultiArray()
+        # servo_msg.data = bytes(pos)
+        # self.servo_publ.publish(servo_msg)
+        # self.get_logger().info(f'sended {pos}')
 
         twist_msg = Twist()
         twist_msg.linear.x = 0.0

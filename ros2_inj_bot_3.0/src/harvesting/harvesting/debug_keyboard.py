@@ -56,7 +56,8 @@ class DebugKeyboard(Node):
             ecodes.KEY_ESC: 'Esc',
             ecodes.KEY_A: 'a',
             ecodes.KEY_B: 'b',
-            ecodes.KEY_T: 't'
+            ecodes.KEY_T: 't',
+            ecodes.KEY_S: 's'
         }
 
         self.device = self.find_keyboard_device()
@@ -197,25 +198,28 @@ class DebugKeyboard(Node):
                         self.waiter[0] = 0
 
             elif data[0] == 'a':
-                if self.waiter[0] == 0:
-                    if data[1] in [0,1,2,3,4,5]:
-                        id_com = data[1]- 2
-                        msg = String(data = self.arm_state[id_com])
-                        self.arm_publ.publish(msg)
+                if data[1] in [0,1,2,3,4,5]:
+                    id_com = data[1]- 2
+                    msg = String(data = self.arm_state[id_com])
+                    self.get_logger().info(f'{self.arm_state[id_com]}', throttle_duration_sec=0.4)
+                    self.arm_publ.publish(msg)
             
 
             elif data[0] == 't':
+                msg = UInt8MultiArray()
                 if data[1] in [1, 2, 3, 4, 5, 6]:
-                    msg = UInt8MultiArray(data = [1, data[1]])
+                    msg.data = [1, data[1]]
                 elif data[1] == 0:
-                    msg = UInt8MultiArray(data = [0, 0])
-                self.throw_short_publ.publish(msg)
+                    msg.data = [0, 0]
+                if len(msg.data) > 0:
+                    self.throw_short_publ.publish(msg)
 
             elif data[0] == 's':
+                print('s')
                 if data[1] in [0,1,2]:
+                    print(data[1]-1)
                     msg = Int8(data = data[1]-1)
-
-                self.start_finish_publ.publish(msg)
+                    self.start_finish_publ.publish(msg)
 
 
     def destroy_node(self):

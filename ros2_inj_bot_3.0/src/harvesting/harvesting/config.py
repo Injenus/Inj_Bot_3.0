@@ -24,7 +24,7 @@ arm_states_table = {
     ### border_move ###
 lidar_r = 0.025 # радиус башки лидара
 target_border_dist = 0.31 # целевое расстоние от края башки лидара до бордюра
-front_turn_dist = 0.31 # растсоние спереди от края башки лиидара,Ю при котором тнаичнается поврот
+front_turn_dist = 0.4 # растсоние спереди от края башки лиидара,Ю при котором тнаичнается поврот
 base_linear_x_speed = 0.12
 base_angular_w_speed = 1.5
 max_abs_angular_w_speed = 3.0
@@ -45,5 +45,5 @@ front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсот
 front_dist_to_go_to_border = 0.28 # едем пока не это растсоние
 
     ### start_finish    ###
-target_front_dist_start = 3.0
-target_back_dist_finish = 3.5
+target_front_dist_start = 2.3
+target_back_dist_finish = 2.8

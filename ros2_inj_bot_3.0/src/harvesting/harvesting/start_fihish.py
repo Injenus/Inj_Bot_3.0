@@ -50,7 +50,9 @@ class StartFinish(Node):
 
     def update_mode(self, msg):
         with self.mode_lock:
-            self.mode = msg.data
+            if msg.data != self.mode:
+                self.mode = msg.data
+                self.cam_stop = True
 
     def update_distances(self, msg):
         data = json.loads(msg.data)
@@ -80,33 +82,45 @@ class StartFinish(Node):
                 self.mode = mode
 
     def send_speed(self):
-        with self.mode_lock:
-            current_mode = self.mode
+        
         with self.lidar_lock:
             lidar_data = copy.deepcopy(self.lidar_basic)
 
-        msg = Twist()
-        lin_x = 0.0
+        with self.mode_lock:    
+            if self.mode == 0:
+                if self.can_stop:
+                    msg = Twist()
+                    msg.linear.x = 0.0
+                    self.publ_twist.publish(msg)
+                    self.can_stop = False
 
-        if current_mode == 0:
-            if self.can_stop:
-                msg.linear.x = lin_x
-                self.publ_twist.publish(msg)
-                self.can_stop = False
+            elif self.mode == 1:
+                if lidar_data[0] > self.target_front_dist:
+                    self.get_logger().info(f'sf {lidar_data[0]}', throttle_duration_sec=0.3)
+                    msg = Twist()
+                    msg.linear.x = self.base_x_speed
+                    self.publ_twist.publish(msg)
+                elif self.cam_stop:
+                    msg = Twist()
+                    msg.linear.x = 0.0
+                    self.publ_twist.publish(msg)
+                    self.can_stop = False
+                    self.mode = 0
 
-        elif current_mode == 1:
-            self.can_stop = True
-            if lidar_data[0] > self.target_front_dist:
-                lin_x = self.base_x_speed
-                msg.linear.x = lin_x
-                self.publ_twist.publish(msg)
-
-        elif current_mode == -1:
-            self.can_stop = True
-            if lidar_data[180] < self.target_back_dist:
-                lin_x = self.base_x_speed
-                msg.linear.x = lin_x
-                self.publ_twist.publish(msg)
+            elif self.mode == -1:
+                print(lidar_data[180], self.target_back_dist)
+                if lidar_data[180] < self.target_back_dist:
+                    print("BBBBBBBBBBBBBBBBBBBBBBBB")
+                    self.get_logger().info(f'sf {lidar_data[180]}', throttle_duration_sec=0.3)
+                    msg = Twist()
+                    msg.linear.x = self.base_x_speed
+                    self.publ_twist.publish(msg)
+                elif self.cam_stop:
+                    msg = Twist()
+                    msg.linear.x = 0.0
+                    self.publ_twist.publish(msg)
+                    self.can_stop = False
+                    self.mode = 0
 
 
 
