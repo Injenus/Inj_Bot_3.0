@@ -14,7 +14,7 @@ device: cpu
 workers: 8
 project: null
 name: fruit_detector
-exist_ok: true
+exist_ok: false
 pretrained: true
 optimizer: auto
 verbose: true

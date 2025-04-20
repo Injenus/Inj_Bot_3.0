@@ -25,10 +25,10 @@ arm_states_table = {
                         
     ### border_move ###
 lidar_r = 0.025 # радиус башки лидара
-target_border_dist = 0.31 # целевое расстоние от края башки лидара до бордюра
+target_border_dist = 0.32 # целевое расстоние от края башки лидара до бордюра
 front_turn_dist = 0.22 # растсоние спереди от края башки лиидара,Ю при котором тнаичнается поврот
-base_linear_x_speed = 0.12
-base_angular_w_speed = 1.5
+base_linear_x_speed = 0.09
+base_angular_w_speed = 1.2
 max_abs_angular_w_speed = 3.0
 min_abs_angular_w_speed = 0.0
 side_p, side_i, side_d = 30, 0, 0
@@ -57,12 +57,12 @@ all_classes = ['sweet_pepper_good','sweet_pepper_bad',
                'eggplant_good','eggplant_bad',
                'pear_good','pear_bad',
                ]
-id_to_class = {0: '',
-               1: '',
-               2: '',
-               3: '',
-               4: '',
-               5: '',
+id_to_class = {0: 'eggplant_good',
+               1: 'tomate_good',
+               2: 'pear_good',
+               3: 'sweet_pepper_good',
+               4: 'lemon_good',
+               5: 'lemon_bad',
                6: '',
                7: '',
                8: '',

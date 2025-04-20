@@ -239,6 +239,13 @@ class DebugKeyboard(Node):
                     img_data = {'class': 'pear_good', 'x': 0.521}
                 elif data[1] == 3:
                     img_data = {'class': 'lemon_bad', 'x': 0.55}
+                elif data[1] == 4:
+                    img_data = {'class': 'tomate_good', 'x': 0.491}
+                elif data[1] == 5:
+                    img_data = {'class': 'eggplant_good', 'x': 0.521}
+                elif data[1] == 6:
+                    img_data = {'class': 'lemon_good', 'x': 0.55}
+
                 if img_data:
                     msg = String()
                     msg.data = json.dumps(img_data)
