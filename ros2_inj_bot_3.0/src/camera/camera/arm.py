@@ -21,7 +21,8 @@ class ArmCameraPublisher(Node):
         self.publisher_grayscale = self.create_publisher(Image, 'cam/arm_g', 1)
         # 2591 x 1944  / 2.5 = 1036 x 778
         #2.15: 1205 x 904
-        self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=2.15, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
+        #4.2 617 x 463
+        self.cam = Rpi_Camera(id=0, resolution=0, name='arm', hard_resize_koeff=4.2, rotate=180, hard_roi=None, calib_data=None, gains_roi=(0,0,1,1))
         
         self.timer = self.create_timer(0.02, self.publish_imge) # тянет только 15 фпс
 

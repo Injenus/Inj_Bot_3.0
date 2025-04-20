@@ -47,7 +47,7 @@ front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсот
 front_dist_to_go_to_border = 0.28 # едем пока не это растсоние
 
     ### start_finish    ###
-target_front_dist_start = 1.3   #2.3
+target_front_dist_start = 2.3   #2.3
 target_back_dist_finish = 2.8
 
     ### cv  ###
@@ -57,6 +57,17 @@ all_classes = ['sweet_pepper_good','sweet_pepper_bad',
                'eggplant_good','eggplant_bad',
                'pear_good','pear_bad',
                ]
+id_to_class = {0: '',
+               1: '',
+               2: '',
+               3: '',
+               4: '',
+               5: '',
+               6: '',
+               7: '',
+               8: '',
+               9: '',
+}
 matching = {
   'sweet_pepper_good': 'knock_down',
   'lemon_good': 'knock_down',
@@ -66,5 +77,4 @@ matching = {
   'eggplant_good': 'ignore',
 
   'lemon_bad': 'pick',
-  
 }
