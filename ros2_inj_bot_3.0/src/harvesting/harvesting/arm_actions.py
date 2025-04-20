@@ -83,21 +83,33 @@ class ArmActions(Node):
         """Словарь константных команд с правильными ключами"""
         return {
             -2: [
-                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay}
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
             ],
             -1: [
-                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
-                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}
+                {'command': 63, 'name': '_', 'delay': conf.st_delay},
+                {'command': 60, 'name': '_', 'delay': conf.st_delay},
+
+                # {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
+                # {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}
             ],
             0: [
+                {'command': 63, 'name': '_', 'delay': conf.st_delay},
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+
                 {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 12, 'name': 'knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 24, 'name': 'after_knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 12, 'name': 'knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
-                {'command': 11, 'name': 'search_fruit', 'delay': 2*conf.st_delay}
+
+                {'command': 63, 'name': 'search_fruit', 'delay': conf.st_delay},
+                {'command': 60, 'name': '_', 'delay': conf.st_delay},
             ],
             1: [
+                {'command': 63, 'name': '_', 'delay': conf.st_delay},
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay},
                 {'command': 13, 'name': '_', 'delay': conf.st_delay},
                 {'command': 25, 'name': '_', 'delay': conf.st_delay},
                 {'command': 26, 'name': '_', 'delay': conf.st_delay},
@@ -144,10 +156,25 @@ class ArmActions(Node):
                 {'command': 37, 'name': '_', 'delay': conf.st_delay},
 
                 {'command': 17, 'name': '_', 'delay': conf.st_delay},
-                {'command': 10, 'name': 'search_fruit_pre', 'delay': 3*conf.st_delay},
-                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': 2*conf.st_delay},
+
+                {'command': 63, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
+                {'command': 60, 'name': 'search_fruit', 'delay': conf.st_delay},
+            ],
+            3: [
+                # from 60 to 11
+                {'command': 63, 'name': '_', 'delay': conf.st_delay},
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay},
             ],
+            4: [
+                # from 11 to 60
+                {'command': 23, 'name': '_', 'delay': conf.st_delay},
+                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+                {'command': 63, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
+                {'command': 60, 'name': 'search_fruit', 'delay': conf.st_delay},
+            ]
 
 
         }.get(state, [])

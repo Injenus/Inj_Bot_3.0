@@ -32,10 +32,12 @@ class DebugKeyboard(Node):
     def __init__(self):
         super().__init__('debug_keyboard')
 
+        self.call_init_publ = self.create_publisher(Int8, 'run_vers_04_25', 42)
         self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 3)
         self.border_publ = self.create_publisher(Int8, 'border_mode', 3)
         self.arm_publ = self.create_publisher(String, 'arm_action', 10)
         self.throw_short_publ = self.create_publisher(UInt8MultiArray, 'throw_short_mode', 10)
+        self.img_publ = self.create_publisher(String, 'img_classif', 10)
         
         self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
         #self.classific_subs = self.create_subscription(String, 'img_claasif', self.friut_callback, 5)
@@ -57,7 +59,10 @@ class DebugKeyboard(Node):
             ecodes.KEY_A: 'a',
             ecodes.KEY_B: 'b',
             ecodes.KEY_T: 't',
-            ecodes.KEY_S: 's'
+            ecodes.KEY_S: 's',
+            ecodes.KEY_I: 'i',
+            ecodes.KEY_O: 'o',
+            ecodes.KEY_C: 'c'
         }
 
         self.device = self.find_keyboard_device()
@@ -171,18 +176,17 @@ class DebugKeyboard(Node):
             return
         
 
-        
         data = []
         pref = ''
         mode = -42
         
-        priority_pref = ['b', 'a', 't', 's']  # Порядок приоритета
+        priority_pref = ['i','o', 'b', 'a', 't', 's', 'c']  # Порядок приоритета
         pref = next((key for key in priority_pref if key in current_keys), None)
 
-        priority_mode = ['0', '1', '2', '3', '4', '5']
+        priority_mode = ['0', '1', '2', '3', '4', '5', '6']
         mode = int(next((key for key in priority_mode if key in current_keys), -42))
 
-        if pref and mode != -42:
+        if pref:
             data = [pref, mode]
 
         if data:
@@ -198,7 +202,7 @@ class DebugKeyboard(Node):
                         self.waiter[0] = 0
 
             elif data[0] == 'a':
-                if data[1] in [0,1,2,3,4,5]:
+                if data[1] in [0,1,2,3,4,5,6]:
                     id_com = data[1]- 2
                     msg = String(data = self.arm_state[id_com])
                     self.get_logger().info(f'{self.arm_state[id_com]}')
@@ -218,6 +222,30 @@ class DebugKeyboard(Node):
                 if data[1] in [0,1,2]:
                     msg = Int8(data = data[1]-1)
                     self.start_finish_publ.publish(msg)
+
+            elif data[0] == 'i':
+                msg = Int8(data = 1)
+                self.call_init_publ.publish(msg)
+
+            elif data[0] == 'o':
+                msg = Int8(data = -1)
+                self.call_init_publ.publish(msg)
+
+            elif data[0] == 'c':
+                img_data = {}
+                if data[1] == 1:
+                    img_data = {'class': 'sweet_pepper_good', 'x': 0.491}
+                elif data[1] == 2:
+                    img_data = {'class': 'pear_good', 'x': 0.521}
+                elif data[1] == 3:
+                    img_data = {'class': 'lemon_bad', 'x': 0.55}
+                if img_data:
+                    msg = String()
+                    msg.data = json.dumps(img_data)
+                    self.img_publ.publish(msg)
+                    print(msg.data)
+
+
 
 
     def destroy_node(self):

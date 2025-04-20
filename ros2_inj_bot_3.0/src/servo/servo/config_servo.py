@@ -1,4 +1,4 @@
-offset_0 = 3
+offset_0 = 1
 arm_positions = {
   
     0 : ([142-offset_0, 133, 130, 132, 0, 128, 42], 'init'),
@@ -55,8 +55,10 @@ arm_positions = {
     55: ([142-offset_0-90, 133-90, 130+110, 132+35, 1, 28, 42], 'throw_short1'),
     56: ([142-offset_0-90, 133-90, 130+110, 132+40, 1, 28, 42], 'throw_short1'),
 
-    60: ([142-90-offset_0, 133+30, 130-120, 132-12, 1, 128, 42], 'search_fruit_pre'),
-    
+    60: ([142-90-offset_0, 133+30, 130-120, 132-12, 1, 128, 42], 'safe_border_short_pose'),
+    # 61: ([142-90-offset_0, 133+70, 130-80, 132+10, 1, 128, 42], 'safe_border_short_pose'),
+    # 62: ([142-90-offset_0, 133+50, 130-40, 132+10, 1, 128, 42], 'safe_border_short_pose'),
+    63: ([142-90-offset_0, 133+30, 130-0, 132+10, 1, 128, 42], 'safe_border_short_pose'),    
 
     18: ([142-offset_0-45, 133-75, 130+35, 132, 1, 128, 42], 'turn_rigth_for_pick'),
     19: ([142-offset_0-90, 133, 130-45, 132, 0, 128, 42], 'safe_up_for_init_ang'),
