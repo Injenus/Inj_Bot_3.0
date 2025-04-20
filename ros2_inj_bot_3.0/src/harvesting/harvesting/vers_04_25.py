@@ -77,6 +77,7 @@ from threading import Thread, Event, Lock
 import json
 import copy
 import time
+from datetime import datetime
 
 import sys, os
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'harvesting', 'harvesting')
@@ -85,6 +86,8 @@ if modules_data_path not in sys.path:
 
 import config as conf
 
+def get_time():
+    return datetime.now().strftime("%H:%M:%S")
 
 
 class ManagedThread:
@@ -189,6 +192,9 @@ class Coordinator(Node):
             node=self,
             target_function=self.main_loop
         )
+
+        with open('log.txt', 'a') as file:
+            file.write(f'Start.. {get_time()}') #####################
         
 
     def friut_callback(self, msg):
@@ -254,6 +260,11 @@ class Coordinator(Node):
                         self.send_border_mode(0)
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
+
+                        self.get_logger().info(f'OBJ RECOGNIZE: {self.last_fruit}')
+                        with open('log.txt', 'a') as file:
+                            file.write(f'{get_time()} RECOGNIZE {self.last_fruit}')
+
                         thread.start_child(
                             target_function=lambda t: self.process_fruit(t)
                         )
