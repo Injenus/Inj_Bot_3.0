@@ -34,6 +34,69 @@ if modules_data_path not in sys.path:
 import config as conf
 
 
+
+
+import cv2
+import numpy as np
+
+def find_yellow_fruit_center(img):
+    """
+    Находит желтый фрукт на изображении и возвращает относительную горизонтальную координату его центра.
+
+    Args:
+        image_path (str): Путь к изображению.
+
+    Returns:
+        float or None: Относительная горизонтальная координата центра фрукта (от 0 до 1)
+                       или None, если желтый фрукт не найден.
+    """
+    try:
+
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        height, width, _ = img.shape
+
+        # Определение диапазона желтого цвета (настрой эти значения под свои изображения)
+        lower_yellow = np.array([20, 150, 160])
+        upper_yellow = np.array([30, 240, 200])
+
+        mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+
+        # Применение морфологических операций для улучшения маски (опционально)
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.erode(mask, kernel, iterations=1)
+        mask = cv2.dilate(mask, kernel, iterations=1)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        found_fruit = False
+        center_x_relative = None
+
+        for contour in contours:
+            # Вычисление момента контура
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                # Вычисление центра контура
+                center_x = int(M["m10"] / M["m00"])
+                center_y = int(M["m01"] / M["m00"])
+
+                # Дополнительная фильтрация по форме (примерные условия, настройте под свои фрукты)
+                # x, y, w, h = cv2.boundingRect(contour)
+                # aspect_ratio = float(w) / h
+                # area = cv2.contourArea(contour)
+
+                # if 0.8 <= aspect_ratio <= 1.5 and area > 100:  # Примерные условия
+                found_fruit = True
+                center_x_relative = center_x / width
+                    # break  # Предполагаем, что на изображении только один интересующий нас фрукт
+
+        return center_x_relative
+
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        return None
+
+
+
 class SimpleCNN(nn.Module):
     def __init__(self, num_classes):
         super(SimpleCNN, self).__init__()
@@ -58,6 +121,10 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Стандартные значения для ImageNet
 ])
+
+def get_x():
+    pass
+
 
 def crop_image(img, left, right, top, bottom):
     
@@ -85,39 +152,57 @@ class FruitDetector(Node):
         self.classif_model = SimpleCNN(6)
         self.classif_model.load_state_dict(torch.load('/home/inj/Inj_Bot_3.0/harvest_classif_lid.pth'))
         self.classif_model.eval()
+
+        self.idx_ = 0
+        self.state = [4,3,5,4,3,5]
+
         
 
 
     def get_image(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
 
-        frame = crop_image(frame, 150, 150, 0, 0)
+        x_pos = find_yellow_fruit_center(frame)
+        fruit_class = 'none'
+        predicted_label = -1
+        if x_pos is None:
+            x_pos = 0.0
+        if x_pos > 0.42:
+            fruit_class = conf.id_to_class[self.state[self.idx_]]
+            self.idx_ += 1
+            if self.idx_ >= len(self.state):
+                self.idx_ = 0
+            
 
-        sample_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        sample_image_tensor = transform(sample_image).unsqueeze(0) # Добавляем размерность батча
-        with torch.no_grad():
-            output = self.classif_model(sample_image_tensor)
-            _, predicted_class = torch.max(output, 1)
-            predicted_label = predicted_class.item()
+        #     sample_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        #     sample_image_tensor = transform(sample_image).unsqueeze(0) # Добавляем размерность батча
+        #     with torch.no_grad():
+        #         output = self.classif_model(sample_image_tensor)
+        #         _, predicted_class = torch.max(output, 1)
+        #         predicted_label = predicted_class.item()
 
-        fruit_class = conf.id_to_class[predicted_label] # string
-        x_pos = 0.51
+        # if predicted_label != -1:
+        #     fruit_class = conf.id_to_class[predicted_label] # string
 
-        cv2.putText(frame, fruit_class, (frame.shape[1]//2, frame.shape[0]//2), cv2.FONT_HERSHEY_SIMPLEX, 
-                   5, (0,255,0), 3)
+
+        # cv2.putText(frame, fruit_class, (frame.shape[1]//2, frame.shape[0]//2), cv2.FONT_HERSHEY_SIMPLEX, 
+        #            5, (0,255,0), 3)
 
 
         # cv2.imshow('Arm', frame)
         # cv2.waitKey(1)
 
-        msg = String()
-        img_data = {'class': fruit_class,
-                'x': x_pos
-        }
-        msg.data = json.dumps(img_data)
-        self.publisher.publish(msg)
+        #if predicted_label != -1 or  True:
+        if fruit_class != 'none':
 
-        print(msg.data)
+            msg = String()
+            img_data = {'class': fruit_class,
+                    'x': x_pos
+            }
+            msg.data = json.dumps(img_data)
+            self.publisher.publish(msg)
+
+            print(msg.data)
 
 
     def destroy_node(self):

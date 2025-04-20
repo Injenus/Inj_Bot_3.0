@@ -13,10 +13,10 @@ bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting start_fihish" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting arm_actions" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run servo lut_control" &
-bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run camera arm" $
-bash -c "\
-    source ../../venv/bin/activate && \
-    source ../install/setup.bash && \
-    export PYTHONPATH=\"\$PYTHONPATH:/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages\" && \
-    ros2 run harvesting obj_detection"
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run camera arm"
+# bash -c "\
+#     source ../../venv/bin/activate && \
+#     source ../install/setup.bash && \
+#     export PYTHONPATH=\"\$PYTHONPATH:/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages\" && \
+#     ros2 run harvesting obj_detection"
 # bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting vers_04_25"

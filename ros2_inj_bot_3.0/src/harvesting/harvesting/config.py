@@ -47,7 +47,7 @@ front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсот
 front_dist_to_go_to_border = 0.28 # едем пока не это растсоние
 
     ### start_finish    ###
-target_front_dist_start = 2.3   #2.3
+target_front_dist_start = 2.0   #2.3
 target_back_dist_finish = 2.8
 
     ### cv  ###
@@ -76,5 +76,5 @@ matching = {
   'tomate_good': 'ignore',
   'eggplant_good': 'ignore',
 
-  'lemon_bad': 'pick',
+  'lemon_bad': 'knock_down',
 }

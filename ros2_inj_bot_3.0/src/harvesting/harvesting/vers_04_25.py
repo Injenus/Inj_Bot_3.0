@@ -89,6 +89,8 @@ import config as conf
 def get_time():
     return datetime.now().strftime("%H:%M:%S")
 
+file_path = '/home/inj/Desktop/hv_log.txt'
+
 
 class ManagedThread:
     def __init__(self, name, node, target_function=None, args=(), parent=None):
@@ -193,8 +195,8 @@ class Coordinator(Node):
             target_function=self.main_loop
         )
 
-        with open('log.txt', 'a') as file:
-            file.write(f'Start.. {get_time()}') #####################
+        with open(file_path, 'a') as file:
+            file.write(f'\nStart.. {get_time()}\n') #####################
         
 
     def friut_callback(self, msg):
@@ -256,19 +258,19 @@ class Coordinator(Node):
 
             with self.fruit_lock:
                 if self.fruit_classif:
-                    if self.fruit_classif['x'] > 0.48 and self.fruit_classif['class'] != self.last_fruit:
+                    print(self.fruit_classif)
+                    if self.fruit_classif['x'] > 0.1 and self.fruit_classif['class'] != self.last_fruit:
                         self.send_border_mode(0)
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
 
                         self.get_logger().info(f'OBJ RECOGNIZE: {self.last_fruit}')
-                        with open('log.txt', 'a') as file:
-                            file.write(f'{get_time()} RECOGNIZE {self.last_fruit}')
+                        with open(file_path, 'a') as file:
+                            file.write(f'{get_time()} RECOGNIZE {self.last_fruit}\n')
 
-                        thread.start_child(
-                            target_function=lambda t: self.process_fruit(t)
-                        )
-                        #thread.paused.wait()
+    
+                        thread.start_child(target_function=lambda t: self.process_fruit(t))
+                        
 
             with self.count_blocks_lock:
                 if self.count_blocks == 6:
@@ -327,13 +329,17 @@ class Coordinator(Node):
         time.sleep(sleep_time)
 
     def start_move(self, thread):
-        print('ssssmmmmm')
         self.send_start_finish(1)
         time.sleep(5.0)
 
     def finish_move(self, thread):
         self.send_start_finish(-1)
         time.sleep(9.0)
+
+    def fast_move(self, thread):
+        self.send_border_mode(1)
+        time.sleep(0.9)
+        self.send_border_mode(0)
 
 ##########################     
 
