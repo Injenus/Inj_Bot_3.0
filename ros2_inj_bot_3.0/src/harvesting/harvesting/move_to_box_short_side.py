@@ -227,6 +227,9 @@ class MoveToBox(Node):
                         with self.mode_locker:
                             self.mode = 0
 
+                        self.block_state = 0
+                        self.box_state = 0
+
             msg = Twist()
             msg.linear.x = lin_x
             msg.angular.z = ang_z

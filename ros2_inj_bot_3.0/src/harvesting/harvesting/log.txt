@@ -1,0 +1,138 @@
+
+17:14:02 Start..
+17:14:28 Start move start
+17:14:28 Start sleep.. start
+17:14:33 Finish sleep.. start
+17:14:37 Detect pear_good !!!
+17:14:37 Action ignore
+17:14:40 Detect lemon_bad !!!
+17:14:40 Action pick
+17:14:40 Start sleep.. pick
+17:15:25 Finish sleep.. pick
+17:15:25 Start dual.. pick
+17:15:25 Start maneuver.. [1, 2]
+17:15:25 Start sleep.. maneuver
+17:15:45 Finish sleep.. maneuver
+17:15:45 Start throw
+17:15:45 Start sleep.. throw
+17:16:34 Finish sleep.. throw
+17:17:12 Detect eggplant_good !!!
+17:17:12 Action pick
+17:17:12 Start sleep.. pick
+17:17:57 Finish sleep.. pick
+17:17:57 Start dual.. pick
+17:17:57 Start maneuver.. [1, 3]
+17:17:57 Start sleep.. maneuver
+17:18:27 Finish sleep.. maneuver
+17:18:27 Start throw
+17:18:27 Start sleep.. throw
+17:19:16 Finish sleep.. throw
+17:35:35 Start..
+17:35:38 Start move start
+17:35:38 Start sleep.. start
+17:35:43 Finish sleep.. start
+17:35:52 Detect pear_good !!!
+17:35:52 Action ignore
+17:35:56 Detect pear_bad !!!
+17:35:56 Action ignore
+17:36:01 Detect tomate_bad !!!
+17:36:01 Action ignore
+17:36:36 Detect sweet_pepper_bad !!!
+17:36:36 Action pick
+17:36:36 Start sleep.. pick
+17:37:06 Finish sleep.. pick
+17:37:06 Start dual.. pick
+17:37:06 Start maneuver.. [1, 4]
+17:37:06 Start sleep.. maneuver
+17:37:36 Finish sleep.. maneuver
+17:37:36 Start throw
+17:37:36 Start sleep.. throw
+17:38:25 Finish sleep.. throw
+
+17:45:14 Start..
+17:45:25 Start move start
+17:45:25 Start sleep.. start
+17:45:30 Finish sleep.. start
+17:45:34 Detect pear_good !!!
+17:45:34 Action ignore
+17:45:42 Detect pear_bad !!!
+17:45:42 Action ignore
+17:45:50 Detect tomate_bad !!!
+17:45:50 Action ignore
+17:46:33 Detect sweet_pepper_bad !!!
+17:46:33 Action pick
+17:46:33 Start sleep.. pick
+17:47:03 Finish sleep.. pick
+17:47:03 Start dual.. pick
+17:47:03 Start maneuver.. [1, 4]
+17:47:03 Start sleep.. maneuver
+17:47:33 Finish sleep.. maneuver
+17:47:33 Start throw
+17:47:33 Start sleep.. throw
+17:48:23 Finish sleep.. throw
+17:48:41 Detect lemon_bad !!!
+17:48:41 Action pick
+17:48:41 Start sleep.. pick
+17:49:11 Finish sleep.. pick
+17:49:11 Start dual.. pick
+17:49:11 Start maneuver.. [1, 5]
+17:49:11 Start sleep.. maneuver
+17:49:31 Finish sleep.. maneuver
+17:49:31 Start throw
+17:49:31 Start sleep.. throw
+17:50:21 Finish sleep.. throw
+17:51:43 Start..
+17:53:10 Start move start
+17:53:10 Start sleep.. start
+17:53:15 Finish sleep.. start
+17:53:25 Detect pear_good !!!
+17:53:25 Action ignore
+17:53:28 Detect pear_bad !!!
+17:53:28 Action ignore
+17:53:31 Detect tomate_bad !!!
+17:53:31 Action ignore
+17:54:03 Detect sweet_pepper_bad !!!
+17:54:03 Action pick
+17:54:03 Start sleep.. pick
+17:54:33 Finish sleep.. pick
+17:54:33 Start dual.. pick
+17:54:33 Start maneuver.. [1, 4]
+17:54:33 Start sleep.. maneuver
+17:55:09 Start..
+17:55:27 Start move start
+17:55:27 Start sleep.. start
+17:55:32 Finish sleep.. start
+17:55:35 Detect pear_good !!!
+17:55:35 Action ignore
+17:55:38 Detect pear_bad !!!
+17:55:38 Action ignore
+17:55:40 Detect tomate_bad !!!
+17:55:40 Action ignore
+17:56:37 Detect sweet_pepper_bad !!!
+17:56:37 Action pick
+17:56:37 Start sleep.. pick
+17:57:07 Finish sleep.. pick
+17:57:07 Start dual.. pick
+17:57:07 Start maneuver.. [1, 4]
+17:57:07 Start sleep.. maneuver
+17:58:11 Start..
+17:58:27 Start move start
+17:58:27 Start sleep.. start
+17:58:32 Finish sleep.. start
+17:58:34 Detect pear_good !!!
+17:58:34 Action ignore
+17:58:36 Detect pear_bad !!!
+17:58:36 Action ignore
+17:58:39 Detect tomate_bad !!!
+17:58:39 Action ignore
+17:58:41 Detect sweet_pepper_bad !!!
+17:58:41 Action pick
+17:58:41 Start sleep.. pick
+17:59:11 Finish sleep.. pick
+17:59:11 Start dual.. pick
+17:59:11 Start maneuver.. [1, 4]
+17:59:11 Start sleep.. maneuver
+17:59:41 Finish sleep.. maneuver
+17:59:41 Start throw
+17:59:41 Start sleep.. throw
+18:00:31 Finish sleep.. throw

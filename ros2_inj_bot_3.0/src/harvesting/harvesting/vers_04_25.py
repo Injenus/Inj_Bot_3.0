@@ -77,6 +77,7 @@ from threading import Thread, Event, Lock
 import json
 import copy
 import time
+from datetime import datetime
 
 import sys, os
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'harvesting', 'harvesting')
@@ -85,6 +86,13 @@ if modules_data_path not in sys.path:
 
 import config as conf
 
+def get_time():
+    return datetime.now().strftime("%H:%M:%S")
+
+def write_log(log_string):
+    print(log_string)
+    with open('/home/inj/Inj_Bot_3.0/ros2_inj_bot_3.0/src/harvesting/harvesting/log.txt', 'a') as f:
+        f.write(log_string)
 
 
 class ManagedThread:
@@ -189,6 +197,9 @@ class Coordinator(Node):
             node=self,
             target_function=self.main_loop
         )
+
+        log_string = f"\n{get_time()} Start.."
+        write_log(log_string)
         
 
     def friut_callback(self, msg):
@@ -209,7 +220,6 @@ class Coordinator(Node):
         assert isinstance(number, int)
         msg = Int8(data = number)
         self.start_finish_publ.publish(msg)
-        time.sleep(10.0)
 
     def send_border_mode(self, number):
         assert isinstance(number, int)
@@ -252,6 +262,8 @@ class Coordinator(Node):
                 if self.fruit_classif:
                     if self.fruit_classif['x'] > 0.48 and self.fruit_classif['class'] != self.last_fruit:
                         self.send_border_mode(0)
+                        log_string = f"\n{get_time()} Detect {self.fruit_classif['class']} !!!"
+                        write_log(log_string)
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
                         thread.start_child(
@@ -270,7 +282,8 @@ class Coordinator(Node):
 
             with self.init_lock:
                 if self.init_command == -1:
-                    self.emergency_stop_publ.publish(Twist())
+                    msg = Twist()
+                    self.emergency_stop_publ.publish(msg)
                     thread.stop()
                     break
                     
@@ -278,6 +291,10 @@ class Coordinator(Node):
     def process_fruit(self, thread):
         fruit_type = self.fruit_classif.get('class', 'unknown')
         action = conf.matching.get(fruit_type, 'unknown')
+
+        log_string = f"\n{get_time()} Action {action}"
+        write_log(log_string)
+        
         if action == 'knock_down':
             self.knock_down_fruit(thread)
         elif action == 'pick':
@@ -287,42 +304,85 @@ class Coordinator(Node):
 
 
     def knock_down_fruit(self, thread):
+        
         self.send_arm_action('knock_down')
-        time.sleep(conf.st_delay * 16)
+
+        log_string = f"\n{get_time()} Start sleep.. knock_down"
+        write_log(log_string)
+
+        time.sleep(conf.st_delay * 12)
+
+        log_string = f"\n{get_time()} Finish sleep.. knock_down"
+        write_log(log_string)
 
 
     def pick_up_fruit(self, thread):
         self.send_arm_action('pick')
-        time.sleep(conf.st_delay * 25)
-        current_block = self.count_blocks 
-        thread.start_child(
-            target_function=lambda t: (
-                self.maneuver(t, [1, current_block]) 
-                and self.throw_fruit(t)
-            )
-        )
+
+        log_string = f"\n{get_time()} Start sleep.. pick"
+        write_log(log_string)
+
+        time.sleep(conf.st_delay * 20)
+
+        log_string = f"\n{get_time()} Finish sleep.. pick"
+        write_log(log_string)
+
+        current_block = self.count_blocks
+
+        log_string = f"\n{get_time()} Start dual.. pick"
+        write_log(log_string)
+
+        thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
 
     def throw_fruit(self, thread):
+        log_string = f"\n{get_time()} Start throw"
+        write_log(log_string)
         self.send_arm_action('throw_short_side')
+        log_string = f"\n{get_time()} Start sleep.. throw"
+        write_log(log_string)
         time.sleep(conf.st_delay * 33)
+        log_string = f"\n{get_time()} Finish sleep.. throw"
+        write_log(log_string)
 
     def ignore_fruit(self, thread):
         time.sleep(2.0)
 
     def maneuver(self, thread, data):
+
+        log_string = f"\n{get_time()} Start maneuver.. {data}"
+        write_log(log_string)
+
         self.send_throw_short_mode(data)
         block = data[1]
+        log_string = f"\n{get_time()} Start sleep.. maneuver"
+        write_log(log_string)
         sleep_time = 30.0 if block in [1,3,4,6] else 20.0
         time.sleep(sleep_time)
+        log_string = f"\n{get_time()} Finish sleep.. maneuver"
+        write_log(log_string)
+
+        thread.start_child(target_function=lambda t: self.throw_fruit(t))
+        
 
     def start_move(self, thread):
-        print('ssssmmmmm')
+        log_string = f"\n{get_time()} Start move start"
+        write_log(log_string)
         self.send_start_finish(1)
+        log_string = f"\n{get_time()} Start sleep.. start"
+        write_log(log_string)
         time.sleep(5.0)
+        log_string = f"\n{get_time()} Finish sleep.. start"
+        write_log(log_string)
 
     def finish_move(self, thread):
+        log_string = f"\n{get_time()} Start move finish"
+        write_log(log_string)
         self.send_start_finish(-1)
+        log_string = f"\n{get_time()} Start sleep.. finish"
+        write_log(log_string)
         time.sleep(9.0)
+        log_string = f"\n{get_time()} Finish sleep.. finish"
+        write_log(log_string)
 
 ##########################     
 

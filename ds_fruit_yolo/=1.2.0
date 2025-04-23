@@ -1,0 +1,8 @@
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Collecting ai-edge-litert
+  Downloading ai_edge_litert-1.2.0-cp311-cp311-manylinux_2_17_aarch64.whl (2.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 4.0 MB/s eta 0:00:00
+Requirement already satisfied: flatbuffers in /home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages (from ai-edge-litert) (20181003210633)
+Requirement already satisfied: numpy>=1.23.2 in /home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages (from ai-edge-litert) (1.26.4)
+Installing collected packages: ai-edge-litert
+Successfully installed ai-edge-litert-1.2.0

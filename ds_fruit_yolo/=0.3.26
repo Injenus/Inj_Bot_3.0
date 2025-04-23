@@ -1,0 +1,5 @@
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Requirement already satisfied: onnx_graphsurgeon in /home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages (0.5.8)
+Requirement already satisfied: numpy in /home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages (from onnx_graphsurgeon) (1.26.4)
+Requirement already satisfied: onnx>=1.14.0 in /home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages (from onnx_graphsurgeon) (1.17.0)
+Requirement already satisfied: protobuf>=3.20.2 in /home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages (from onnx>=1.14.0->onnx_graphsurgeon) (5.29.4)

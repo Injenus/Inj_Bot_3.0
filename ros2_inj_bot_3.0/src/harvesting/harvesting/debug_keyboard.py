@@ -234,10 +234,14 @@ class DebugKeyboard(Node):
             elif data[0] == 'c':
                 img_data = {}
                 if data[1] == 1:
-                    img_data = {'class': 'sweet_pepper_good', 'x': 0.491}
+                    img_data = {'class': 'pear_good', 'x': 0.491}
                 elif data[1] == 2:
-                    img_data = {'class': 'pear_good', 'x': 0.521}
+                    img_data = {'class': 'pear_bad', 'x': 0.521}
                 elif data[1] == 3:
+                    img_data = {'class': 'tomate_bad', 'x': 0.55}
+                elif data[1] == 4:
+                    img_data = {'class': 'sweet_pepper_bad', 'x': 0.55}
+                elif data[1] == 5:
                     img_data = {'class': 'lemon_bad', 'x': 0.55}
                 if img_data:
                     msg = String()

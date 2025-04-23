@@ -1,0 +1,12 @@
+path: /home/inj/Inj_Bot_3.0/ds_fruit_yolo/dataset
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: bak
+  1: tom
+  2: pear
+  3: pep
+  4: lem-ok
+  5: lem-dead

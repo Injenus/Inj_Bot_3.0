@@ -12,6 +12,6 @@ bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting move_to_box_short_side" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting start_fihish" &
 bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting arm_actions" &
-bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run servo lut_control" $
-bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting obj_detection"
+bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run servo lut_control"
+#bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting obj_detection"
 # bash -c "source ../../venv/bin/activate && source ../install/setup.bash && ros2 run harvesting vers_04_25"
