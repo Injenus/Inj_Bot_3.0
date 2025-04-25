@@ -198,8 +198,7 @@ class Coordinator(Node):
             target_function=self.main_loop
         )
 
-        log_string = f"\n{get_time()} Start.."
-        write_log(log_string)
+        write_log(f"\n{get_time()} Start..")
         
 
     def friut_callback(self, msg):
@@ -262,8 +261,7 @@ class Coordinator(Node):
                 if self.fruit_classif:
                     if self.fruit_classif['x'] > 0.48 and self.fruit_classif['class'] != self.last_fruit:
                         self.send_border_mode(0)
-                        log_string = f"\n{get_time()} Detect {self.fruit_classif['class']} !!!"
-                        write_log(log_string)
+                        write_log(f"\n{get_time()} Detect {self.fruit_classif['class']} !!!")
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
                         thread.start_child(
@@ -292,8 +290,7 @@ class Coordinator(Node):
         fruit_type = self.fruit_classif.get('class', 'unknown')
         action = conf.matching.get(fruit_type, 'unknown')
 
-        log_string = f"\n{get_time()} Action {action}"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Action {action}")
         
         if action == 'knock_down':
             self.knock_down_fruit(thread)
@@ -304,85 +301,61 @@ class Coordinator(Node):
 
 
     def knock_down_fruit(self, thread):
-        
         self.send_arm_action('knock_down')
-
-        log_string = f"\n{get_time()} Start sleep.. knock_down"
-        write_log(log_string)
-
+        write_log(f"\n{get_time()} Start sleep.. knock_down")
         time.sleep(conf.st_delay * 12)
-
-        log_string = f"\n{get_time()} Finish sleep.. knock_down"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Finish sleep.. knock_down")
 
 
     def pick_up_fruit(self, thread):
         self.send_arm_action('pick')
-
-        log_string = f"\n{get_time()} Start sleep.. pick"
-        write_log(log_string)
-
+        write_log(log_string = f"\n{get_time()} Start sleep.. pick")
         time.sleep(conf.st_delay * 20)
-
-        log_string = f"\n{get_time()} Finish sleep.. pick"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Finish sleep.. pick")
 
         current_block = self.count_blocks
-
-        log_string = f"\n{get_time()} Start dual.. pick"
-        write_log(log_string)
-
+        write_log(f"\n{get_time()} Start dual.. pick")
         thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
 
     def throw_fruit(self, thread):
-        log_string = f"\n{get_time()} Start throw"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Start throw")
         self.send_arm_action('throw_short_side')
-        log_string = f"\n{get_time()} Start sleep.. throw"
-        write_log(log_string)
+
+        write_log(f"\n{get_time()} Start sleep.. throw")
         time.sleep(conf.st_delay * 33)
-        log_string = f"\n{get_time()} Finish sleep.. throw"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Finish sleep.. throw")
 
     def ignore_fruit(self, thread):
+        write_log(f"\n{get_time()} Ignoring..")
         time.sleep(2.0)
 
     def maneuver(self, thread, data):
 
-        log_string = f"\n{get_time()} Start maneuver.. {data}"
-        write_log(log_string)
-
+        write_log(f"\n{get_time()} Start maneuver.. {data}")
         self.send_throw_short_mode(data)
         block = data[1]
-        log_string = f"\n{get_time()} Start sleep.. maneuver"
-        write_log(log_string)
+
+        write_log(f"\n{get_time()} Start sleep.. maneuver")
         sleep_time = 30.0 if block in [1,3,4,6] else 20.0
         time.sleep(sleep_time)
-        log_string = f"\n{get_time()} Finish sleep.. maneuver"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Finish sleep.. maneuver")
 
         thread.start_child(target_function=lambda t: self.throw_fruit(t))
         
 
     def start_move(self, thread):
-        log_string = f"\n{get_time()} Start move start"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Start move start")
         self.send_start_finish(1)
-        log_string = f"\n{get_time()} Start sleep.. start"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Start sleep.. start")
         time.sleep(5.0)
-        log_string = f"\n{get_time()} Finish sleep.. start"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Finish sleep.. start")
 
     def finish_move(self, thread):
-        log_string = f"\n{get_time()} Start move finish"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Start move finish")
         self.send_start_finish(-1)
-        log_string = f"\n{get_time()} Start sleep.. finish"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Start sleep.. finish")
         time.sleep(9.0)
-        log_string = f"\n{get_time()} Finish sleep.. finish"
-        write_log(log_string)
+        write_log(f"\n{get_time()} Finish sleep.. finish")
 
 ##########################     
 
