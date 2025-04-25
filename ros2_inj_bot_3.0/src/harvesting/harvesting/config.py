@@ -51,28 +51,25 @@ target_front_dist_start = 1.7   #2.3
 target_back_dist_finish = 2.8
 
     ### cv  ###
-all_classes = ['sweet_pepper_good','sweet_pepper_bad',
-               'lemon_good','lemon_bad',
-               'tomate_good','tomate_bad',
-               'eggplant_good','eggplant_bad',
-               'pear_good','pear_bad',
+all_classes = ['pepper_ok','pepper_bad',
+               'lemon_ok','lemon_bad',
+               'tomate_ok','tomate_bad',
+               'eggplant_ok','eggplant_bad',
+               'pear_ok','pear_bad',
                ]
 matching = {
-  'sweet_pepper_good': 'ignore',
-  'sweet_pepper_bad': 'ignore',
+  'pepper_ok': 'ignore',
+  'pepper_bad': 'ignore',
 
-  'lemon_good': 'ignore',
+  'lemon_ok': 'ignore',
   'lemon_bad': 'ignore',
 
-  'pear_good': 'ignore',
+  'pear_ok': 'ignore',
   'pear_bad': 'ignore',
 
-  'tomate_good': 'ignore',
+  'tomate_ok': 'ignore',
   'tomate_bad': 'ignore',
 
-  'eggplant_good': 'ignore',
-  'eggplant_bad': 'ignore',
-
-  
-  
+  'eggplant_ok': 'ignore',
+  'eggplant_bad': 'ignore',  
 }
