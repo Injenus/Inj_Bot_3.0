@@ -3,8 +3,19 @@ import numpy as np
 
 def resize(koeff, frame):
     assert frame is not None
+    if koeff == 1:
+        return frame
     return cv2.resize(frame, (round(frame.shape[1]/koeff), round(frame.shape[0]/koeff)))
 
+def crop_480x480(image):
+    h, w = image.shape[:2]
+    if w != 640 or h != 480:
+        raise ValueError("Размер изображения должен быть 640x480 пикселей")
+
+    start_x = (w - 480) // 2  # = (640-480)/2 = 80
+    end_x = start_x + 480
+    
+    return image[0:480, start_x:end_x]
 
 class Color_Mask_HSV():
     def __init__(self, h_min, h_max, s_min, s_max, v_min, v_max):

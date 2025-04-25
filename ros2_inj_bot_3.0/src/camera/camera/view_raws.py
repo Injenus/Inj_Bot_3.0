@@ -51,7 +51,7 @@ class CamerasSubscriber(Node):
         cv2.putText(frame, f"FPS: {self.arm_fps:.1f}", (10, 30), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         #cv2.imwrite(os.path.join(self.save_dir, 'arm_frame.jpg'), frame)
-        cv2.imshow('Arm', resize(2, frame))
+        cv2.imshow('Arm', resize(0.75, frame))
         cv2.waitKey(1)
         self.get_logger().info(f'Get Arm frame {frame.shape}')
 

@@ -16,7 +16,14 @@ class Rpi_Camera():
         for mode in available_modes:
             print(f"Format: {mode['format']}, Size: {mode['size']}, FPS: {mode['fps']}")
         self.hard_roi = hard_roi
-        
+
+        """
+        ov5647 [2592x1944 10-bit GBRG] (/base/axi/pcie@120000/rp1/i2c@88000/ov5647@36)
+        Modes: 'SGBRG10_CSI2P' : 640x480 [58.92 fps - (16, 0)/2560x1920 crop]
+                                1296x972 [46.34 fps - (0, 0)/2592x1944 crop]
+                                1920x1080 [32.81 fps - (348, 434)/1928x1080 crop]
+                                2592x1944 [15.63 fps - (0, 0)/2592x1944 crop]
+        """
         if isinstance(resolution, tuple):
             w,h = self.hard_roi[2]-self.hard_roi[0], self.hard_roi[3]-self.hard_roi[1]
         elif resolution == 0:
@@ -24,10 +31,11 @@ class Rpi_Camera():
         elif resolution == 1:
             w,h = 1920, 1080
         elif resolution == 2:
-            w,h = 1280, 720
+            w,h = 1296, 972
         elif resolution == 3:
             w,h, = 640, 480
-        self.w, self.h = 1920, 1080
+        #self.w, self.h = 1920, 1080
+        self.w, self.h = w, h
         self.camera_config = self.cam.create_preview_configuration(main={"format": "RGB888", "size": (self.w, self.h)})
         self.cam.configure(self.camera_config)
         self.red_gain = 1.49

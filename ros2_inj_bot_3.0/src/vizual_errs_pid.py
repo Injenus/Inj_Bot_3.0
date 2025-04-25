@@ -3,7 +3,7 @@ import numpy as np
 
 # Чтение данных из файла
 with open('errs_pid.txt', 'r') as file:
-    lines = file.readlines()
+    lines = file.readlines() #
 
 # Разделение данных на итерации по пустым строкам
 iterations = []

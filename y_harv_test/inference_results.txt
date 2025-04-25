@@ -1,0 +1,159 @@
+bak-ok-9103.jpg: 224x224 1 bak, 6.5ms
+Speed: 1.4ms preprocess, 6.5ms inference, 0.9ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 0, Name: bak, Confidence: 0.97
+
+bak-ok-9110.jpg: 224x224 1 bak, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 0, Name: bak, Confidence: 0.96
+
+bak-ok-9144.jpg: 224x224 1 bak, 5.4ms
+Speed: 0.4ms preprocess, 5.4ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 0, Name: bak, Confidence: 0.96
+
+bak-ok-9154.jpg: 224x224 1 bak, 5.7ms
+Speed: 0.4ms preprocess, 5.7ms inference, 0.7ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 0, Name: bak, Confidence: 0.96
+
+lem-dead-9269.jpg: 224x224 1 lem-dead, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.96
+
+lem-dead-9272.jpg: 224x224 1 lem-dead, 6.1ms
+Speed: 0.4ms preprocess, 6.1ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.96
+
+lem-dead-9274.jpg: 224x224 1 lem-dead, 5.2ms
+Speed: 0.4ms preprocess, 5.2ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.96
+
+lem-dead-9282.jpg: 224x224 1 lem-dead, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.95
+
+lem-dead-9285.jpg: 224x224 1 lem-dead, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.92
+
+lem-dead-9305.jpg: 224x224 1 lem-dead, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.93
+
+lem-dead-9313.jpg: 224x224 1 lem-dead, 5.4ms
+Speed: 0.4ms preprocess, 5.4ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.94
+
+lem-dead-9346.jpg: 224x224 1 lem-dead, 5.5ms
+Speed: 0.4ms preprocess, 5.5ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 5, Name: lem-dead, Confidence: 0.95
+
+lem-ok-8700.jpg: 224x224 1 lem-ok, 5.4ms
+Speed: 0.4ms preprocess, 5.4ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 4, Name: lem-ok, Confidence: 0.96
+
+lem-ok-8706.jpg: 224x224 1 lem-ok, 5.4ms
+Speed: 0.4ms preprocess, 5.4ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 4, Name: lem-ok, Confidence: 0.98
+
+lem-ok-8710.jpg: 224x224 1 lem-ok, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 4, Name: lem-ok, Confidence: 0.97
+
+lem-ok-8718.jpg: 224x224 1 lem-ok, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 4, Name: lem-ok, Confidence: 0.95
+
+lem-ok-9233.jpg: 224x224 1 lem-ok, 5.4ms
+Speed: 0.4ms preprocess, 5.4ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 4, Name: lem-ok, Confidence: 0.97
+
+pear-8784.jpg: 224x224 1 pear, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.98
+
+pear-8787.jpg: 224x224 1 pear, 5.3ms
+Speed: 0.4ms preprocess, 5.3ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.99
+
+pear-8802.jpg: 224x224 1 pear, 5.7ms
+Speed: 0.4ms preprocess, 5.7ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.98
+
+pear-8807.jpg: 224x224 1 pear, 5.4ms
+Speed: 0.4ms preprocess, 5.4ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.98
+
+pear-8812.jpg: 224x224 1 pear, 5.6ms
+Speed: 0.4ms preprocess, 5.6ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.98
+
+pear-8813.jpg: 224x224 1 pear, 6.8ms
+Speed: 0.4ms preprocess, 6.8ms inference, 0.7ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.97
+
+pear-8814.jpg: 224x224 1 pear, 5.9ms
+Speed: 0.4ms preprocess, 5.9ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.99
+
+pear-8820.jpg: 224x224 1 pear, 5.7ms
+Speed: 0.4ms preprocess, 5.7ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.98
+
+pear-8827.jpg: 224x224 1 pear, 6.1ms
+Speed: 0.4ms preprocess, 6.1ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.98
+
+pear-8851.jpg: 224x224 1 pear, 5.7ms
+Speed: 0.4ms preprocess, 5.7ms inference, 1.1ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.99
+
+pear-8856.jpg: 224x224 1 pear, 5.8ms
+Speed: 0.4ms preprocess, 5.8ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 2, Name: pear, Confidence: 0.99
+
+pep-9051.jpg: 224x224 1 pep, 5.7ms
+Speed: 0.4ms preprocess, 5.7ms inference, 0.7ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.99
+
+pep-9061.jpg: 224x224 1 pep, 6.0ms
+Speed: 0.4ms preprocess, 6.0ms inference, 0.6ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.99
+
+pep-9077.jpg: 224x224 1 pep, 6.9ms
+Speed: 0.4ms preprocess, 6.9ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.97
+
+pep-9079.jpg: 224x224 1 pep, 6.9ms
+Speed: 0.6ms preprocess, 6.9ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.97
+
+pep-9082.jpg: 224x224 1 pep, 6.7ms
+Speed: 0.6ms preprocess, 6.7ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.97
+
+pep-9087.jpg: 224x224 1 pep, 6.9ms
+Speed: 0.6ms preprocess, 6.9ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.97
+
+pep-9091.jpg: 224x224 1 pep, 6.8ms
+Speed: 0.6ms preprocess, 6.8ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 3, Name: pep, Confidence: 0.97
+
+tom-ok-8907.jpg: 224x224 1 tom, 7.1ms
+Speed: 0.5ms preprocess, 7.1ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 1, Name: tom, Confidence: 0.96
+
+tom-ok-8912.jpg: 224x224 1 tom, 7.1ms
+Speed: 0.6ms preprocess, 7.1ms inference, 0.9ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 1, Name: tom, Confidence: 0.99
+
+tom-ok-8913.jpg: 224x224 1 tom, 7.2ms
+Speed: 0.6ms preprocess, 7.2ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 1, Name: tom, Confidence: 0.99
+
+tom-ok-8919.jpg: 224x224 1 tom, 6.0ms
+Speed: 0.5ms preprocess, 6.0ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 1, Name: tom, Confidence: 0.99
+
+tom-ok-8940.jpg: 224x224 1 tom, 6.4ms
+Speed: 0.5ms preprocess, 6.4ms inference, 0.8ms postprocess per image at shape (1, 3, 224, 224)
+Class ID: 1, Name: tom, Confidence: 0.99

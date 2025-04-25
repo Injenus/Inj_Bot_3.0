@@ -1,0 +1,23 @@
+description: Ultralytics best model trained on /home/inj/ds_harv/dataset.yaml
+author: Ultralytics
+date: '2025-04-22T14:23:26.513832'
+version: 8.3.112
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 224
+- 224
+names:
+  0: bak
+  1: tom
+  2: pear
+  3: pep
+  4: lem-ok
+  5: lem-dead
+args:
+  batch: 1
+  half: false
+channels: 3

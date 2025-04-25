@@ -1,0 +1,42 @@
+# Основные пакеты YOLO
+ultralytics
+torch
+torchvision
+
+# Обработка данных и изображений
+numpy
+pandas
+opencv-python
+Pillow
+scikit-learn
+scipy
+imageio
+
+# Визуализация и логирование
+matplotlib
+seaborn
+tqdm
+
+# Форматы данных и сериализация
+PyYAML
+tensorflow  # Для экспорта в TFLite
+
+# Системные утилиты
+psutil
+py-cpuinfo
+python-dotenv
+
+# Сетевые и дополнительные зависимости
+requests
+prettytable
+boto3
+pandas-stubs
+
+# Скрытые зависимости YOLO
+pyqt5 # Для GUI
+lap  # Для трекинга
+thop  # Для FLOPs подсчета
+triton  # Для некоторых оптимизаций
+onnx  # Для экспорта моделей
+onnxruntime  # Для инференса
+protobuf # Для сериализации
