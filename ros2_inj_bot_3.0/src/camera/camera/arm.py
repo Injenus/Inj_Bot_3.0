@@ -40,7 +40,7 @@ class ArmCameraPublisher(Node):
             gray_msg = self.bridge.cv2_to_imgmsg(gray_frame, 'mono8')
             self.publisher_grayscale.publish(gray_msg)
 
-            self.get_logger().info('Published frames from Arm_Cam')
+            self.get_logger().info('Published frames from Arm_Cam', throttle_duration_sec=1.0)
 
     
 def main(args=None):

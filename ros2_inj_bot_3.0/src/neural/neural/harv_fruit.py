@@ -1,3 +1,6 @@
+import sys, os
+sys.path.insert(0, '/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages')
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -12,7 +15,6 @@ import cv2.aruco as aruco
 import json
 import numpy as np
 from ultralytics import YOLO
-import sys, os
 
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
 if modules_data_path not in sys.path:
@@ -53,7 +55,7 @@ class NeuralHarvFruit(Node):
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
 
-        results = self.ncnn_model(frame, imgsz=224, conf_thres=0.75, iou_thres=0.6)[0]
+        results = self.ncnn_model(frame, imgsz=224, conf=0.75, iou=0.6)[0]
 
         last_class, last_x = '', -1
         for box in results.boxes:
@@ -71,9 +73,8 @@ class NeuralHarvFruit(Node):
             cv2.putText(frame, label, (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             
-        # cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
-        # cv2.waitKey(1)
-        print(f'objs num  {len(results)}')
+        cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
+        cv2.waitKey(1)
 
         if len(results) == 1:
             if last_class != "unknown":
@@ -81,7 +82,7 @@ class NeuralHarvFruit(Node):
                 img_data = {'class': last_class, 'x': last_x}
                 msg.data = json.dumps(img_data)
                 self.publisher.publish(msg)
-                print(msg.data)
+                self.get_logger().info(f'Recog_send_{msg.data}', throttle_duration_sec=1/3)
 
 
     def destroy_node(self):
