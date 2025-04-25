@@ -58,11 +58,11 @@ all_classes = ['sweet_pepper_good','sweet_pepper_bad',
                'pear_good','pear_bad',
                ]
 matching = {
-  'sweet_pepper_good': 'knock_down',
-  'sweet_pepper_bad': 'pick',
+  'sweet_pepper_good': 'ignore',
+  'sweet_pepper_bad': 'ignore',
 
-  'lemon_good': 'knock_down',
-  'lemon_bad': 'pick',
+  'lemon_good': 'ignore',
+  'lemon_bad': 'ignore',
 
   'pear_good': 'ignore',
   'pear_bad': 'ignore',
