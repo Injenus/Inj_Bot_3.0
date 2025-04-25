@@ -10,3 +10,7 @@ sudo nano /etc/udev/rules.d/99-usb-custom.rules
 
 sudo udevadm control --reload-rules
 sudo udevadm trigger
+
+
+export PYTHONPATH="/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages:$PYTHONPATH"
+unset PYTHONPATH 

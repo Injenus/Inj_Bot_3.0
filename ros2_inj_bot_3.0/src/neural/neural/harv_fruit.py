@@ -71,8 +71,8 @@ class NeuralHarvFruit(Node):
             cv2.putText(frame, label, (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             
-        cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
-        cv2.waitKey(1)
+        # cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
+        # cv2.waitKey(1)
         print(f'objs num  {len(results)}')
 
         if len(results) == 1:
