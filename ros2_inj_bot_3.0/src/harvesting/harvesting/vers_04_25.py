@@ -198,7 +198,7 @@ class Coordinator(Node):
             target_function=self.main_loop
         )
 
-        write_log(f"\n{get_time()} Start..")
+        write_log(f"\n\n\n{get_time()} Start..")
         
 
     def friut_callback(self, msg):
