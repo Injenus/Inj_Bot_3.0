@@ -14,3 +14,7 @@ sudo udevadm trigger
 
 export PYTHONPATH="/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages:$PYTHONPATH"
 unset PYTHONPATH 
+
+
+rm -rf build/ install/ log/
+colcon build --symlink-install

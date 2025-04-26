@@ -86,6 +86,13 @@ if modules_data_path not in sys.path:
 
 import config as conf
 
+modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
+if modules_data_path not in sys.path:
+    sys.path.append(modules_data_path)
+
+from play_audio import play_audio
+
+
 def get_time():
     return datetime.now().strftime("%H:%M:%S")
 
@@ -191,6 +198,8 @@ class Coordinator(Node):
         self.throw_short_lock = Lock()
         self.init_lock = Lock()
         self.count_blocks_lock = Lock()
+
+        play_audio('CALGON.wav')
         
         self.main_thread = ManagedThread(
             name="main",
@@ -281,13 +290,17 @@ class Coordinator(Node):
             with self.init_lock:
                 if self.init_command == -1:
                     msg = Twist()
-                    self.emergency_stop_publ.publish(msg)
+                    for i in range(10):
+                        self.send_border_mode(0)
+                        self.emergency_stop_publ.publish(msg)
                     thread.stop()
                     break
                     
 
     def process_fruit(self, thread):
+    
         fruit_type = self.fruit_classif.get('class', 'unknown')
+        play_audio(f'{fruit_type}.wav')
         action = conf.matching.get(fruit_type, 'unknown')
 
         write_log(f"\n{get_time()} Action {action} !!! ")
@@ -329,7 +342,7 @@ class Coordinator(Node):
 
     def ignore_fruit(self, thread):
         write_log(f"\n{get_time()} Ignoring !!! ")
-        time.sleep(2.0)
+        time.sleep(3.0)
         write_log(f"\n{get_time()} finish Ignoring..")
 
     def maneuver(self, thread, data):

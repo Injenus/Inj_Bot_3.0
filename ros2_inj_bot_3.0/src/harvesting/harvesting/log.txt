@@ -1,0 +1,109 @@
+
+
+
+02:46:59 Start..
+
+
+02:52:48 Start..
+02:53:16 Start move start !!! 
+02:53:16 start sleep.. start
+02:53:21 finish sleep.. start
+02:53:21 Detect pear_bad !!!!!!! 
+02:53:21 Action ignore !!! 
+02:53:21 Ignoring !!! 
+02:53:24 finish Ignoring..
+02:53:28 Detect pear_ok !!!!!!! 
+02:53:28 Action ignore !!! 
+02:53:28 Ignoring !!! 
+02:53:31 finish Ignoring..
+02:53:32 Detect tomato_ok !!!!!!! 
+02:53:32 Action ignore !!! 
+02:53:32 Ignoring !!! 
+02:53:35 finish Ignoring..
+02:53:37 Detect lemon_bad !!!!!!! 
+02:53:37 Action ignore !!! 
+02:53:37 Ignoring !!! 
+02:53:40 finish Ignoring..
+
+
+02:54:54 Start..
+02:55:24 Start move start !!! 
+02:55:24 start sleep.. start
+02:55:29 finish sleep.. start
+02:55:31 Detect pear_ok !!!!!!! 
+02:55:31 Action ignore !!! 
+02:55:31 Ignoring !!! 
+02:55:34 finish Ignoring..
+
+
+02:57:56 Start..
+02:58:12 Start move start !!! 
+02:58:12 start sleep.. start
+02:58:17 finish sleep.. start
+02:58:20 Detect pear_bad !!!!!!! 
+02:58:20 Action ignore !!! 
+02:58:20 Ignoring !!! 
+02:58:23 finish Ignoring..
+02:58:36 Detect pepper_bad !!!!!!! 
+02:58:36 Action ignore !!! 
+02:58:36 Ignoring !!! 
+02:58:39 finish Ignoring..
+02:58:41 Detect pear_ok !!!!!!! 
+02:58:41 Action ignore !!! 
+02:58:41 Ignoring !!! 
+02:58:44 finish Ignoring..
+02:58:50 Detect lemon_bad !!!!!!! 
+02:58:50 Action ignore !!! 
+02:58:50 Ignoring !!! 
+02:58:53 finish Ignoring..
+
+
+03:04:25 Start..
+03:04:56 Start move start !!! 
+03:04:56 start sleep.. start
+03:05:01 finish sleep.. start
+03:05:03 Detect pear_ok !!!!!!! 
+03:05:03 Action ignore !!! 
+03:05:03 Ignoring !!! 
+03:05:06 finish Ignoring..
+03:05:22 Detect pear_bad !!!!!!! 
+03:05:22 Action ignore !!! 
+03:05:22 Ignoring !!! 
+03:05:25 finish Ignoring..
+03:05:40 Detect pepper_bad !!!!!!! 
+03:05:40 Action ignore !!! 
+03:05:40 Ignoring !!! 
+03:05:43 finish Ignoring..
+
+
+03:08:00 Start..
+03:08:08 Start move start !!! 
+03:08:08 start sleep.. start
+03:08:13 finish sleep.. start
+03:08:16 Detect pear_ok !!!!!!! 
+03:08:16 Action ignore !!! 
+03:08:16 Ignoring !!! 
+03:08:19 finish Ignoring..
+03:08:21 Detect tomato_ok !!!!!!! 
+03:08:21 Action ignore !!! 
+03:08:21 Ignoring !!! 
+03:08:24 finish Ignoring..
+03:08:26 Detect pear_bad !!!!!!! 
+03:08:26 Action ignore !!! 
+03:08:26 Ignoring !!! 
+03:08:29 finish Ignoring..
+03:08:33 Detect pepper_bad !!!!!!! 
+03:08:33 Action ignore !!! 
+03:08:33 Ignoring !!! 
+03:08:36 finish Ignoring..
+03:08:42 Detect tomato_ok !!!!!!! 
+03:08:42 Action ignore !!! 
+03:08:42 Ignoring !!! 
+03:08:45 finish Ignoring..
+03:08:48 Detect pear_bad !!!!!!! 
+03:08:48 Action ignore !!! 
+03:08:48 Ignoring !!! 
+03:08:51 finish Ignoring..
+03:08:51 Start move finish !!! 
+03:08:51 start sleep.. finish
+03:09:00 finish sleep.. finish

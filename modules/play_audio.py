@@ -242,6 +242,7 @@ def play_audio(file_name):
     # Получаем абсолютный путь к основному скрипту
     script_dir = os.path.dirname(os.path.abspath(__file__))
     main_script = os.path.join(script_dir, "play_audio.py")
+    print(f'play {file_name}')
     
     subprocess.Popen([
         'python3', 

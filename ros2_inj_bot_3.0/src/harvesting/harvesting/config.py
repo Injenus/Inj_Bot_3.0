@@ -53,7 +53,7 @@ target_back_dist_finish = 2.8
     ### cv  ###
 all_classes = ['pepper_ok','pepper_bad',
                'lemon_ok','lemon_bad',
-               'tomate_ok','tomate_bad',
+               'tomato_ok','tomato_bad',
                'eggplant_ok','eggplant_bad',
                'pear_ok','pear_bad',
                ]
@@ -67,8 +67,8 @@ matching = {
   'pear_ok': 'ignore',
   'pear_bad': 'ignore',
 
-  'tomate_ok': 'ignore',
-  'tomate_bad': 'ignore',
+  'tomato_ok': 'ignore',
+  'tomato_bad': 'ignore',
 
   'eggplant_ok': 'ignore',
   'eggplant_bad': 'ignore',  
