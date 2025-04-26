@@ -34,7 +34,7 @@ class BinocularCameraPublisher(Node):
             rclpy.try_shutdown() 
             sys.exit(0) 
         
-        self.timer = self.create_timer(0.03, self.publish_imge)
+        self.timer = self.create_timer(0.15, self.publish_imge)
 
     def publish_imge(self):
         ret, frame = self.cam.read()
@@ -42,9 +42,12 @@ class BinocularCameraPublisher(Node):
         if ret:
             frame = cv2.rotate(frame,cv2.ROTATE_180)
             #frame = resize(4, frame)
+            frame = crop_480x480(frame)
+            frame = cv2.resize(frame, (320, 320))
+            #frame = resize(1.5, frame)
             image_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
             self.publisher.publish(image_msg)
-            self.get_logger().info('Published frame from Binocular_Cam')
+            self.get_logger().info('Published frame from Binocular_Cam',throttle_duration_sec=1.0)
             
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray_msg = self.bridge.cv2_to_imgmsg(gray_frame, 'mono8')

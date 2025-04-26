@@ -147,8 +147,10 @@ class MoveToBox(Node):
                         self.block_state = 1
 
                 elif block_num == 4:
+                    print(lidar_data[180])
                     if lidar_data[180] < conf.back_dist_to_get_middle_cell:
                         lin_x = self.basic_x
+                        pass
                     else:
                         self.block_state = 2
 
@@ -156,9 +158,12 @@ class MoveToBox(Node):
                     self.block_state = 2
 
                 elif block_num == 6:
-                    if lidar_data[180] > conf.back_dist_to_get_middle_cell:
+                    print(lidar_data[180])
+                    if abs(lidar_data[180] - conf.back_dist_to_get_middle_cell) > conf.distance_tolerance:
                         lin_x = -self.basic_x
+                        pass
                     else:
+                        lin_x = 0.0
                         self.block_state = 2
 
 

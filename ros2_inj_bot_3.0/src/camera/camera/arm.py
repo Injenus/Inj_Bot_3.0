@@ -33,6 +33,8 @@ class ArmCameraPublisher(Node):
             #self.cam.frame = resize(4, self.cam.frame)
             self.cam.frame = crop_480x480(self.cam.frame)
             
+            self.cam.frame = cv2.resize(self.cam.frame, (320, 320))
+            
             image_msg = self.bridge.cv2_to_imgmsg(self.cam.frame, encoding='bgr8')
             self.publisher.publish(image_msg)
 

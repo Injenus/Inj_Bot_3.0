@@ -199,7 +199,7 @@ class Coordinator(Node):
         self.init_lock = Lock()
         self.count_blocks_lock = Lock()
 
-        play_audio('CALGON.wav')
+        #play_audio('CALGON.wav')
         
         self.main_thread = ManagedThread(
             name="main",
@@ -300,7 +300,7 @@ class Coordinator(Node):
     def process_fruit(self, thread):
     
         fruit_type = self.fruit_classif.get('class', 'unknown')
-        play_audio(f'{fruit_type}.wav')
+        #play_audio(f'{fruit_type}.wav')
         action = conf.matching.get(fruit_type, 'unknown')
 
         write_log(f"\n{get_time()} Action {action} !!! ")
@@ -363,7 +363,7 @@ class Coordinator(Node):
         write_log(f"\n{get_time()} Start move start !!! ")
         self.send_start_finish(1)
         write_log(f"\n{get_time()} start sleep.. start")
-        time.sleep(5.0)
+        time.sleep(15.0)
         write_log(f"\n{get_time()} finish sleep.. start")
 
     def finish_move(self, thread):

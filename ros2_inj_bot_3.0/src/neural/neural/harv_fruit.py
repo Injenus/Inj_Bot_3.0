@@ -6,6 +6,7 @@ import cv2
 from std_msgs.msg import String
 import json
 from datetime import datetime
+import numpy as np
 
 import sys, os
 sys.path.insert(0, '/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages')
@@ -31,18 +32,91 @@ if modules_data_path not in sys.path:
 import neural_matching as nm
 
 
+def darken_image(image, factor=0.15):
+    darkened = image.astype('float32') * factor  # Затемнение
+    darkened = np.clip(darkened, 0, 255).astype('uint8')  # Обрезка значений
+    return darkened
+
+
+def adjust_gamma(image, gamma=0.5):
+    inv_gamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+    return cv2.LUT(image, table)
+
+def blur_image(image, kernel_size=5, sigma=1.5):
+    """
+    Размытие изображения для снижения шумов.
+    :param kernel_size: Нечётный размер ядра (5, 7, 9...). Чем больше — тем сильнее размытие.
+    :param sigma: Стандартное отклонение по X и Y (влияет на "интенсивность" размытия).
+    """
+    if kernel_size % 2 == 0:
+        kernel_size += 1  # Гарантируем нечётность
+    
+    blurred = cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
+    return blurred
+
+def sharpen_image(image, strength=1.5):
+    """
+    Увеличение резкости через фильтр "unsharp mask".
+    :param strength: Сила эффекта (1.0 — оригинал, >1.0 — резче).
+    """
+    blurred = cv2.GaussianBlur(image, (0, 0), 3.0)
+    sharpened = cv2.addWeighted(image, strength, blurred, 1.0 - strength, 0)
+    return sharpened
+
+def add_gaussian_noise(image, mean=0, sigma=25):
+    """
+    Добавляет гауссов шум к изображению.
+    
+    :param image: Исходное изображение (BGR или Grayscale).
+    :param mean: Среднее значение шума.
+    :param sigma: Стандартное отклонение шума (сила шума).
+    :return: Зашумленное изображение.
+    """
+    # Преобразуем изображение в float32 для корректных вычислений
+    img_float = image.astype(np.float32)
+    
+    # Генерируем шум с нормальным распределением
+    noise = np.random.normal(mean, sigma, img_float.shape).astype(np.float32)
+    
+    # Добавляем шум и обрезаем значения до [0, 255]
+    noisy_img = cv2.add(img_float, noise)
+    noisy_img = np.clip(noisy_img, 0, 255).astype(np.uint8)
+    
+    return noisy_img
+
+
+def gaussian_denoise(image, kernel_size=5, sigma=1.5):
+    """
+    Классическое гауссово размытие.
+    (Аналогично функции blur_image из предыдущего ответа)
+    """
+    return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigma)
+
+def invert_image(image):
+    """
+    Инвертирует цвета изображения (создает негатив).
+    
+    Параметры:
+        image (numpy.ndarray): Входное изображение в формате BGR (цветное) или Grayscale.
+        
+    Возвращает:
+        numpy.ndarray: Инвертированное изображение.
+    """
+    return cv2.bitwise_not(image)
+
 class NeuralHarvFruit(Node):
     def __init__(self):
         super().__init__('neural_harv_fruit')
 
         self.declare_parameter('neural_id', 0)
-        self.declare_parameter('cam_topic', 'cam/arm')
+        self.declare_parameter('cam_topic', 'cam/binocular')
         self.declare_parameter('collect_dataset', 0)
         self.neural_id = self.get_parameter('neural_id').value
         self.cam_topic = self.get_parameter('cam_topic').value
 
         self.collect_dataset = self.get_parameter('collect_dataset').value
-        self.save_path = f'/home/inj/Inj_Bot_3.0/harv_dataset'
+        self.save_path = f'/home/inj/Inj_Bot_3.0/harv_dataset_{datetime.now().strftime("%H_%M_%S_%f")[:-3]}'
         os.makedirs(self.save_path, exist_ok=True)
 
         self.bridge = CvBridge()
@@ -58,6 +132,7 @@ class NeuralHarvFruit(Node):
     
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        #frame = invert_image(frame)
         if self.collect_dataset == 1:
             cv2.imwrite(os.path.join(self.save_path, f'{datetime.now().strftime("%H_%M_%S_%f")[:-2]}.png'), frame)
 

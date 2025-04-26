@@ -98,7 +98,7 @@ class StartFinish(Node):
                 if lidar_data[0] > self.target_front_dist:
                     self.get_logger().info(f'sf {lidar_data[0]}', throttle_duration_sec=0.3)
                     msg = Twist()
-                    msg.linear.x = self.base_x_speed
+                    msg.linear.x = self.base_x_speed*0.75
                     self.publ_twist.publish(msg)
                 elif self.cam_stop:
                     msg = Twist()

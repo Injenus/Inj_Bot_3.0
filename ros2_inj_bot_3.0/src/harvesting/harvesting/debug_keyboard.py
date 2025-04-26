@@ -217,6 +217,7 @@ class DebugKeyboard(Node):
                     msg.data = [0, 0]
                 if len(msg.data) > 0:
                     self.throw_short_publ.publish(msg)
+                    print(f"############# {data[1]}")
 
             elif data[0] == 's':
                 if data[1] in [0,1,2]:
