@@ -29,6 +29,10 @@ class LidarObstacles(Node):
         self.smoothed_medians = {}  # Stores smoothed values per sector
         self.get_logger().info('Run ... ')
 
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
+
     def scan_callback(self, msg):
 
         smoothing_factor = self.get_parameter('smoothing_factor').get_parameter_value().double_value

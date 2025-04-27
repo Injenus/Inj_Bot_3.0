@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import String
 import math
 
 
@@ -56,6 +57,10 @@ class TwistToRPM(Node):
     #         #self.last_rpm_update = self.get_clock().now()
     #     else:
     #         self.get_logger().warn("Некорректное сообщение RPM")
+
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
 
     def calculate_target_rpms(self, twist_msg):
         def constrain(rpm):

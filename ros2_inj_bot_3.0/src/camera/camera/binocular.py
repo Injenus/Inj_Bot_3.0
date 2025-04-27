@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+from std_msgs.msg import String
 
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'modules')
 if modules_data_path not in sys.path:
@@ -34,6 +35,10 @@ class BinocularCameraPublisher(Node):
             sys.exit(0) 
         
         self.timer = self.create_timer(0.15, self.publish_imge)
+
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
 
     def publish_imge(self):
         ret, frame = self.cam.read()

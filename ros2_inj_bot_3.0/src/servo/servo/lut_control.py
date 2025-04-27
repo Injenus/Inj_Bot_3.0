@@ -3,6 +3,7 @@ from rclpy.node import Node
 import threading
 from std_msgs.msg import UInt8MultiArray
 from std_msgs.msg import UInt8
+from std_msgs.msg import String
 import os
 import sys
 
@@ -18,6 +19,10 @@ class LUTcontrol(Node):
 
         self.subscriber = self.create_subscription(UInt8, 'servo/lut', self.lut_callback, 3)
         self.publisher = self.create_publisher(UInt8MultiArray, 'servo/to_write', 3)
+
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
 
     def lut_callback(self, msg):
         idx = msg.data

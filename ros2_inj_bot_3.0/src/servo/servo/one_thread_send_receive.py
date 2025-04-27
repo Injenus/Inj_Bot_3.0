@@ -6,6 +6,7 @@ from std_msgs.msg import UInt8MultiArray
 import serial
 import copy
 import time
+from std_msgs.msg import String
 
 receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'arm_n_cam_mount_api_8_bytes')
 if receive_data_path not in sys.path:
@@ -37,6 +38,10 @@ class ServoSerialReadWrite(Node):
             self.get_logger().error(f"Failed to open serial port: {e}")
 
         self.create_timer(0.040, self.main_loop)
+
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
         
 
         # servo_msg = UInt8MultiArray()

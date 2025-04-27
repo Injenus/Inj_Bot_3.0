@@ -56,6 +56,10 @@ class ArmActions(Node):
 
         self.state_lock = threading.Lock()
 
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
+
     def command_callback(self, msg):
         """Асинхронная обработка входящих команд"""
         command = msg.data

@@ -84,6 +84,10 @@ class BorderMove(Node):
 
         self.can_stop = False
 
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
+
     
     def update_mode(self, msg):
         with self.mode_lock:

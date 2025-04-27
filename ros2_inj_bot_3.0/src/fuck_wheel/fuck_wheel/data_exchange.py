@@ -3,6 +3,7 @@ import os
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import String
 import serial
 import copy
 import time
@@ -38,6 +39,10 @@ class WheelSerialReadWrite(Node):
             self.get_logger().error(f"Failed to open serial port: {e}")
 
         self.create_timer(0.005, self.main_loop)
+
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
 
     def command_callback(self, msg):
           if self.last_data != msg.data:

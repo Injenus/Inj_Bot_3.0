@@ -69,6 +69,10 @@ class MoveToBox(Node):
             }
         self.can_stop = False
 
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
+
     def update_block_num(self, msg):
         with self.block_locker:
             if msg.data != self.block_number:

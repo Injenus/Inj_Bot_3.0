@@ -86,6 +86,10 @@ class DebugKeyboard(Node):
         self.timer = self.create_timer(self.dt, self.process_keys)
         self.waiter = [0, 5/self.dt]
 
+        self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
+        msg = String(data = self.get_name())
+        self.ready_pub.publish(msg)
+
 
 
     def send_border_mode(self, number):

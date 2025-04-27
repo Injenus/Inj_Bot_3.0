@@ -211,8 +211,37 @@ class Coordinator(Node):
             target_function=self.main_loop
         )
 
+        self.ready_nodes = set()
+        self.expected_nodes = {'binocular_camera_publisher', 
+                               'lidar_obstacles', 
+                               'servo_read_write',
+                               'wheel_read_write',
+                               'twist_to_rpm_with_feedback',
+                               'border_move',
+                               'debug_keyboard',
+                               'move_to_box_short',
+                               'start_finish',
+                               'arm_actions',
+                               'lut_control'}
+
+        self.sub = self.create_subscription(String, '/nodes_ready', self.ready_callback, 10)
+        self.ready = False
+        t = time.time()
+        while not self.ready:
+            self.get_logger().info(f'Waiting for Nodes ...')
+            time.sleep(1.0)
+
         write_log(f"\n\n\n{get_time()} Start..")
         
+
+    def ready_callback(self, msg):
+        node_name = msg.data
+        self.get_logger().info(f'Node {node_name} is ready.')
+        self.ready_nodes.add(node_name)
+
+        if self.ready_nodes >= self.expected_nodes:
+            self.get_logger().info('All nodes are ready!')
+            self.ready = True       
 
     def friut_callback(self, msg):
         with self.fruit_lock:
