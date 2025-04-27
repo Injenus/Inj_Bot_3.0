@@ -389,9 +389,9 @@ class Coordinator(Node):
         current_block = self.count_blocks
         write_log(f"\n{get_time()} Start dual.. pick")
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
+        #thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #thread.start_child(target_function=lambda t: self.knock_down_fruit(t))
+        thread.start_child(target_function=lambda t: self.knock_down_fruit(t))
 
 
 
@@ -445,7 +445,7 @@ class Coordinator(Node):
         write_log(f"\n{get_time()} Start move finish !!! ")
         #self.send_start_finish(-1)
         t = time.time()
-        while time.time()- t < 7.0:
+        while time.time()- t < 5.0:
             msg = Twist()
             msg.linear.x = 0.1 #conf.base_linear_x_speed
             self.emergency_stop_publ.publish(msg)
