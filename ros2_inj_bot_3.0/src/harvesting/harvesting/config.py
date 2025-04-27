@@ -25,7 +25,7 @@ arm_states_table = {
                         
     ### border_move ###
 lidar_r = 0.025 # радиус башки лидара
-target_border_dist = 0.31 # целевое расстоние от края башки лидара до бордюра
+target_border_dist = 0.35 # целевое расстоние от края башки лидара до бордюра
 front_turn_dist = 0.22 # растсоние спереди от края башки лиидара,Ю при котором тнаичнается поврот
 base_linear_x_speed = 0.09
 base_angular_w_speed = 0.9
@@ -42,12 +42,12 @@ front_dist_to_get_middle_cell = 1.3 # расстоние до переднего
 back_dist_to_get_middle_cell = 1.0 # расстояние до заднего барьера, чтобы оказаться в нужном положении в средней ячейки на левой стороне !!!УЧТИ ЛИДАР И ГАБАРИТЫ!!!
 back_dist_to_turn_to_box = 0.67 # целевое от ящика через зад для поврота
 back_dist_to_box = 0.3 # целевое до ящика через зад зщадним ходом
-left_lidar_dist_to_turn_to_box = 0.25 # крутимся пока не растсоние от левого борртт ждо коробки
+left_lidar_dist_to_turn_to_box = 0.15 # крутимся пока не растсоние от левого борртт ждо коробки
 front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсотгнеем этого растсония
 front_dist_to_go_to_border = 0.28 # едем пока не это растсоние
 
     ### start_finish    ###
-target_front_dist_start = 2.3
+target_front_dist_start = 2.1
 target_back_dist_finish = 2.3
 
     ### cv  ###
@@ -65,20 +65,20 @@ knock_down
 """
 matching = {
   'yellow_pepper_ok': 'ignore',
-  'yellow_pepper_bad': 'pick',
+  'yellow_pepper_bad': 'ignore',
 
-  'red_pepper_ok': 'pick',
-  'red_pepper_bad': 'pick',
+  'red_pepper_ok': 'knock_down',
+  'red_pepper_bad': 'ignore',
 
-  'lemon_ok': 'pick',
-  'lemon_bad': 'pick',
+  'lemon_ok': 'ignore',
+  'lemon_bad': 'ignore',
 
-  'pear_ok': 'pick',
-  'pear_bad': 'pick',
+  'pear_ok': 'ignore',
+  'pear_bad': 'ignore',
 
-  'tomato_ok': 'pick',
+  'tomato_ok': 'knock_down',
   'tomato_bad': 'pick',
 
-  'eggplant_ok': 'pick',
-  'eggplant_bad': 'pick',  
+  'eggplant_ok': 'ignore',
+  'eggplant_bad': 'ignore',  
 }

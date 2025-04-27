@@ -4,9 +4,11 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 from std_msgs.msg import String
+from std_msgs.msg import UInt8
 import json
 from datetime import datetime
 import numpy as np
+from threading import Lock
 
 import sys, os
 sys.path.insert(0, '/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages')
@@ -109,7 +111,7 @@ class NeuralHarvFruit(Node):
     def __init__(self):
         super().__init__('neural_harv_fruit')
 
-        self.declare_parameter('neural_id', 0)
+        self.declare_parameter('neural_id', 1)
         self.declare_parameter('cam_topic', 'cam/binocular')
         self.declare_parameter('collect_dataset', 0)
         self.neural_id = self.get_parameter('neural_id').value
@@ -121,7 +123,9 @@ class NeuralHarvFruit(Node):
 
         self.bridge = CvBridge()
         self.subscription = self.create_subscription(Image, self.cam_topic, self.image_callback, 2)
+        self.subs_state = self.create_subscription(UInt8, 'neural_state', self.control, 100)
         self.publisher = self.create_publisher(String, 'img_classif', 3)
+        
 
         self.ncnn_model = YOLO(nm.neural_data[self.neural_id][0])
         self.class_names = nm.neural_data[self.neural_id][1]
@@ -129,6 +133,13 @@ class NeuralHarvFruit(Node):
         self.last_time = None
         self.fps = 0.0
 
+        self.state = 0
+        self.locker =Lock()
+
+    def control(self, msg):
+        with self.locker:
+            self.state = msg.data
+            print('get', self.state, msg.data)
     
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
@@ -145,7 +156,7 @@ class NeuralHarvFruit(Node):
                 self.fps = 0.9 * self.fps + 0.1 * current_fps  # Сглаживание
         self.last_time = current_time
 
-        results = self.ncnn_model(frame, imgsz=224, conf=0.8, iou=0.55)[0]
+        results = self.ncnn_model(frame, imgsz=320, conf=0.9, iou=0.6)[0]
 
         last_class, last_x = '', -1
         for box in results.boxes:
@@ -159,24 +170,29 @@ class NeuralHarvFruit(Node):
             #print(f"Class ID: {cls_id}, Name: {class_name}, Confidence: {conf:.2f}")
 
             text_conf = f'{conf:.2f}'
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 128, 255), 1)
-            cv2.putText(frame, class_name, (x1 - 10, y1 - 20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 128, 255), 4)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (153, 153, 0), 1)
+            cv2.putText(frame, class_name, (10, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (153, 153, 0), 4)
             cv2.putText(frame, text_conf, (x1 + 5, y1 + 25),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1., (0, 128, 255), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1., (153, 153, 0), 2)
         
         cv2.putText(frame, f"FPS: {self.fps:.1f}", (10, 30), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-        cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
-        cv2.waitKey(1)
+        
+        with self.locker:
+            if self.state == 0:
+                print(f"NNNEEUUURALLL {self.state}")
+            if self.state == 1:
+                cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
+                cv2.waitKey(1)
 
-        if len(results) == 1:
-            if last_class != "unknown":
-                msg = String()
-                img_data = {'class': last_class, 'x': last_x}
-                msg.data = json.dumps(img_data)
-                self.publisher.publish(msg)
-                self.get_logger().info(f'Recog_send_{msg.data}', throttle_duration_sec=1/3)
+                if len(results) == 1:
+                    if last_class != "unknown":
+                        msg = String()
+                        img_data = {'class': last_class, 'x': last_x}
+                        msg.data = json.dumps(img_data)
+                        self.publisher.publish(msg)
+                        self.get_logger().info(f'Recog_send_{msg.data}', throttle_duration_sec=1/3)
 
 
     def destroy_node(self):

@@ -78,6 +78,7 @@ import json
 import copy
 import time
 from datetime import datetime
+import copy
 
 import sys, os
 modules_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'ros2_inj_bot_3.0', 'src', 'harvesting', 'harvesting')
@@ -179,19 +180,22 @@ class Coordinator(Node):
         self.throw_short_publ = self.create_publisher(UInt8MultiArray, 'throw_short_mode', 10)
         self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 10)
         self.emergency_stop_publ = self.create_publisher(Twist, '/cmd_vel', 100)
+        self.cam_state = self.create_publisher(UInt8, 'neural_state', 100)
         
         self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
         self.classific_subs = self.create_subscription(String, 'img_classif', self.friut_callback, 10)
-        self.call_init = self.create_subscription(Int8, 'run_vers_04_25', self.init_callback, 42)
+        self.call_init = self.create_subscription(UInt8, 'run_vers_04_25', self.init_callback, 42)
 
         # Разделяемые ресурсы
         self.fruit_classif = {}
         self.throw_short_status = 0
-        self.init_command = 0
+        self.init_command = 1
         self.count_blocks = 0
 
         self.last_fruit = ''
         self.was_start, self.was_finish = False, False
+        self.time_detect = 0.0
+        self.last_fruit_classif = None
         
         # Блокировки  
         self.fruit_lock = Lock()
@@ -245,14 +249,20 @@ class Coordinator(Node):
         msg = UInt8MultiArray(data=mode_block)
         self.throw_short_publ.publish(msg)
 
+    def cam_send(self, state):
+        msg = UInt8()
+        msg.data = state
+        self.cam_state.publish(msg)
+    
+
 ##################
 
     def main_loop(self, thread):
 
-        while True:
-                with self.init_lock:
-                    if self.init_command == 1:
-                        break
+        # while True:
+        #         with self.init_lock:
+        #             if self.init_command == 1:
+        #                 break
                     
         while thread.running and rclpy.ok():
 
@@ -263,19 +273,31 @@ class Coordinator(Node):
             with self.init_lock:
                 if self.init_command == 1:
                     self.send_border_mode(1)
+                    self.cam_send(1)
                 elif self.init_command == -1:
                     self.send_border_mode(0)
 
             with self.fruit_lock:
-                if self.fruit_classif:
-                    if self.fruit_classif['x'] > 0.48 and self.fruit_classif['class'] != self.last_fruit:
+                if len(self.fruit_classif) > 0:
+                    if self.fruit_classif['x'] > 0.45 and self.fruit_classif['class'] != self.last_fruit:
+                        # self.last_fruit_classif = copy.deepcopy(self.fruit_classif)
+                        # if time.time() - self.time_detect > 15.0 or True:
+                        #self.time_detect = time.time()
                         self.send_border_mode(0)
+                        self.cam_send(0)
+                        print('send 0')
+                        self.send_border_mode(0)
+                        self.cam_send(0)
+                        self.cam_send(0)
+                        msg = UInt8(data = 0)
+                        self.cam_state.publish(msg)
                         write_log(f"\n{get_time()} Detect {self.fruit_classif['class']} !!!!!!! ")
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
                         thread.start_child(
                             target_function=lambda t: self.process_fruit(t)
                         )
+                        print('main_end_th')
                         #thread.paused.wait()
 
             with self.count_blocks_lock:
@@ -298,6 +320,8 @@ class Coordinator(Node):
                     
 
     def process_fruit(self, thread):
+        msg = UInt8(data = 0)
+        self.cam_state.publish(msg)
     
         fruit_type = self.fruit_classif.get('class', 'unknown')
         #play_audio(f'{fruit_type}.wav')
@@ -309,8 +333,11 @@ class Coordinator(Node):
             self.knock_down_fruit(thread)
         elif action == 'pick':
             self.pick_up_fruit(thread)
-        else:
+        elif action == 'ignore':
             self.ignore_fruit(thread)
+        else:
+            print('unknow')
+            pass
 
 
     def knock_down_fruit(self, thread):
@@ -319,6 +346,8 @@ class Coordinator(Node):
         write_log(f"\n{get_time()} start sleep.. knock_down")
         time.sleep(conf.st_delay * 12)
         write_log(f"\n{get_time()} finish sleep.. knock_down")
+        # with self.fruit_lock:
+        #     self.fruit_classif = {}
 
 
     def pick_up_fruit(self, thread):
@@ -339,11 +368,15 @@ class Coordinator(Node):
         write_log(f"\n{get_time()} start sleep.. throw")
         time.sleep(conf.st_delay * 33)
         write_log(f"\n{get_time()} finish sleep.. throw")
+        # with self.fruit_lock:
+        #     self.fruit_classif = {}
 
     def ignore_fruit(self, thread):
         write_log(f"\n{get_time()} Ignoring !!! ")
         time.sleep(3.0)
         write_log(f"\n{get_time()} finish Ignoring..")
+        # with self.fruit_lock:
+        #     self.fruit_classif = {}
 
     def maneuver(self, thread, data):
 
