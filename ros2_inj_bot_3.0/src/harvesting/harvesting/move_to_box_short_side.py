@@ -72,6 +72,7 @@ class MoveToBox(Node):
         self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
         msg = String(data = self.get_name())
         self.ready_pub.publish(msg)
+        print(msg.data)
 
     def update_block_num(self, msg):
         with self.block_locker:
@@ -151,7 +152,6 @@ class MoveToBox(Node):
                         self.block_state = 1
 
                 elif block_num == 4:
-                    print(lidar_data[180])
                     if lidar_data[180] < conf.back_dist_to_get_middle_cell:
                         lin_x = self.basic_x
                         pass
@@ -162,7 +162,6 @@ class MoveToBox(Node):
                     self.block_state = 2
 
                 elif block_num == 6:
-                    print(lidar_data[180])
                     if abs(lidar_data[180] - conf.back_dist_to_get_middle_cell) > conf.distance_tolerance:
                         lin_x = -self.basic_x
                         pass

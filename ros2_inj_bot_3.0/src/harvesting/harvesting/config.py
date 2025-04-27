@@ -36,7 +36,7 @@ front_p, front_i, front_d = 20, 0, 0
 tolerance_side_error = 0.007
 
     ### move_to_box_short_side  ###
-distance_tolerance = 0.007 # допуск для всех расстояний в манёвре
+distance_tolerance = 0.05 # допуск для всех расстояний в манёвре
 wait_seconds = st_delay*(30+3) # сколько сеунд ждать после инита броска
 front_dist_to_get_middle_cell = 1.3 # расстоние до переднего бордюра, чтобы оказаться в нужном положении в средней ячейки на парвой стороне !!!УЧТИ ЛИДАР И ГАБАРИТЫ!!!
 back_dist_to_get_middle_cell = 1.0 # расстояние до заднего барьера, чтобы оказаться в нужном положении в средней ячейки на левой стороне !!!УЧТИ ЛИДАР И ГАБАРИТЫ!!!
@@ -47,7 +47,7 @@ front_dist_to_go_away_from_box = 0.6 # вращемчс покав не дсот
 front_dist_to_go_to_border = 0.28 # едем пока не это растсоние
 
     ### start_finish    ###
-target_front_dist_start = 2.1
+target_front_dist_start = 2.2
 target_back_dist_finish = 2.3
 
     ### cv  ###

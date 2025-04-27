@@ -226,20 +226,17 @@ class Coordinator(Node):
 
         self.sub = self.create_subscription(String, '/nodes_ready', self.ready_callback, 10)
         self.ready = False
-        t = time.time()
-        while not self.ready:
-            self.get_logger().info(f'Waiting for Nodes ...')
-            time.sleep(1.0)
 
         write_log(f"\n\n\n{get_time()} Start..")
         
 
     def ready_callback(self, msg):
         node_name = msg.data
+        print(node_name)
         self.get_logger().info(f'Node {node_name} is ready.')
         self.ready_nodes.add(node_name)
 
-        if self.ready_nodes >= self.expected_nodes:
+        if len(self.ready_nodes) >= len(self.expected_nodes) - 3:
             self.get_logger().info('All nodes are ready!')
             self.ready = True       
 
@@ -261,6 +258,12 @@ class Coordinator(Node):
         assert isinstance(number, int)
         msg = Int8(data = number)
         self.start_finish_publ.publish(msg)
+        time.sleep(0.5)
+        self.start_finish_publ.publish(msg)
+        time.sleep(0.5)
+        self.start_finish_publ.publish(msg)
+        print(msg.data)
+
 
     def send_border_mode(self, number):
         assert isinstance(number, int)
@@ -287,6 +290,9 @@ class Coordinator(Node):
 ##################
 
     def main_loop(self, thread):
+        while not self.ready and False:
+            time.sleep(1.0)
+            self.get_logger().info(f'Waiting for Nodes ...')
 
         # while True:
         #         with self.init_lock:
@@ -298,6 +304,7 @@ class Coordinator(Node):
             if not self.was_start:
                 thread.start_child(target_function=lambda t: self.start_move(t))
                 self.was_start = True
+                self.cam_send(1)
 
             with self.init_lock:
                 if self.init_command == 1:
@@ -307,7 +314,7 @@ class Coordinator(Node):
 
             with self.fruit_lock:
                 if len(self.fruit_classif) > 0:
-                    if self.fruit_classif['x'] > 0.45 and self.fruit_classif['class'] != self.last_fruit:
+                    if self.fruit_classif['x'] > 0.35 and self.fruit_classif['class'] != self.last_fruit:
                         # self.last_fruit_classif = copy.deepcopy(self.fruit_classif)
                         # if time.time() - self.time_detect > 15.0 or True:
                         #self.time_detect = time.time()
@@ -366,7 +373,7 @@ class Coordinator(Node):
         write_log(log_string = f"\n{get_time()} Start knock down !!! ")
         self.send_arm_action('knock_down')
         write_log(f"\n{get_time()} start sleep.. knock_down")
-        time.sleep(conf.st_delay * 12)
+        time.sleep(conf.st_delay * 15)
         write_log(f"\n{get_time()} finish sleep.. knock_down")
         # with self.fruit_lock:
         #     self.fruit_classif = {}
@@ -381,7 +388,9 @@ class Coordinator(Node):
 
         current_block = self.count_blocks
         write_log(f"\n{get_time()} Start dual.. pick")
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def throw_fruit(self, thread):
         write_log(f"\n{get_time()} Start throw !!! ")
@@ -416,16 +425,32 @@ class Coordinator(Node):
 
     def start_move(self, thread):
         write_log(f"\n{get_time()} Start move start !!! ")
-        self.send_start_finish(1)
+        #self.send_start_finish(1)
+        t = time.time()
+        while time.time()- t < 5.0:
+            msg = Twist()
+            msg.linear.x = 0.1 #conf.base_linear_x_speed
+            self.emergency_stop_publ.publish(msg)
         write_log(f"\n{get_time()} start sleep.. start")
-        time.sleep(15.0)
-        write_log(f"\n{get_time()} finish sleep.. start")
+        #time.sleep(5.0)
+        for i in range(10):
+            msg2 = Twist()
+            self.emergency_stop_publ.publish(msg2)
+            write_log(f"\n{get_time()} finish sleep.. start")
 
     def finish_move(self, thread):
         write_log(f"\n{get_time()} Start move finish !!! ")
-        self.send_start_finish(-1)
+        #self.send_start_finish(-1)
+        t = time.time()
+        while time.time()- t < 7.0:
+            msg = Twist()
+            msg.linear.x = 0.1 #conf.base_linear_x_speed
+            self.emergency_stop_publ.publish(msg)
         write_log(f"\n{get_time()} start sleep.. finish")
-        time.sleep(9.0)
+        #time.sleep(7.0)
+        for i in range(10):
+            msg2 = Twist()
+            self.emergency_stop_publ.publish(msg2)
         write_log(f"\n{get_time()} finish sleep.. finish")
 
 ##########################     

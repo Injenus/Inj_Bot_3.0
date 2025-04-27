@@ -54,9 +54,10 @@ class StartFinish(Node):
 
     def update_mode(self, msg):
         with self.mode_lock:
-            if msg.data != self.mode:
+            if msg.data != 0:
                 self.mode = msg.data
                 self.cam_stop = True
+                print("STSTarararatt get", self.mode)
 
     def update_distances(self, msg):
         data = json.loads(msg.data)
@@ -72,18 +73,20 @@ class StartFinish(Node):
 
         with self.mode_lock:
             mode = self.mode
-            if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
-                self.mode = -2
-                #self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
-                #raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
-            else:
-                self.mode = mode
-            if any(value < 0 for value in self.lidar_basic.values()):
-                self.mode = -3
-                #raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
-                #self.get_logger().info(f"NEGATIVE LIDAR DATA")
-            else:
-                self.mode = mode
+            # if any(not isinstance(value, float) or not isinstance(value, int) for value in self.lidar_basic.values()):
+            #     self.mode = -2
+            #     print("LIIIDAAARR")
+            #     #self.get_logger().info(f"NOT NUMERIC LIDAR DATA")
+            #     #raise ValueError(f'NOT NUMERIC LIDAR DATA {self.lidar_basic}')
+            # else:
+            #     self.mode = mode
+            # if any(value < 0 for value in self.lidar_basic.values()):
+            #     self.mode = -3
+            #     print("LIIIDAAAARRR 2222")
+            #     #raise ValueError(f'NEGATIVE LIDAR DATA {self.lidar_basic}')
+            #     #self.get_logger().info(f"NEGATIVE LIDAR DATA")
+            # else:
+            #     self.mode = mode
 
     def send_speed(self):
         
@@ -92,6 +95,7 @@ class StartFinish(Node):
 
         with self.mode_lock:    
             if self.mode == 0:
+                #print('000000000000000000000')
                 if self.can_stop:
                     msg = Twist()
                     msg.linear.x = 0.0
@@ -99,10 +103,12 @@ class StartFinish(Node):
                     self.can_stop = False
 
             elif self.mode == 1:
+                print('############################')
+                print(lidar_data[0])
                 if lidar_data[0] > self.target_front_dist:
                     self.get_logger().info(f'sf {lidar_data[0]}', throttle_duration_sec=0.3)
                     msg = Twist()
-                    msg.linear.x = self.base_x_speed*0.75
+                    msg.linear.x = self.base_x_speed
                     self.publ_twist.publish(msg)
                 elif self.cam_stop:
                     msg = Twist()

@@ -1,730 +1,566 @@
 
 
 
-02:46:59 Start..
-
-
-02:52:48 Start..
-02:53:16 Start move start !!! 
-02:53:16 start sleep.. start
-02:53:21 finish sleep.. start
-02:53:21 Detect pear_bad !!!!!!! 
-02:53:21 Action ignore !!! 
-02:53:21 Ignoring !!! 
-02:53:24 finish Ignoring..
-02:53:28 Detect pear_ok !!!!!!! 
-02:53:28 Action ignore !!! 
-02:53:28 Ignoring !!! 
-02:53:31 finish Ignoring..
-02:53:32 Detect tomato_ok !!!!!!! 
-02:53:32 Action ignore !!! 
-02:53:32 Ignoring !!! 
-02:53:35 finish Ignoring..
-02:53:37 Detect lemon_bad !!!!!!! 
-02:53:37 Action ignore !!! 
-02:53:37 Ignoring !!! 
-02:53:40 finish Ignoring..
-
-
-02:54:54 Start..
-02:55:24 Start move start !!! 
-02:55:24 start sleep.. start
-02:55:29 finish sleep.. start
-02:55:31 Detect pear_ok !!!!!!! 
-02:55:31 Action ignore !!! 
-02:55:31 Ignoring !!! 
-02:55:34 finish Ignoring..
-
-
-02:57:56 Start..
-02:58:12 Start move start !!! 
-02:58:12 start sleep.. start
-02:58:17 finish sleep.. start
-02:58:20 Detect pear_bad !!!!!!! 
-02:58:20 Action ignore !!! 
-02:58:20 Ignoring !!! 
-02:58:23 finish Ignoring..
-02:58:36 Detect pepper_bad !!!!!!! 
-02:58:36 Action ignore !!! 
-02:58:36 Ignoring !!! 
-02:58:39 finish Ignoring..
-02:58:41 Detect pear_ok !!!!!!! 
-02:58:41 Action ignore !!! 
-02:58:41 Ignoring !!! 
-02:58:44 finish Ignoring..
-02:58:50 Detect lemon_bad !!!!!!! 
-02:58:50 Action ignore !!! 
-02:58:50 Ignoring !!! 
-02:58:53 finish Ignoring..
-
-
-03:04:25 Start..
-03:04:56 Start move start !!! 
-03:04:56 start sleep.. start
-03:05:01 finish sleep.. start
-03:05:03 Detect pear_ok !!!!!!! 
-03:05:03 Action ignore !!! 
-03:05:03 Ignoring !!! 
-03:05:06 finish Ignoring..
-03:05:22 Detect pear_bad !!!!!!! 
-03:05:22 Action ignore !!! 
-03:05:22 Ignoring !!! 
-03:05:25 finish Ignoring..
-03:05:40 Detect pepper_bad !!!!!!! 
-03:05:40 Action ignore !!! 
-03:05:40 Ignoring !!! 
-03:05:43 finish Ignoring..
-
-
-03:08:00 Start..
-03:08:08 Start move start !!! 
-03:08:08 start sleep.. start
-03:08:13 finish sleep.. start
-03:08:16 Detect pear_ok !!!!!!! 
-03:08:16 Action ignore !!! 
-03:08:16 Ignoring !!! 
-03:08:19 finish Ignoring..
-03:08:21 Detect tomato_ok !!!!!!! 
-03:08:21 Action ignore !!! 
-03:08:21 Ignoring !!! 
-03:08:24 finish Ignoring..
-03:08:26 Detect pear_bad !!!!!!! 
-03:08:26 Action ignore !!! 
-03:08:26 Ignoring !!! 
-03:08:29 finish Ignoring..
-03:08:33 Detect pepper_bad !!!!!!! 
-03:08:33 Action ignore !!! 
-03:08:33 Ignoring !!! 
-03:08:36 finish Ignoring..
-03:08:42 Detect tomato_ok !!!!!!! 
-03:08:42 Action ignore !!! 
-03:08:42 Ignoring !!! 
-03:08:45 finish Ignoring..
-03:08:48 Detect pear_bad !!!!!!! 
-03:08:48 Action ignore !!! 
-03:08:48 Ignoring !!! 
-03:08:51 finish Ignoring..
-03:08:51 Start move finish !!! 
-03:08:51 start sleep.. finish
-03:09:00 finish sleep.. finish
-
-
-09:18:59 Start..
-09:20:34 Start move start !!! 
-09:20:34 start sleep.. start
-09:20:39 finish sleep.. start
-09:20:51 Detect lemon_bad !!!!!!! 
-09:20:51 Action ignore !!! 
-09:20:51 Ignoring !!! 
-09:20:54 finish Ignoring..
-09:20:56 Detect lemon_ok !!!!!!! 
-09:20:56 Action ignore !!! 
-09:20:56 Ignoring !!! 
-09:20:59 finish Ignoring..
-09:21:24 Detect tomato_ok !!!!!!! 
-09:21:24 Action ignore !!! 
-09:21:24 Ignoring !!! 
-09:21:27 finish Ignoring..
-
-
-10:16:07 Start..
-10:17:17 Start move start !!! 
-10:17:17 start sleep.. start
-10:17:22 finish sleep.. start
-10:17:38 Detect lemon_ok !!!!!!! 
-10:17:38 Action ignore !!! 
-10:17:38 Ignoring !!! 
-10:17:41 finish Ignoring..
-10:18:10 Detect tomato_ok !!!!!!! 
-10:18:10 Action ignore !!! 
-10:18:10 Ignoring !!! 
-10:18:13 finish Ignoring..
-10:18:44 Detect pear_ok !!!!!!! 
-10:18:44 Action ignore !!! 
-10:18:44 Ignoring !!! 
-10:18:47 finish Ignoring..
-10:19:02 Detect tomato_ok !!!!!!! 
-10:19:02 Action ignore !!! 
-10:19:02 Ignoring !!! 
-10:19:05 finish Ignoring..
-
-
-10:22:24 Start..
-
-
-10:38:28 Start..
-
-
-10:42:22 Start..
-10:44:15 Start move start !!! 
-10:44:15 start sleep.. start
-10:44:20 finish sleep.. start
-10:44:26 Detect tomato_ok !!!!!!! 
-10:44:26 Action ignore !!! 
-10:44:26 Ignoring !!! 
-10:44:29 finish Ignoring..
-
-
-10:45:38 Start..
-10:45:58 Start move start !!! 
-10:45:58 start sleep.. start
-10:46:03 finish sleep.. start
-10:47:03 Detect pear_ok !!!!!!! 
-10:47:03 Action ignore !!! 
-10:47:03 Ignoring !!! 
-10:47:06 finish Ignoring..
-10:47:07 Detect pear_bad !!!!!!! 
-10:47:07 Action ignore !!! 
-10:47:07 Ignoring !!! 
-10:47:10 finish Ignoring..
-10:47:10 Detect tomato_ok !!!!!!! 
-10:47:10 Action ignore !!! 
-10:47:10 Ignoring !!! 
-10:47:13 finish Ignoring..
-10:47:15 Detect pepper_bad !!!!!!! 
-10:47:15 Action unknown !!! 
-10:47:15 Ignoring !!! 
-10:47:18 finish Ignoring..
-10:47:19 Detect lemon_bad !!!!!!! 
-10:47:19 Action ignore !!! 
-10:47:19 Ignoring !!! 
-10:47:22 finish Ignoring..
-10:47:39 Detect tomato_ok !!!!!!! 
-10:47:39 Action ignore !!! 
-10:47:39 Ignoring !!! 
-10:47:42 finish Ignoring..
-10:47:42 Start move finish !!! 
-10:47:42 start sleep.. finish
-10:47:51 finish sleep.. finish
-
-
-10:48:28 Start..
-10:49:11 Start move start !!! 
-10:49:11 start sleep.. start
-10:49:16 finish sleep.. start
-10:49:16 Detect tomato_ok !!!!!!! 
-10:49:16 Action ignore !!! 
-10:49:16 Ignoring !!! 
-10:49:19 finish Ignoring..
-
-
-10:52:35 Start..
-10:52:54 Start move start !!! 
-10:52:54 start sleep.. start
-10:53:04 finish sleep.. start
-
-
-10:54:04 Start..
-10:54:21 Start move start !!! 
-10:54:21 start sleep.. start
-10:54:36 finish sleep.. start
-10:54:40 Detect tomato_ok !!!!!!! 
-10:54:40 Action ignore !!! 
-10:54:40 Ignoring !!! 
-10:54:44 finish Ignoring..
-
-
-10:55:32 Start..
-10:55:38 Start move start !!! 
-10:55:38 start sleep.. start
-10:55:53 finish sleep.. start
-10:55:58 Detect tomato_ok !!!!!!! 
-10:55:58 Action ignore !!! 
-10:55:58 Ignoring !!! 
-10:56:01 finish Ignoring..
-10:57:28 Detect pear_ok !!!!!!! 
-10:57:28 Action ignore !!! 
-10:57:28 Ignoring !!! 
-10:57:31 finish Ignoring..
-10:57:51 Detect lemon_ok !!!!!!! 
-10:57:51 Action ignore !!! 
-10:57:51 Ignoring !!! 
-10:57:54 finish Ignoring..
-10:58:02 Detect tomato_ok !!!!!!! 
-10:58:02 Action ignore !!! 
-10:58:02 Ignoring !!! 
-10:58:05 finish Ignoring..
-10:59:42 Detect lemon_ok !!!!!!! 
-10:59:42 Action ignore !!! 
-10:59:42 Ignoring !!! 
-10:59:45 finish Ignoring..
-11:00:12 Detect pear_ok !!!!!!! 
-11:00:12 Action ignore !!! 
-11:00:12 Ignoring !!! 
-11:00:15 finish Ignoring..
-11:00:15 Start move finish !!! 
-11:00:15 start sleep.. finish
-11:00:24 finish sleep.. finish
-
-
-11:23:15 Start..
-
-
-11:25:48 Start..
-
-
-11:26:44 Start..
-
-
-11:52:44 Start..
-
-
-12:29:04 Start..
-
-
-12:30:58 Start..
-12:31:21 Start move start !!! 
-12:31:21 start sleep.. start
-12:31:36 finish sleep.. start
-12:31:54 Detect pear_ok !!!!!!! 
-12:31:54 Action pick !!! 
-12:31:54 Start pick up !!! 
-12:31:54 start sleep.. pick
-12:32:24 finish sleep.. pick
-12:32:24 Start dual.. pick
-12:32:24 Start maneuver [1, 1] !!! 
-12:32:24 start sleep.. maneuver
-12:32:54 finish sleep.. maneuver
-12:32:54 Start throw !!! 
-12:32:54 start sleep.. throw
-12:33:44 finish sleep.. throw
-
-
-12:35:56 Start..
-
-
-12:44:29 Start..
-
-
-12:56:21 Start..
-
-
-12:58:10 Start..
-
-
-13:02:14 Start..
-
-
-13:09:21 Start..
-
-
-13:15:42 Start..
-
-
-13:20:47 Start..
-
-
-13:24:07 Start..
-13:25:22 Start move start !!! 
-13:25:22 start sleep.. start
-13:25:37 finish sleep.. start
-
-
-14:37:28 Start..
-14:38:51 Start move start !!! 
-14:38:51 start sleep.. start
-
-
-14:39:29 Start..
-
-
-09:15:28 Start..
-09:16:05 Start move start !!! 
-09:16:05 start sleep.. start
-09:16:20 finish sleep.. start
-09:16:28 Detect tomato_ok !!!!!!! 
-09:16:28 Action knock_down !!! 
-09:16:28 Start knock down !!! 
-09:16:28 start sleep.. knock_down
-09:16:46 finish sleep.. knock_down
-09:16:46 Detect tomato_bad !!!!!!! 
-09:16:46 Action pick !!! 
-09:16:46 Start pick up !!! 
-09:16:46 start sleep.. pick
-09:17:16 finish sleep.. pick
-09:17:16 Start dual.. pick
-09:17:16 Start maneuver [1, 2] !!! 
-09:17:16 start sleep.. maneuver
-09:17:36 finish sleep.. maneuver
-09:17:36 Start throw !!! 
-09:17:36 start sleep.. throw
+12:46:05 Start..
 
 
-09:25:34 Start..
-09:26:04 Start move start !!! 
-09:26:04 start sleep.. start
-09:26:19 finish sleep.. start
-09:26:19 Detect tomato_bad !!!!!!! 
-09:26:19 Action pick !!! 
-09:26:19 Start pick up !!! 
-09:26:19 start sleep.. pick
-09:26:49 finish sleep.. pick
-09:26:49 Start dual.. pick
-09:26:49 Start maneuver [1, 1] !!! 
-09:26:49 start sleep.. maneuver
-09:27:19 finish sleep.. maneuver
-09:27:19 Start throw !!! 
-09:27:19 start sleep.. throw
-09:28:08 finish sleep.. throw
+12:47:48 Start..
 
 
-09:30:39 Start..
-09:30:51 Start move start !!! 
-09:30:51 start sleep.. start
-09:31:06 finish sleep.. start
-09:31:08 Detect tomato_bad !!!!!!! 
-09:31:08 Action pick !!! 
-09:31:08 Start pick up !!! 
-09:31:08 start sleep.. pick
+12:48:11 Start..
 
 
-09:32:41 Start..
-09:33:07 Start move start !!! 
-09:33:07 start sleep.. start
-09:33:22 finish sleep.. start
-09:33:29 Detect tomato_ok !!!!!!! 
-09:33:29 Action knock_down !!! 
-09:33:29 Start knock down !!! 
-09:33:29 start sleep.. knock_down
-09:33:47 finish sleep.. knock_down
+12:49:09 Start..
 
 
-09:46:54 Start..
-09:48:34 Start move start !!! 
-09:48:34 start sleep.. start
-09:48:49 finish sleep.. start
+12:50:16 Start..
+12:50:25 Start move start !!! 
+12:50:25 start sleep.. start
 
 
-09:52:34 Start..
-09:52:43 Start move start !!! 
-09:52:43 start sleep.. start
-09:52:58 finish sleep.. start
+12:50:46 Start..
 
 
-09:54:55 Start..
-09:55:26 Start move start !!! 
-09:55:26 start sleep.. start
-09:55:41 finish sleep.. start
+12:51:13 Start..
+12:51:30 Start move start !!! 
+12:51:30 start sleep.. start
+12:51:45 finish sleep.. start
 
 
-09:57:25 Start..
-09:57:32 Start move start !!! 
-09:57:32 start sleep.. start
-09:57:47 finish sleep.. start
-
-
-09:58:19 Start..
-
-
-09:58:53 Start..
-
-
-09:59:52 Start..
-
-
-10:01:17 Start..
-
-
-10:03:02 Start..
-
-
-10:05:13 Start..
-10:05:13 Start move start !!! 
-10:05:13 start sleep.. start
-10:05:28 finish sleep.. start
-
-
-10:06:54 Start..
-10:06:54 Start move start !!! 
-10:06:54 start sleep.. start
-10:07:09 finish sleep.. start
-
-
-10:08:43 Start..
-10:08:43 Start move start !!! 
-10:08:43 start sleep.. start
-10:08:58 finish sleep.. start
-
-
-10:09:50 Start..
-10:09:50 Start move start !!! 
-10:09:50 start sleep.. start
-10:10:05 finish sleep.. start
-
-
-10:11:25 Start..
-10:11:25 Start move start !!! 
-10:11:25 start sleep.. start
-10:11:40 finish sleep.. start
-
-
-10:16:12 Start..
-10:16:12 Start move start !!! 
-10:16:12 start sleep.. start
-10:16:27 finish sleep.. start
-
-
-10:18:35 Start..
-10:18:35 Start move start !!! 
-10:18:35 start sleep.. start
-10:18:50 finish sleep.. start
-
-
-10:19:51 Start..
-10:19:51 Start move start !!! 
-10:19:51 start sleep.. start
-10:20:06 finish sleep.. start
-
-
-10:21:07 Start..
-10:21:07 Start move start !!! 
-10:21:07 start sleep.. start
-
-
-10:22:09 Start..
-10:22:10 Start move start !!! 
-10:22:10 start sleep.. start
-10:22:25 finish sleep.. start
-10:22:33 Detect tomato_ok !!!!!!! 
-10:22:33 Action knock_down !!! 
-10:22:33 Start knock down !!! 
-10:22:33 start sleep.. knock_down
-10:22:51 finish sleep.. knock_down
-10:23:18 Detect pear_ok !!!!!!! 
-10:23:18 Action ignore !!! 
-10:23:18 Ignoring !!! 
-10:23:21 finish Ignoring..
-
-
-10:27:54 Start..
-10:27:54 Start move start !!! 
-10:27:54 start sleep.. start
-10:28:09 finish sleep.. start
-10:28:09 Detect tomato_bad !!!!!!! 
-10:28:09 Action pick !!! 
-10:28:09 Start pick up !!! 
-10:28:09 start sleep.. pick
-10:28:39 finish sleep.. pick
-10:28:39 Start dual.. pick
-10:28:39 Start maneuver [1, 1] !!! 
-10:28:39 start sleep.. maneuver
-10:29:09 finish sleep.. maneuver
-10:29:09 Start throw !!! 
-10:29:09 start sleep.. throw
-10:29:59 finish sleep.. throw
-10:30:00 Detect pear_ok !!!!!!! 
-10:30:00 Action ignore !!! 
-10:30:00 Ignoring !!! 
-10:30:03 finish Ignoring..
-10:30:12 Detect tomato_bad !!!!!!! 
-10:30:12 Action pick !!! 
-10:30:12 Start pick up !!! 
-10:30:12 start sleep.. pick
-10:30:42 finish sleep.. pick
-10:30:42 Start dual.. pick
-10:30:42 Start maneuver [1, 3] !!! 
-10:30:42 start sleep.. maneuver
-10:31:12 finish sleep.. maneuver
-10:31:12 Start throw !!! 
-10:31:12 start sleep.. throw
-10:32:01 finish sleep.. throw
-10:32:42 Detect pear_ok !!!!!!! 
-10:32:42 Action ignore !!! 
-10:32:42 Ignoring !!! 
-10:32:45 finish Ignoring..
-10:33:36 Detect yellow_pepper_ok !!!!!!! 
-10:33:36 Action ignore !!! 
-10:33:36 Ignoring !!! 
-10:33:39 finish Ignoring..
-10:34:01 Detect lemon_ok !!!!!!! 
-10:34:01 Action ignore !!! 
-10:34:01 Ignoring !!! 
-10:34:04 finish Ignoring..
-10:34:04 Start move finish !!! 
-10:34:04 start sleep.. finish
-10:34:13 finish sleep.. finish
-
-
-10:36:27 Start..
-10:36:27 Start move start !!! 
-10:36:27 start sleep.. start
-10:36:42 finish sleep.. start
-10:36:43 Detect red_pepper_ok !!!!!!! 
-10:36:43 Action knock_down !!! 
-10:36:43 Start knock down !!! 
-10:36:43 start sleep.. knock_down
-10:37:01 finish sleep.. knock_down
-
-
-10:40:34 Start..
-10:40:34 Start move start !!! 
-10:40:34 start sleep.. start
-10:40:49 finish sleep.. start
-10:41:14 Detect pear_ok !!!!!!! 
-10:41:14 Action ignore !!! 
-10:41:14 Ignoring !!! 
-10:41:17 finish Ignoring..
-
-
-10:43:23 Start..
-10:43:23 Start move start !!! 
-10:43:23 start sleep.. start
-10:43:38 finish sleep.. start
-10:43:40 Detect red_pepper_ok !!!!!!! 
-10:43:40 Action knock_down !!! 
-10:43:40 Start knock down !!! 
-10:43:40 start sleep.. knock_down
-10:43:58 finish sleep.. knock_down
-
-
-10:45:39 Start..
-10:45:39 Start move start !!! 
-10:45:39 start sleep.. start
-10:45:54 finish sleep.. start
-10:46:16 Detect pear_ok !!!!!!! 
-10:46:16 Action ignore !!! 
-10:46:16 Ignoring !!! 
-10:46:19 finish Ignoring..
-
-
-10:51:41 Start..
-10:51:41 Start move start !!! 
-10:51:41 start sleep.. start
-10:51:56 finish sleep.. start
-10:52:18 Detect pear_ok !!!!!!! 
-10:52:18 Action ignore !!! 
-10:52:18 Ignoring !!! 
-10:52:21 finish Ignoring..
-
-
-10:56:02 Start..
-10:56:03 Start move start !!! 
-10:56:03 start sleep.. start
-10:56:18 finish sleep.. start
-10:56:28 Detect pear_ok !!!!!!! 
-10:56:28 Action ignore !!! 
-10:56:28 Ignoring !!! 
-10:56:31 finish Ignoring..
-10:56:37 Detect lemon_ok !!!!!!! 
-10:56:37 Action ignore !!! 
-10:56:37 Ignoring !!! 
-10:56:40 finish Ignoring..
-10:56:40 Detect pear_ok !!!!!!! 
-10:56:40 Action ignore !!! 
-10:56:40 Ignoring !!! 
-10:56:43 finish Ignoring..
-
-
-10:58:58 Start..
-10:58:58 Start move start !!! 
-10:58:58 start sleep.. start
-10:59:13 finish sleep.. start
-10:59:19 Detect tomato_ok !!!!!!! 
-10:59:19 Action knock_down !!! 
-10:59:19 Start knock down !!! 
-10:59:19 start sleep.. knock_down
-10:59:37 finish sleep.. knock_down
-10:59:37 Detect pear_ok !!!!!!! 
-10:59:37 Action ignore !!! 
-10:59:37 Ignoring !!! 
-10:59:40 finish Ignoring..
-10:59:41 Detect tomato_ok !!!!!!! 
-10:59:41 Action knock_down !!! 
-10:59:41 Start knock down !!! 
-10:59:41 start sleep.. knock_down
-
-
-11:00:37 Start..
-11:00:37 Start move start !!! 
-11:00:37 start sleep.. start
-11:00:52 finish sleep.. start
-11:00:57 Detect tomato_bad !!!!!!! 
-11:00:57 Action pick !!! 
-11:00:57 Start pick up !!! 
-11:00:57 start sleep.. pick
-11:01:27 finish sleep.. pick
-11:01:27 Start dual.. pick
-11:01:27 Start maneuver [1, 1] !!! 
-11:01:27 start sleep.. maneuver
-11:01:57 finish sleep.. maneuver
-11:01:57 Start throw !!! 
-11:01:57 start sleep.. throw
-
-
-11:04:03 Start..
-11:04:03 Start move start !!! 
-11:04:03 start sleep.. start
-11:04:18 finish sleep.. start
-11:04:33 Detect tomato_ok !!!!!!! 
-11:04:33 Action knock_down !!! 
-11:04:33 Start knock down !!! 
-11:04:33 start sleep.. knock_down
-11:04:51 finish sleep.. knock_down
-11:04:51 Detect lemon_ok !!!!!!! 
-11:04:51 Action ignore !!! 
-11:04:51 Ignoring !!! 
-11:04:54 finish Ignoring..
-11:05:00 Detect yellow_pepper_ok !!!!!!! 
-11:05:00 Action ignore !!! 
-11:05:00 Ignoring !!! 
-11:05:03 finish Ignoring..
-
-
-11:06:13 Start..
-11:06:13 Start move start !!! 
-11:06:13 start sleep.. start
-11:06:28 finish sleep.. start
-11:06:39 Detect tomato_ok !!!!!!! 
-11:06:39 Action knock_down !!! 
-11:06:39 Start knock down !!! 
-11:06:39 start sleep.. knock_down
-11:06:57 finish sleep.. knock_down
-
-
-11:08:47 Start..
-11:08:47 Start move start !!! 
-11:08:47 start sleep.. start
-11:09:02 finish sleep.. start
-
-
-11:10:21 Start..
-11:10:21 Start move start !!! 
-11:10:21 start sleep.. start
-11:10:36 finish sleep.. start
-11:10:47 Detect pear_ok !!!!!!! 
-11:10:47 Action ignore !!! 
-11:10:47 Ignoring !!! 
-11:10:50 finish Ignoring..
-11:11:34 Detect lemon_ok !!!!!!! 
-11:11:34 Action ignore !!! 
-11:11:34 Ignoring !!! 
-11:11:37 finish Ignoring..
-
-
-11:15:33 Start..
-11:15:33 Start move start !!! 
-11:15:33 start sleep.. start
-11:15:48 finish sleep.. start
-11:15:56 Detect pear_ok !!!!!!! 
-11:15:56 Action ignore !!! 
-11:15:56 Ignoring !!! 
-11:15:59 finish Ignoring..
-
-
-11:17:04 Start..
-11:17:04 Start move start !!! 
-11:17:04 start sleep.. start
-11:17:19 finish sleep.. start
-11:17:26 Detect pear_ok !!!!!!! 
-11:17:26 Action ignore !!! 
-11:17:26 Ignoring !!! 
-11:17:29 finish Ignoring..
-11:17:29 Detect lemon_ok !!!!!!! 
-11:17:29 Action ignore !!! 
-11:17:29 Ignoring !!! 
-11:17:32 finish Ignoring..
-
-
-11:19:12 Start..
-11:19:12 Start move start !!! 
-11:19:12 start sleep.. start
+12:52:53 Start..
+12:53:04 Start move start !!! 
+12:53:04 start sleep.. start
+12:53:19 finish sleep.. start
+12:53:27 Detect pear_ok !!!!!!! 
+12:53:27 Action ignore !!! 
+12:53:27 Ignoring !!! 
+12:53:30 finish Ignoring..
+12:53:40 Detect tomato_ok !!!!!!! 
+12:53:40 Action knock_down !!! 
+12:53:40 Start knock down !!! 
+12:53:40 start sleep.. knock_down
+12:53:58 finish sleep.. knock_down
+
+
+12:54:26 Start..
+12:54:35 Start move start !!! 
+12:54:35 start sleep.. start
+12:54:50 finish sleep.. start
+12:55:13 Detect pear_ok !!!!!!! 
+12:55:13 Action ignore !!! 
+12:55:13 Ignoring !!! 
+12:55:16 finish Ignoring..
+12:55:22 Detect tomato_ok !!!!!!! 
+12:55:22 Action knock_down !!! 
+12:55:22 Start knock down !!! 
+12:55:22 start sleep.. knock_down
+12:55:45 finish sleep.. knock_down
+12:55:52 Detect pear_ok !!!!!!! 
+12:55:52 Action ignore !!! 
+12:55:52 Ignoring !!! 
+12:55:55 finish Ignoring..
+
+
+12:56:22 Start..
+12:57:57 Start move start !!! 
+12:57:57 start sleep.. start
+12:58:12 finish sleep.. start
+12:58:12 Detect red_pepper_ok !!!!!!! 
+12:58:12 Action knock_down !!! 
+12:58:12 Start knock down !!! 
+12:58:12 start sleep.. knock_down
+12:58:35 finish sleep.. knock_down
+
+
+13:01:11 Start..
+
+
+13:01:57 Start..
+
+
+13:02:37 Start..
+
+
+13:03:26 Start..
+
+
+13:04:17 Start..
+
+
+13:05:28 Start..
+13:05:28 Start move start !!! 
+13:05:28 start sleep.. start
+13:05:43 finish sleep.. start
+13:06:00 Detect red_pepper_ok !!!!!!! 
+13:06:00 Action knock_down !!! 
+13:06:00 Start knock down !!! 
+13:06:00 start sleep.. knock_down
+13:06:22 finish sleep.. knock_down
+13:06:40 Detect tomato_bad !!!!!!! 
+13:06:40 Action pick !!! 
+13:06:40 Start pick up !!! 
+13:06:40 start sleep.. pick
+13:07:10 finish sleep.. pick
+13:07:10 Start dual.. pick
+13:07:10 Start maneuver [1, 2] !!! 
+13:07:10 start sleep.. maneuver
+13:07:30 finish sleep.. maneuver
+13:07:30 Start throw !!! 
+13:07:30 start sleep.. throw
+13:08:19 finish sleep.. throw
+
+
+13:11:53 Start..
+13:11:53 Start move start !!! 
+13:11:53 start sleep.. start
+
+
+13:13:10 Start..
+13:13:10 Start move start !!! 
+13:13:10 start sleep.. start
+13:13:25 finish sleep.. start
+13:13:31 Detect red_pepper_ok !!!!!!! 
+13:13:31 Action knock_down !!! 
+13:13:31 Start knock down !!! 
+13:13:31 start sleep.. knock_down
+
+
+13:15:04 Start..
+13:15:04 Start move start !!! 
+13:15:04 start sleep.. start
+
+
+13:17:05 Start..
+13:17:05 Start move start !!! 
+13:17:06 start sleep.. start
+
+
+13:19:04 Start..
+13:19:04 Start move start !!! 
+13:19:05 start sleep.. start
+
+
+13:20:15 Start..
+13:20:15 Start move start !!! 
+13:20:16 start sleep.. start
+
+
+13:21:44 Start..
+13:21:44 Start move start !!! 
+13:21:45 start sleep.. start
+
+
+13:22:39 Start..
+13:22:39 Start move start !!! 
+13:22:41 start sleep.. start
+13:22:56 finish sleep.. start
+
+
+13:23:46 Start..
+13:23:46 Start move start !!! 
+13:23:47 start sleep.. start
+13:24:02 finish sleep.. start
+13:24:12 Detect lemon_ok !!!!!!! 
+13:24:12 Action ignore !!! 
+13:24:12 Ignoring !!! 
+
+
+13:29:00 Start..
+13:29:00 Start move start !!! 
+13:29:00 start sleep.. start
+13:29:05 finish sleep.. start
+
+
+13:32:18 Start..
+13:32:18 Start move start !!! 
+13:32:18 start sleep.. start
+13:32:23 finish sleep.. start
+
+
+13:33:48 Start..
+13:33:48 Start move start !!! 
+13:33:48 start sleep.. start
+13:33:53 finish sleep.. start
+
+
+13:35:24 Start..
+13:35:24 Start move start !!! 
+13:35:24 start sleep.. start
+13:35:29 finish sleep.. start
+
+
+13:39:33 Start..
+13:39:33 Start move start !!! 
+13:39:38 start sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:38 finish sleep.. start
+13:39:40 Detect red_pepper_ok !!!!!!! 
+13:39:40 Action knock_down !!! 
+13:39:40 Start knock down !!! 
+13:39:40 start sleep.. knock_down
+13:40:03 finish sleep.. knock_down
+
+
+13:44:41 Start..
+13:44:41 Start move start !!! 
+13:44:46 start sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:46 finish sleep.. start
+13:44:49 Detect pear_ok !!!!!!! 
+13:44:49 Action ignore !!! 
+13:44:49 Ignoring !!! 
+13:44:52 finish Ignoring..
+13:45:15 Detect tomato_bad !!!!!!! 
+13:45:15 Action pick !!! 
+13:45:15 Start pick up !!! 
+13:45:15 start sleep.. pick
+13:45:45 finish sleep.. pick
+13:45:45 Start dual.. pick
+13:45:45 Start maneuver [1, 2] !!! 
+13:45:45 start sleep.. maneuver
+13:46:05 finish sleep.. maneuver
+13:46:05 Start throw !!! 
+13:46:05 start sleep.. throw
+13:46:54 finish sleep.. throw
+
+
+13:52:53 Start..
+13:52:53 Start move start !!! 
+13:52:58 start sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+13:52:58 finish sleep.. start
+
+
+13:54:03 Start..
+13:54:03 Start move start !!! 
+13:54:08 start sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:08 finish sleep.. start
+13:54:10 Detect pear_ok !!!!!!! 
+13:54:10 Action ignore !!! 
+13:54:10 Ignoring !!! 
+
+
+13:55:13 Start..
+13:55:14 Start move start !!! 
+13:55:19 start sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+13:55:19 finish sleep.. start
+
+
+13:57:37 Start..
+13:57:37 Start move start !!! 
+13:57:42 start sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:42 finish sleep.. start
+13:57:44 Detect tomato_bad !!!!!!! 
+13:57:44 Action pick !!! 
+13:57:44 Start pick up !!! 
+13:57:44 start sleep.. pick
+13:58:14 finish sleep.. pick
+13:58:14 Start dual.. pick
+13:58:14 Start maneuver [1, 1] !!! 
+13:58:14 start sleep.. maneuver
+13:58:44 finish sleep.. maneuver
+13:58:44 Start throw !!! 
+13:58:44 start sleep.. throw
+13:59:33 finish sleep.. throw
+14:01:17 Detect pear_ok !!!!!!! 
+14:01:17 Action ignore !!! 
+14:01:17 Ignoring !!! 
+14:01:20 finish Ignoring..
+14:02:27 Detect tomato_bad !!!!!!! 
+14:02:27 Action pick !!! 
+14:02:27 Start pick up !!! 
+14:02:27 start sleep.. pick
+14:02:57 finish sleep.. pick
+14:02:57 Start dual.. pick
+14:02:57 Start maneuver [1, 3] !!! 
+14:02:57 start sleep.. maneuver
+
+
+14:07:52 Start..
+14:07:52 Start move start !!! 
+14:07:57 start sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+14:07:57 finish sleep.. start
+
+
+14:08:39 Start..
+14:08:39 Start move start !!! 
+
+
+14:09:56 Start..
+14:09:56 Start move start !!! 
+14:10:01 start sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:01 finish sleep.. start
+14:10:05 Detect tomato_ok !!!!!!! 
+14:10:05 Action knock_down !!! 
+14:10:05 Start knock down !!! 
+14:10:05 start sleep.. knock_down
+14:10:28 finish sleep.. knock_down
+14:10:28 Detect pear_ok !!!!!!! 
+14:10:28 Action ignore !!! 
+14:10:28 Ignoring !!! 
+14:10:31 finish Ignoring..
+14:11:14 Detect red_pepper_ok !!!!!!! 
+14:11:14 Action knock_down !!! 
+14:11:14 Start knock down !!! 
+14:11:14 start sleep.. knock_down
+14:11:36 finish sleep.. knock_down
+14:11:36 Detect lemon_ok !!!!!!! 
+14:11:36 Action ignore !!! 
+14:11:36 Ignoring !!! 
+14:11:39 finish Ignoring..
+14:11:48 Detect pear_ok !!!!!!! 
+14:11:48 Action ignore !!! 
+14:11:48 Ignoring !!! 
+14:11:51 finish Ignoring..
+14:11:58 Detect tomato_ok !!!!!!! 
+14:11:58 Action knock_down !!! 
+14:11:58 Start knock down !!! 
+14:11:58 start sleep.. knock_down
+
+
+14:15:02 Start..
+14:15:02 Start move start !!! 
+14:15:07 start sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:07 finish sleep.. start
+14:15:13 Detect pear_ok !!!!!!! 
+14:15:13 Action ignore !!! 
+14:15:13 Ignoring !!! 
+14:15:16 finish Ignoring..
+14:15:39 Detect tomato_ok !!!!!!! 
+14:15:39 Action knock_down !!! 
+14:15:39 Start knock down !!! 
+14:15:39 start sleep.. knock_down
+
+
+14:16:47 Start..
+14:16:47 Start move start !!! 
+14:16:52 start sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:52 finish sleep.. start
+14:16:57 Detect red_pepper_ok !!!!!!! 
+14:16:57 Action knock_down !!! 
+14:16:57 Start knock down !!! 
+14:16:57 start sleep.. knock_down
+14:17:20 finish sleep.. knock_down
+14:17:31 Detect tomato_bad !!!!!!! 
+14:17:31 Action pick !!! 
+14:17:31 Start pick up !!! 
+14:17:31 start sleep.. pick
+14:18:01 finish sleep.. pick
+14:18:01 Start dual.. pick
+14:18:01 Start maneuver [1, 2] !!! 
+14:18:01 start sleep.. maneuver
+14:18:21 finish sleep.. maneuver
+14:18:21 Start throw !!! 
+14:18:21 start sleep.. throw
+14:19:10 finish sleep.. throw
+14:19:25 Detect lemon_ok !!!!!!! 
+14:19:25 Action ignore !!! 
+14:19:25 Ignoring !!! 
+14:19:28 finish Ignoring..
+14:20:02 Detect tomato_ok !!!!!!! 
+14:20:02 Action knock_down !!! 
+14:20:02 Start knock down !!! 
+14:20:02 start sleep.. knock_down
+14:20:25 finish sleep.. knock_down
+
+
+14:22:25 Start..
+14:22:25 Start move start !!! 
+14:22:30 start sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:30 finish sleep.. start
+14:22:32 Detect tomato_bad !!!!!!! 
+14:22:32 Action pick !!! 
+14:22:32 Start pick up !!! 
+14:22:32 start sleep.. pick
+14:23:02 finish sleep.. pick
+14:23:02 Start dual.. pick
+14:23:02 Start maneuver [1, 1] !!! 
+14:23:02 start sleep.. maneuver
+
+
+14:23:51 Start..
+14:23:51 Start move start !!! 
+14:23:56 start sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:23:56 finish sleep.. start
+14:24:07 Detect tomato_bad !!!!!!! 
+14:24:07 Action pick !!! 
+14:24:07 Start pick up !!! 
+14:24:07 start sleep.. pick
+14:24:37 finish sleep.. pick
+14:24:37 Start dual.. pick
+14:24:37 Start maneuver [1, 1] !!! 
+14:24:37 start sleep.. maneuver
+
+
+14:26:04 Start..
+14:26:04 Start move start !!! 
+14:26:09 start sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:09 finish sleep.. start
+14:26:28 Detect tomato_bad !!!!!!! 
+14:26:28 Action pick !!! 
+14:26:28 Start pick up !!! 
+14:26:28 start sleep.. pick
+
+
+14:27:48 Start..
+14:27:48 Start move start !!! 
+14:27:53 start sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:27:53 finish sleep.. start
+14:28:04 Detect tomato_bad !!!!!!! 
+14:28:04 Action pick !!! 
+14:28:04 Start pick up !!! 
+14:28:04 start sleep.. pick
+14:28:34 finish sleep.. pick
+14:28:34 Start dual.. pick
+14:28:34 Start maneuver [1, 1] !!! 
+14:28:34 start sleep.. maneuver
+14:29:04 finish sleep.. maneuver
+14:29:04 Start throw !!! 
+14:29:04 start sleep.. throw
+14:29:53 finish sleep.. throw
+
+
+14:34:52 Start..
+14:34:52 Start move start !!! 
+14:34:57 start sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:34:57 finish sleep.. start
+14:35:16 Detect tomato_bad !!!!!!! 
+14:35:16 Action pick !!! 
+14:35:16 Start pick up !!! 
+14:35:16 start sleep.. pick
+14:35:46 finish sleep.. pick
+14:35:46 Start dual.. pick
+14:35:46 Start maneuver [1, 1] !!! 
+14:35:46 start sleep.. maneuver

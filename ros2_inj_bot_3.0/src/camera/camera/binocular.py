@@ -39,6 +39,7 @@ class BinocularCameraPublisher(Node):
         self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
         msg = String(data = self.get_name())
         self.ready_pub.publish(msg)
+        print(msg.data)
 
     def publish_imge(self):
         ret, frame = self.cam.read()
@@ -51,7 +52,7 @@ class BinocularCameraPublisher(Node):
             #frame = resize(1.5, frame)
             image_msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
             self.publisher.publish(image_msg)
-            self.get_logger().info('Published frame from Binocular_Cam',throttle_duration_sec=1.0)
+            self.get_logger().info('Published frame from Binocular_Cam',throttle_duration_sec=5.0)
             
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray_msg = self.bridge.cv2_to_imgmsg(gray_frame, 'mono8')
