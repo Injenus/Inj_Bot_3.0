@@ -273,7 +273,6 @@ class Coordinator(Node):
             with self.init_lock:
                 if self.init_command == 1:
                     self.send_border_mode(1)
-                    self.cam_send(1)
                 elif self.init_command == -1:
                     self.send_border_mode(0)
 
@@ -286,17 +285,14 @@ class Coordinator(Node):
                         self.send_border_mode(0)
                         self.cam_send(0)
                         print('send 0')
-                        self.send_border_mode(0)
-                        self.cam_send(0)
-                        self.cam_send(0)
-                        msg = UInt8(data = 0)
-                        self.cam_state.publish(msg)
                         write_log(f"\n{get_time()} Detect {self.fruit_classif['class']} !!!!!!! ")
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
                         thread.start_child(
                             target_function=lambda t: self.process_fruit(t)
                         )
+                        self.cam_send(1)
+                        print('send 1')
                         print('main_end_th')
                         #thread.paused.wait()
 
@@ -319,10 +315,7 @@ class Coordinator(Node):
                     break
                     
 
-    def process_fruit(self, thread):
-        msg = UInt8(data = 0)
-        self.cam_state.publish(msg)
-    
+    def process_fruit(self, thread):   
         fruit_type = self.fruit_classif.get('class', 'unknown')
         #play_audio(f'{fruit_type}.wav')
         action = conf.matching.get(fruit_type, 'unknown')
