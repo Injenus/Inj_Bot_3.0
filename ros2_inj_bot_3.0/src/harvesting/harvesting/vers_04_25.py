@@ -314,7 +314,7 @@ class Coordinator(Node):
 
             with self.fruit_lock:
                 if len(self.fruit_classif) > 0:
-                    if self.fruit_classif['x'] > 0.35 and self.fruit_classif['class'] != self.last_fruit:
+                    if self.fruit_classif['x'] > 0.3 and self.fruit_classif['class'] != self.last_fruit:
                         # self.last_fruit_classif = copy.deepcopy(self.fruit_classif)
                         # if time.time() - self.time_detect > 15.0 or True:
                         #self.time_detect = time.time()
