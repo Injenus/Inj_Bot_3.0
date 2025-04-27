@@ -391,6 +391,9 @@ class Coordinator(Node):
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #thread.start_child(target_function=lambda t: self.knock_down_fruit(t))
+
+
 
     def throw_fruit(self, thread):
         write_log(f"\n{get_time()} Start throw !!! ")
