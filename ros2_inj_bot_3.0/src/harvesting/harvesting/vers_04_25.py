@@ -389,9 +389,9 @@ class Coordinator(Node):
         current_block = self.count_blocks
         write_log(f"\n{get_time()} Start dual.. pick")
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
+        thread.start_child(target_function=lambda t: self.maneuver(t, [1, current_block]))
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
-        thread.start_child(target_function=lambda t: self.knock_down_fruit(t))
+        #thread.start_child(target_function=lambda t: self.knock_down_fruit(t))
 
 
 
