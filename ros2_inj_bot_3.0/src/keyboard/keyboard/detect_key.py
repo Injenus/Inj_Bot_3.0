@@ -12,6 +12,7 @@ import os
 import numpy as np
 from matplotlib.path import Path
 import time
+import errno
 
 receive_data_path = os.path.join(os.path.expanduser('~'), 'Inj_Bot_3.0', 'arm_n_cam_mount_api_8_bytes')
 if receive_data_path not in sys.path:
@@ -230,32 +231,120 @@ class KeyboardNode(Node):
         return None
 
 
-    def read_events(self):
-        """Читает события клавиатуры в отдельном потоке."""
-        try:
-            print("TRYE Read events")
-            for event in self.device.read_loop():
-                if event.type == ecodes.EV_KEY:
-                    with self.lock:
-                        key_code = event.code
-                        key_name = None
+    # def read_events(self):
+    #     """Читает события клавиатуры в отдельном потоке."""
+    #     try:
+    #         print("TRYE Read events")
+    #         for event in self.device.read_loop():
+    #             if event.type == ecodes.EV_KEY:
+    #                 with self.lock:
+    #                     key_code = event.code
+    #                     key_name = None
                         
-                        # Проверяем все три группы клавиш
-                        if key_code in self.wheel_keys:
-                            key_name = self.wheel_keys[key_code]
-                        elif key_code in self.cam_keys:
-                            key_name = self.cam_keys[key_code]
-                        elif key_code in self.arm_keys:
-                            key_name = self.arm_keys[key_code]
+    #                     # Проверяем все три группы клавиш
+    #                     if key_code in self.wheel_keys:
+    #                         key_name = self.wheel_keys[key_code]
+    #                     elif key_code in self.cam_keys:
+    #                         key_name = self.cam_keys[key_code]
+    #                     elif key_code in self.arm_keys:
+    #                         key_name = self.arm_keys[key_code]
 
-                        if key_name is not None:
-                            if event.value == 1:  # Нажатие
-                                self.pressed_keys.add(key_name)
-                            elif event.value == 0:  # Отпускание
-                                self.pressed_keys.discard(key_name)
-        except Exception as e:
-            self.get_logger().error(f"Error reading events: {str(e)}")
-            self.stop_event.set()
+    #                     if key_name is not None:
+    #                         if event.value == 1:  # Нажатие
+    #                             self.pressed_keys.add(key_name)
+    #                         elif event.value == 0:  # Отпускание
+    #                             self.pressed_keys.discard(key_name)
+    #     except Exception as e:
+    #         self.get_logger().error(f"Error reading events: {str(e)}")
+    #         self.stop_event.set()
+
+    def read_events(self):
+        """Читает события клавиатуры в отдельном потоке с авто-переподключением."""
+        self.get_logger().info("Старт потока чтения клавиатуры")
+
+        while not self.stop_event.is_set():
+            # Если устройства нет – пробуем найти
+            if self.device is None:
+                try:
+                    self.device = self.find_keyboard_device()
+                except Exception as e:
+                    self.get_logger().error(f"Ошибка при поиске клавиатуры: {e}")
+                    self.device = None
+
+                if self.device is None:
+                    self.get_logger().warn("Клавиатура не найдена, повтор попытки через 2 сек")
+                    time.sleep(2.0)
+                    continue
+
+                self.get_logger().info(f"Подключена клавиатура: {self.device.name} ({self.device.path})")
+
+            try:
+                # Основной цикл чтения событий
+                for event in self.device.read_loop():
+                    if self.stop_event.is_set():
+                        break
+
+                    if event.type == ecodes.EV_KEY:
+                        with self.lock:
+                            key_code = event.code
+                            key_name = None
+
+                            if key_code in self.wheel_keys:
+                                key_name = self.wheel_keys[key_code]
+                            elif key_code in self.cam_keys:
+                                key_name = self.cam_keys[key_code]
+                            elif key_code in self.arm_keys:
+                                key_name = self.arm_keys[key_code]
+
+                            if key_name is not None:
+                                if event.value == 1:      # KEY_DOWN
+                                    self.pressed_keys.add(key_name)
+                                elif event.value == 0:    # KEY_UP
+                                    self.pressed_keys.discard(key_name)
+
+            except OSError as e:
+                # Важный случай: устройство исчезло
+                if e.errno == errno.ENODEV:   # 19: No such device
+                    self.get_logger().error(
+                        f"Устройство ввода исчезло ({e}). "
+                        f"Попробую переподключиться…"
+                    )
+                else:
+                    self.get_logger().error(f"Ошибка чтения событий: {e}")
+
+                # Сбрасываем состояние
+                with self.lock:
+                    self.pressed_keys.clear()
+
+                try:
+                    # Попробуем аккуратно закрыть старый дескриптор
+                    self.device.close()
+                except Exception:
+                    pass
+
+                self.device = None
+                # Даём ОС время переинициализировать устройство
+                time.sleep(1.0)
+                # Пойдём в верхнюю часть while и попробуем найти клавиатуру заново
+                continue
+
+            except Exception as e:
+                self.get_logger().error(f"Неожиданная ошибка чтения событий: {e}")
+                # Здесь можно решить: либо тоже попытаться переподключиться, либо падать
+                with self.lock:
+                    self.pressed_keys.clear()
+                try:
+                    self.device.close()
+                except Exception:
+                    pass
+                self.device = None
+                time.sleep(1.0)
+                continue
+
+        self.get_logger().info("Завершение потока чтения клавиатуры")
+
+
+    
     
     def process_keys(self):
         """Обрабатывает текущее состояние клавиш."""
