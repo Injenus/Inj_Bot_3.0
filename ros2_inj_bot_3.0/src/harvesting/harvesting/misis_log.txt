@@ -1,0 +1,33 @@
+
+
+
+15:33:48 Start..
+15:33:48 Start move start !!! 
+15:33:53 start sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:53 finish sleep.. start
+15:33:59 Detect red_pepper_ok !!!!!!! 
+15:33:59 Action knock_down !!! 
+15:33:59 Start knock down !!! 
+15:33:59 start sleep.. knock_down
+15:34:22 finish sleep.. knock_down
+15:34:37 Detect tomato_bad !!!!!!! 
+15:34:37 Action pick !!! 
+15:34:37 Start pick up !!! 
+15:34:37 start sleep.. pick
+15:35:07 finish sleep.. pick
+15:35:07 Start dual.. pick
+15:35:07 Start maneuver [1, 2] !!! 
+15:35:07 start sleep.. maneuver
+15:35:27 finish sleep.. maneuver
+15:35:27 Start throw !!! 
+15:35:27 start sleep.. throw
+15:36:16 finish sleep.. throw
