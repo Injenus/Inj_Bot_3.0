@@ -5,11 +5,14 @@ Device Manager → Raspberry Pi Configuration → USB Configuration → USB Curr
 
 kill -9 $(jobs -p) 
 
+lsusb -t
+udevadm info --query=property --name=/dev/ttyUSB0 | grep ID_PATH
+
 
 sudo nano /etc/udev/rules.d/99-usb-custom.rules
 
 sudo udevadm control --reload-rules
-sudo udevadm trigger
+sudo udevadm trigger -s tty
 
 
 export PYTHONPATH="/home/inj/Inj_Bot_3.0/venv/lib/python3.11/site-packages:$PYTHONPATH"
