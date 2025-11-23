@@ -91,14 +91,14 @@ class ArmActions(Node):
             ],
             -1: [
                 {'command': 63, 'name': '_', 'delay': conf.st_delay},
-                {'command': 60, 'name': '_', 'delay': conf.st_delay},
+                #{'command': 60, 'name': '_', 'delay': conf.st_delay},
 
-                # {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
-                # {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}
             ],
             0: [
                 {'command': 63, 'name': '_', 'delay': conf.st_delay},
-                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+                #{'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
 
                 {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 12, 'name': 'knock_down_fruit', 'delay': 2*conf.st_delay},
@@ -107,11 +107,13 @@ class ArmActions(Node):
                 {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
 
                 {'command': 63, 'name': 'search_fruit', 'delay': conf.st_delay},
-                {'command': 60, 'name': '_', 'delay': conf.st_delay},
+                #{'command': 60, 'name': '_', 'delay': conf.st_delay},
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}
             ],
             1: [
                 {'command': 63, 'name': '_', 'delay': conf.st_delay},
-                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+               # {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
                 {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
                 {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay},
                 {'command': 13, 'name': '_', 'delay': conf.st_delay},
@@ -124,11 +126,16 @@ class ArmActions(Node):
                 {'command': 31, 'name': '_', 'delay': conf.st_delay},
                 {'command': 32, 'name': '_', 'delay': conf.st_delay},
                 {'command': 33, 'name': '_', 'delay': conf.st_delay},
+
                 {'command': 15, 'name': '_', 'delay': conf.st_delay},
                 {'command': 34, 'name': '_', 'delay': conf.st_delay},
                 {'command': 38, 'name': '_', 'delay': conf.st_delay},
                 {'command': 35, 'name': '_', 'delay': conf.st_delay},
-                {'command': 36, 'name': '_', 'delay': conf.st_delay},                
+                {'command': 38, 'name': '_', 'delay': conf.st_delay},  
+
+                {'command': 63, 'name': 'search_fruit', 'delay': conf.st_delay},
+                {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 3*conf.st_delay},
+                {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay}              
             ],
             2: [
                 {'command': 17, 'name': '_', 'delay': conf.st_delay},
@@ -168,14 +175,14 @@ class ArmActions(Node):
             3: [
                 # from 60 to 11
                 {'command': 63, 'name': '_', 'delay': conf.st_delay},
-                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+                #{'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
                 {'command': 23, 'name': 'pre_knock_down_fruit', 'delay': 2*conf.st_delay},
                 {'command': 11, 'name': 'search_fruit', 'delay': conf.st_delay},
             ],
             4: [
                 # from 11 to 60
                 {'command': 23, 'name': '_', 'delay': conf.st_delay},
-                {'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
+                #{'command': 10, 'name': 'search_fruit_pre', 'delay': conf.st_delay},
                 {'command': 63, 'name': 'pre_knock_down_fruit', 'delay': conf.st_delay},
                 {'command': 60, 'name': 'search_fruit', 'delay': conf.st_delay},
             ]
