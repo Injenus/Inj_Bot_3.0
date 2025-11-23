@@ -3,12 +3,11 @@ from evdev import InputDevice, ecodes
 import rclpy
 from rclpy.node import Node
 import threading
-from std_msgs.msg import UInt8MultiArray
 from std_msgs.msg import UInt8
-
 import glob
 import errno
 import time
+from collections import deque
 
 
 class KeyboardNode(Node):
@@ -39,6 +38,7 @@ class KeyboardNode(Node):
             ecodes.KEY_N: 'n'
         }
 
+        # буквы → десятки
         self.letter_convert = {
             'd': 10,
             't': 20,
@@ -51,22 +51,28 @@ class KeyboardNode(Node):
             'n': 90
         }
 
-        # Устройство пока не открываем жёстко — пусть read_events сам переподключается
-        self.device = None
-
-        # Состояние клавиш и блокировка для потокобезопасности
+        # текущее множество нажатых (нужно в основном для Esc)
         self.pressed_keys = set()
         self.lock = threading.Lock()
-        self.stop_event = threading.Event()
 
-        # Паблишер команд
+        # очередь уже сформированных команд
+        self.command_queue = deque()
+        self.queue_lock = threading.Lock()
+
+        # текущая "десятка" (последняя нажатая буква)
+        self.current_add = 0
+
+        self.stop_event = threading.Event()
+        self.device = None
+
+        # паблишер
         self.publ_table_pos = self.create_publisher(UInt8, 'servo/lut', 3)
 
-        # Поток для чтения событий клавиатуры
+        # поток чтения клавиатуры
         self.read_thread = threading.Thread(target=self.read_events, daemon=True)
         self.read_thread.start()
 
-        # Таймер для обработки нажатий
+        # таймер обработки очереди команд
         self.timer = self.create_timer(1 / 200.0, self.process_keys)
 
     # -------------------- поиск клавиатуры --------------------
@@ -74,10 +80,10 @@ class KeyboardNode(Node):
     def find_keyboard_device(self):
         """
         Поиск и выбор клавиатуры.
-        Сначала пробуем стабильные пути /dev/input/by-id/*Keyboard*event-kbd,
-        затем — перебор eventX с фильтром по нужным клавишам.
+        Сначала пытаемся /dev/input/by-id/*Keyboard*event-kbd,
+        затем перебираем eventX.
         """
-        # 1. Пытаемся использовать стабильный by-id путь
+        # 1. Стабильные by-id пути
         by_id_paths = glob.glob('/dev/input/by-id/*Keyboard*event-kbd')
         if by_id_paths:
             for path in by_id_paths:
@@ -90,14 +96,13 @@ class KeyboardNode(Node):
                 except Exception as e:
                     self.get_logger().error(f"Не удалось открыть {path}: {e}")
 
-        # 2. Fallback: перебор всех устройств ввода
+        # 2. Перебор всех устройств ввода
         devices = [InputDevice(path) for path in evdev.list_devices()]
 
         self.get_logger().info("\nДоступные устройства ввода:")
         for i, dev in enumerate(devices):
-            print(f"{i+1}. {dev.name} ({dev.path})")
+            print(f"{i + 1}. {dev.name} ({dev.path})")
 
-        # Требуем хотя бы цифры 0–9 и Esc — фильтрует мыши, камеры и т.п.
         required_keys = {
             ecodes.KEY_0, ecodes.KEY_1, ecodes.KEY_2, ecodes.KEY_3, ecodes.KEY_4,
             ecodes.KEY_5, ecodes.KEY_6, ecodes.KEY_7, ecodes.KEY_8, ecodes.KEY_9,
@@ -119,7 +124,45 @@ class KeyboardNode(Node):
 
         return None
 
-    # -------------------- чтение событий с авто-переподключением --------------------
+    # -------------------- обработка одного события клавиши --------------------
+
+    def handle_key_event(self, key_name: str, value: int):
+        """
+        Обработка логики команд по событию KEY_DOWN.
+        value == 1  → нажатие
+        value == 0  → отпускание
+        """
+        # поддерживаем pressed_keys для Esc и общей диагностики
+        if value == 1:
+            self.pressed_keys.add(key_name)
+        elif value == 0:
+            self.pressed_keys.discard(key_name)
+
+        # дальше нас интересуют только нажатия
+        if value != 1:
+            return
+
+        # Esc обрабатывается в process_keys как "мягкое завершение"
+        if key_name == 'Esc':
+            return
+
+        # буква → десятки
+        if key_name in self.letter_convert:
+            self.current_add = self.letter_convert[key_name]
+            return
+
+        # цифра → команда
+        try:
+            digit = int(key_name)
+        except ValueError:
+            return
+
+        cmd = digit + self.current_add
+        with self.queue_lock:
+            self.command_queue.append(cmd)
+        self.get_logger().info(f'Queued command: {cmd}')
+
+    # -------------------- чтение событий с авто-reconnect --------------------
 
     def read_events(self):
         """Читает события клавиатуры в отдельном потоке с авто-reconnect."""
@@ -127,7 +170,7 @@ class KeyboardNode(Node):
         backoff = 1.0
 
         while not self.stop_event.is_set():
-            # Если устройства ещё нет или оно было сброшено — пытаемся найти
+            # если устройства нет — пытаемся найти
             if self.device is None:
                 self.device = self.find_keyboard_device()
                 if self.device is None:
@@ -137,48 +180,38 @@ class KeyboardNode(Node):
                     time.sleep(backoff)
                     backoff = min(backoff * 2.0, 10.0)
                     continue
-                backoff = 1.0  # сброс backoff
+                backoff = 1.0
 
             try:
-                # Основной цикл чтения событий с текущего устройства
                 for event in self.device.read_loop():
                     if self.stop_event.is_set():
                         break
 
                     if event.type == ecodes.EV_KEY:
-                        with self.lock:
-                            key_code = event.code
-                            key_name = None
-
-                            if key_code in self.arm_keys:
-                                key_name = self.arm_keys[key_code]
-
-                            if key_name is not None:
-                                if event.value == 1:      # нажатие
-                                    self.pressed_keys.add(key_name)
-                                elif event.value == 0:    # отпускание
-                                    self.pressed_keys.discard(key_name)
+                        key_code = event.code
+                        if key_code in self.arm_keys:
+                            key_name = self.arm_keys[key_code]
+                            with self.lock:
+                                self.handle_key_event(key_name, event.value)
 
             except OSError as e:
-                # Классический случай: устройство логически исчезло (ENODEV)
                 if e.errno == errno.ENODEV:
                     self.get_logger().error(
-                        f"Устройство ввода исчезло ({e}). Попробую переподключиться…"
+                        f"Устройство ввода исчезло ({e}). Переподключаюсь…"
                     )
                 else:
                     self.get_logger().error(f"Ошибка чтения событий: {e}")
 
-                # Сбрасываем состояние
                 with self.lock:
                     self.pressed_keys.clear()
+                    # current_add и очередь команд НЕ чистим, чтобы уже сформированные команды не терять
 
                 try:
                     self.device.close()
                 except Exception:
                     pass
                 self.device = None
-
-                time.sleep(1.0)
+                time.sleep(0.5)
                 continue
 
             except Exception as e:
@@ -190,59 +223,43 @@ class KeyboardNode(Node):
                 except Exception:
                     pass
                 self.device = None
-                time.sleep(1.0)
+                time.sleep(0.5)
                 continue
 
         self.get_logger().info("Завершение потока чтения клавиатуры")
 
-    # -------------------- обработка клавиш --------------------
+    # -------------------- обработка очереди команд --------------------
 
     def process_keys(self):
-        """Обрабатывает текущее состояние клавиш."""
+        """Обрабатывает очередь готовых команд и Esc."""
         if self.stop_event.is_set():
             return
 
-        # Копируем состояние для минимизации времени блокировки
+        # проверяем Esc по текущему состоянию
         with self.lock:
-            current_keys = self.pressed_keys.copy()
+            esc_pressed = ('Esc' in self.pressed_keys)
 
-        # Завершение работы по Esc
-        if 'Esc' in current_keys:
+        if esc_pressed:
             self.get_logger().info("Escape pressed. Shutting down.")
             self.stop_event.set()
             self.destroy_node()
             rclpy.shutdown()
             return
 
-        data = None
-        add = 0
+        # извлекаем команду из очереди
+        cmd = None
+        with self.queue_lock:
+            if self.command_queue:
+                cmd = self.command_queue.popleft()
 
-        # Сначала ищем букву (десятки)
-        for key in current_keys:
-            if key in self.letter_convert:
-                add = self.letter_convert[key]
-                break
-
-        # Затем ищем цифру (единицы)
-        for key in current_keys:
-            try:
-                key_int = int(key)
-            except ValueError:
-                continue
-
-            data = key_int + add
-            self.get_logger().info(f'Command: {data}')
-            break
-
-        if data is not None:
-            lut_msg = UInt8()
-            lut_msg.data = data
-            self.publ_table_pos.publish(lut_msg)
-            print(data)
+        if cmd is not None:
+            msg = UInt8()
+            msg.data = cmd
+            self.publ_table_pos.publish(msg)
+            print(cmd)
 
     def destroy_node(self):
         self.stop_event.set()
-        # Закрывать self.device напрямую не обязательно — read_events сам её закроет
         super().destroy_node()
 
 
