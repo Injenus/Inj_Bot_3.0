@@ -32,7 +32,7 @@ class DebugKeyboard(Node):
     def __init__(self):
         super().__init__('debug_keyboard')
 
-        self.call_init_publ = self.create_publisher(Int8, 'run_vers_04_25', 42)
+        self.call_init_publ = self.create_publisher(Int8, 'main_run', 42)
         self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 3)
         self.border_publ = self.create_publisher(Int8, 'border_mode', 3)
         self.arm_publ = self.create_publisher(String, 'arm_action', 10)

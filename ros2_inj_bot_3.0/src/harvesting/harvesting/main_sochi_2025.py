@@ -117,10 +117,12 @@ class Coordinator(Node):
         self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 10)
         self.emergency_stop_publ = self.create_publisher(Twist, '/cmd_vel', 100)
         self.cam_state = self.create_publisher(UInt8, 'neural_state', 100)
+        self.prestart_publ = self.create_publisher(Int8, 'room_align_cmd', 10)
         
         self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
         self.classific_subs = self.create_subscription(String, 'img_classif', self.friut_callback, 10)
-        self.call_init = self.create_subscription(UInt8, 'run_vers_04_25', self.init_callback, 42)
+        self.call_init = self.create_subscription(UInt8, 'main_run', self.init_callback, 42)
+        self.prestart_subs = self.create_subscription(Int8, 'room_align_status', self.prestart_callback, 10)
 
         # Разделяемые ресурсы
         self.fruit_classif = {}
@@ -132,12 +134,15 @@ class Coordinator(Node):
         self.was_start, self.was_finish = False, False
         self.time_detect = 0.0
         self.last_fruit_classif = None
+
+        self.prestart_status = 0
         
         # Блокировки  
         self.fruit_lock = Lock()
         self.throw_short_lock = Lock()
         self.init_lock = Lock()
         self.count_blocks_lock = Lock()
+        self.prestart_lock = Lock()
 
         #play_audio('CALGON.wav')
         
@@ -158,7 +163,8 @@ class Coordinator(Node):
                                'move_to_box_short',
                                'start_finish',
                                'arm_actions',
-                               'lut_control'}
+                               'lut_control',
+                               'move_to_start_from_center'}
 
         self.sub = self.create_subscription(String, '/nodes_ready', self.ready_callback, 10)
         self.ready = False
@@ -188,16 +194,21 @@ class Coordinator(Node):
             self.init_command = msg.data
             print(self.init_command)
 
+    def prestart_callback(self, msg):
+        with self.prestart_lock:
+            self.prestart_status = msg.data
+            print('prestart_status', self.prestart_status)
+
     
     def send_start_finish(self, number):
         print(number)
         assert isinstance(number, int)
         msg = Int8(data = number)
         self.start_finish_publ.publish(msg)
-        time.sleep(0.5)
-        self.start_finish_publ.publish(msg)
-        time.sleep(0.5)
-        self.start_finish_publ.publish(msg)
+        # time.sleep(0.5)
+        # self.start_finish_publ.publish(msg)
+        # time.sleep(0.5)
+        # self.start_finish_publ.publish(msg)
         print(msg.data)
 
 
@@ -238,6 +249,15 @@ class Coordinator(Node):
         while thread.running and rclpy.ok():
 
             if not self.was_start:
+                thread.start_child(target_function=lambda t: self.prestart_move(t))
+                with self.prestart_lock:
+                    if self.prestart_status == 1:
+                        write_log(f"\n{get_time()} Prestart success !!! ")
+                    else:
+                        write_log(f"\n{get_time()} Prestart fail !!! ")
+                        thread.stop()
+                        break
+
                 thread.start_child(target_function=lambda t: self.start_move(t))
                 self.was_start = True
                 self.cam_send(1)
@@ -362,27 +382,20 @@ class Coordinator(Node):
 
         thread.start_child(target_function=lambda t: self.throw_fruit(t))
     
+    def prestart_move(self, thread):
+        write_log(f"\n{get_time()} Prestart move !!! ")
+        self.prestart_publ.publish(Int8(data=1))
+        while True:
+            with self.prestart_lock:
+                if self.prestart_status != 0:
+                    break
+            time.sleep(0.5)
 
     def start_move(self, thread):
-        #prestart logic
-        write_log(f"\n{get_time()} Prestart move !!! ")
-        t = time.time()
-        while time.time()- t < 3.0:
-            msg = Twist()
-            msg.linear.x = -0.12 #conf.base_linear_x_speed
-            self.emergency_stop_publ.publish(msg)    
-        for i in range(10):
-            msg2 = Twist()
-            self.emergency_stop_publ.publish(msg2)
-
-
-
-
-
         write_log(f"\n{get_time()} Start move start !!! ")
         #self.send_start_finish(1)
         t = time.time()
-        while time.time()- t < 5.0:
+        while time.time()- t < 0.05:
             msg = Twist()
             msg.linear.x = 0.1 #conf.base_linear_x_speed
             self.emergency_stop_publ.publish(msg)
