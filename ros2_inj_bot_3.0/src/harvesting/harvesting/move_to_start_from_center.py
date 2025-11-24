@@ -15,76 +15,134 @@ matplotlib.use("Agg")  # без GUI
 import matplotlib.pyplot as plt
 
 
-class OneBeamPerpDetector:
+class BeamCornerMinDetector:
     """
-    Однолучевой детектор перпендикуляра.
+    Детектор по одному (усреднённому) переднему лучу d(t).
 
-    Работает по скаляру d(t) — расстояние "вперёд".
+    Геометрия (как ты описал):
+      - сначала расстояние растёт -> мы приближаемся к УГЛУ комнаты (максимум),
+      - потом после угла расстояние падает -> идём к второй стене,
+      - в районе перпендикуляра ко второй стене d(t) достигает МИНИМУМА,
+        после чего перестаёт уверенно убывать и начинает "плато/чуть расти".
 
-    Логика:
-      - На старте запоминаем d0.
-      - Сначала ждём, пока |d - d0| >= leave_threshold -> ушли от старой стены.
-      - После этого ищем ЛОКАЛЬНЫЙ МИНИМУМ:
-          * best_d — наименьшее из увиденных,
-          * как только d > best_d + delta_eps несколько раз подряд
-            (min_increase_samples) — считаем, что минимум пройден -> перпендикуляр.
+    Паттерн:
+      1) уверенный рост (UP),
+      2) уверенное падение (DOWN_AFTER_MAX),
+      3) достаточно длительный участок без падения (s >= 0) -> считаем, что минимум пройден.
+
+    Параметры:
+      delta_eps                — порог по производной (м) для различения роста/падения,
+      min_up_samples           — сколько шагов подряд роста нужно, чтобы считать, что "дошли до угла",
+      min_down_after_max_samples — сколько шагов падения после угла,
+      min_flat_at_min_samples  — сколько шагов "не-убывания" после спада, чтобы признать минимум.
     """
 
     def __init__(self,
-                 leave_threshold,
-                 delta_eps,
-                 min_increase_samples):
-        self.leave_threshold = leave_threshold
+                 delta_eps: float = 0.005,
+                 min_up_samples: int = 3,
+                 min_down_after_max_samples: int = 3,
+                 min_flat_at_min_samples: int = 10):
         self.delta_eps = delta_eps
-        self.min_increase_samples = min_increase_samples
+        self.min_up_samples = min_up_samples
+        self.min_down_after_max_samples = min_down_after_max_samples
+        self.min_flat_at_min_samples = min_flat_at_min_samples
         self.reset()
 
     def reset(self):
-        self.running = False
-        self.initial_d = None
-        self.left_initial = False
-        self.best_d = None
-        self.increase_count = 0
+        self.prev_d = None
+        self.phase = "INIT"          # "INIT" -> "UP" -> "DOWN_AFTER_MAX"
+        self.up_run = 0
+        self.down_run = 0
+        self.flat_run = 0
+        self.active = False
 
-    def start(self, initial_d: float):
-        self.running = True
-        self.initial_d = float(initial_d)
-        self.left_initial = False
-        self.best_d = float('inf')
-        self.increase_count = 0
+    def start(self, d0: float):
+        """Инициализируем детектор перед началом поворота."""
+        self.reset()
+        self.prev_d = float(d0)
+        self.active = True
 
     def update(self, d: float) -> bool:
         """
-        Обновить детектор новым значением d.
-        Возвращает True, когда найден локальный минимум.
+        Передаём очередное значение d.
+        Возвращает True, когда детектор считает, что минимум пройден
+        -> можно останавливать поворот.
         """
-        if not self.running:
+        if not self.active:
             return False
+
         if d is None or math.isnan(d) or math.isinf(d):
             return False
 
-        # Ещё не ушли от начальной стены
-        if not self.left_initial:
-            if abs(d - self.initial_d) >= self.leave_threshold:
-                self.left_initial = True
-                self.best_d = d
+        if self.prev_d is None:
+            self.prev_d = float(d)
             return False
 
-        # Уже ушли от исходного положения -> ищем минимум
-        if d < self.best_d - self.delta_eps:
-            # нашли более глубокий минимум
-            self.best_d = d
-            self.increase_count = 0
-            return False
-        elif d > self.best_d + self.delta_eps:
-            # пошли вверх от минимума
-            self.increase_count += 1
-            if self.increase_count >= self.min_increase_samples:
-                # минимум пройден -> считаем перпендикуляр достигнутым
-                return True
+        delta = float(d) - self.prev_d
+        self.prev_d = float(d)
+
+        # знак "производной"
+        if delta > self.delta_eps:
+            s = 1    # рост
+        elif delta < -self.delta_eps:
+            s = -1   # падение
         else:
-            # в окрестности минимума, но без уверенного роста
-            self.increase_count = 0
+            s = 0    # около плато
+
+        # --- фаза INIT: ищем устойчивый рост (подход к углу) ---
+        if self.phase == "INIT":
+            if s == 1:
+                self.up_run += 1
+                self.down_run = max(0, self.down_run - 1)
+            elif s == -1:
+                self.down_run += 1
+                self.up_run = max(0, self.up_run - 1)
+            else:
+                self.up_run = max(0, self.up_run - 1)
+                self.down_run = max(0, self.down_run - 1)
+
+            # как только получили достаточный рост — переходим в фазу UP
+            if self.up_run >= self.min_up_samples:
+                self.phase = "UP"
+            return False
+
+        # --- фаза UP: всё ещё растём, ждём уверенного спада после угла ---
+        if self.phase == "UP":
+            if s == 1:
+                self.up_run += 1
+                self.down_run = max(0, self.down_run - 1)
+            elif s == -1:
+                self.down_run += 1
+                self.up_run = max(0, self.up_run - 1)
+
+                # достаточно долгий спад -> прошли максимум, теперь спуск к минимуму
+                if self.down_run >= self.min_down_after_max_samples:
+                    self.phase = "DOWN_AFTER_MAX"
+                    self.flat_run = 0
+            else:
+                self.up_run = max(0, self.up_run - 1)
+                self.down_run = max(0, self.down_run - 1)
+
+            return False
+
+        # --- фаза DOWN_AFTER_MAX: спускаемся от угла к минимальной дистанции ---
+        if self.phase == "DOWN_AFTER_MAX":
+            if s == -1:
+                # продолжаем уверенно убывать
+                self.down_run += 1
+                self.flat_run = 0
+            elif s == 0:
+                # производная около нуля -> где-то в районе минимума
+                self.flat_run += 1
+            else:  # s == 1
+                # пошёл уверенный рост после минимума
+                self.flat_run += 1
+
+            # достаточно долго нет убывания -> считаем, что минимум достигнут/пройден
+            if self.flat_run >= self.min_flat_at_min_samples:
+                return True
+
+            return False
 
         return False
 
@@ -93,77 +151,77 @@ class RoomAlignNode(Node):
     """
     4 фазы движения:
 
-    0) IDLE
-    1) ROTATE_CW   — вращение по часовой до перпендикуляра (по однолучевому детектору).
-    2) FORWARD     — движение вперёд до target_front_dist.
-    3) ROTATE_CCW  — вращение против часовой до перпендикуляра.
-    4) BACKWARD    — движение назад до target_back_dist.
-    5) DONE        — завершение, статус 1, возврат в IDLE.
-    6) ERROR       — ошибка, статус 2.
+      0) IDLE
+      1) ROTATE_CW   — поворот по часовой, пока детектор не увидит паттерн "максимум → минимум".
+      2) FORWARD     — езда вперёд до target_front_dist.
+      3) ROTATE_CCW  — поворот против часовой с тем же детектором.
+      4) BACKWARD    — езда назад до target_back_dist.
+      5) DONE        — завершение, статус 1, возврат в IDLE.
+      6) ERROR       — ошибка, статус 2.
 
-    Данные:
+    Входные топики:
       - 'lidar/obstacles' (String, JSON: "angle_deg" -> distance_m, 0° — вперёд),
       - 'room_align_cmd' (UInt8): 0 = сброс, !=0 = запуск.
 
-    Управление:
+    Выход:
       - '/cmd_vel' (Twist),
       - 'room_align_status' (UInt8),
       - '/nodes_ready' (String).
 
-    Логирование:
-      - для каждого состояния отдельный график front_filtered(t):
+    Логи:
+      - для каждого состояния сохраняется график front_filtered(t):
         ~/Inj_Bot_3.0/logs/room_align/<timestamp>/front_<STATE>.jpg
     """
 
     def __init__(self):
         super().__init__('move_to_start_from_center')
 
-        # ------------ Параметры движения ------------
-        self.linear_speed = 0.11                # м/с
-        self.angular_speed = 0.42                # рад/с (по модулю)
+        # --------- Параметры движения ---------
+        self.linear_speed = 0.15    # м/с
+        self.angular_speed = 0.6    # рад/с (минимум, чтобы робот реально крутился)
 
-        self.target_front_dist = 0.30           # цель после подъезда к стене
-        self.target_back_dist = 1.10            # цель после отъезда назад
-        self.distance_tolerance = 0.02          # допуск по расстоянию
+        self.target_front_dist = 0.30
+        self.target_back_dist = 1.10
+        self.distance_tolerance = 0.02
 
-        # ------------ Параметры лидара ------------
-        self.min_valid_range = 0.05             # минимальная валидная дальность
-        self.max_valid_range = 6.0              # максимальная валидная дальность
-        self.lidar_timeout = 0.5                # таймаут данных лидара
+        # --------- Параметры лидара ---------
+        self.min_valid_range = 0.05
+        self.max_valid_range = 6.0
+        self.lidar_timeout = 0.5
 
         # Окно по секторам для "переднего луча"
-        self.front_window_size = 7              # 3, 5 или 7 (нечётное)
+        self.front_window_size = 5  # 3 / 5 / 7 — нечётное
         if self.front_window_size % 2 == 0:
             self.front_window_size += 1
         self.front_window_half = (self.front_window_size - 1) // 2
 
-        # Сглаживание по времени для логов и контроля расстояния
-        self.filter_alpha = 0.4                 # EMA для front_filtered
+        # EMA по времени для front_filtered
+        self.filter_alpha = 0.4
 
-        # Ограничения по времени этапов
-        self.max_rotate_time = 15.0             # макс. время поворота (с)
-        self.max_forward_time = 15.0            # макс. время движения вперёд (с)
-        self.max_backward_time = 20.0           # макс. время движения назад (с)
+        # Лимиты по времени
+        self.max_rotate_time = 20.0
+        self.max_forward_time = 15.0
+        self.max_backward_time = 20.0
 
-        # ------------ Детекторы перпендикуляра ------------
-        self.perp_leave_threshold = 0.02        # сколько уйти от d0, чтобы начать искать новый минимум
-        self.perp_delta_eps = 0.005             # порог различимости по расстоянию (м)
-        self.perp_min_increase_samples = 40      # сколько шагов роста после минимума
+        # --------- Детекторы перпендикуляра ---------
+        self.perp_min_increase_samples = 10 
 
-        self.detector_cw = OneBeamPerpDetector(
-            leave_threshold=self.perp_leave_threshold,
-            delta_eps=self.perp_delta_eps,
-            min_increase_samples=self.perp_min_increase_samples
+        self.detector_cw = BeamCornerMinDetector(
+            delta_eps=0.005,
+            min_up_samples=3,
+            min_down_after_max_samples=3,
+            min_flat_at_min_samples=self.perp_min_increase_samples
         )
-        self.detector_ccw = OneBeamPerpDetector(
-            leave_threshold=self.perp_leave_threshold,
-            delta_eps=self.perp_delta_eps,
-            min_increase_samples=self.perp_min_increase_samples
+        self.detector_ccw = BeamCornerMinDetector(
+            delta_eps=0.005,
+            min_up_samples=3,
+            min_down_after_max_samples=3,
+            min_flat_at_min_samples=self.perp_min_increase_samples
         )
         self.detector_cw_started = False
         self.detector_ccw_started = False
 
-        # ------------ Машина состояний ------------
+        # --------- Машина состояний ---------
         self.STATE_IDLE        = 0
         self.STATE_ROTATE_CW   = 1
         self.STATE_FORWARD     = 2
@@ -186,23 +244,22 @@ class RoomAlignNode(Node):
         self.state_start_time = time.time()
         self.last_loop_time = time.time()
 
-        # ------------ Данные лидара ------------
-        self.current_obstacles = {}             # {angle_deg: distance}
+        # --------- Данные лидара ---------
+        self.current_obstacles = {}    # {angle_deg: distance}
         self.last_lidar_time = 0.0
+        self.last_front_spatial = None  # усреднённый по секторам "передний" луч
+        self.front_filtered = None      # EMA по времени (для логов и контролей дистанции)
 
-        self.last_front_spatial = None          # усреднённый по секторам передний луч (без EMA)
-        self.front_filtered = None              # EMA по времени для логов/контроля
-
-        # ------------ Логи / графики ------------
+        # --------- Логи / графики ---------
         self.log_base_dir = os.path.expanduser('~/Inj_Bot_3.0/logs/room_align')
         os.makedirs(self.log_base_dir, exist_ok=True)
 
         self.run_active = False
         self.run_dir = None
         self.global_start_time = None
-        self.phase_logs = {}                    # {state_name: {'t': [], 'front': []}}
+        self.phase_logs = {}  # {state_name: {'t': [], 'front': []}}
 
-        # ------------ ROS интерфейсы ------------
+        # --------- ROS-интерфейсы ---------
         self.lidar_sub = self.create_subscription(
             String,
             'lidar/obstacles',
@@ -229,15 +286,16 @@ class RoomAlignNode(Node):
             10
         )
 
-        self.dt_nominal = 0.01
+        # 50 Гц
+        self.dt_nominal = 0.02
         self.timer = self.create_timer(self.dt_nominal, self.main_loop)
 
         self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
         self.ready_pub.publish(String(data=self.get_name()))
 
-        self.get_logger().info("RoomAlignNode (one-beam) initialized (IDLE)")
+        self.get_logger().info("RoomAlignNode (one-beam corner→min) initialized (IDLE)")
 
-    # ------------ Вспомогательные методы ------------
+    # ------------------- Служебные методы -------------------
 
     def set_state(self, new_state: int):
         if new_state not in self.state_names:
@@ -269,7 +327,7 @@ class RoomAlignNode(Node):
         msg.data = int(code)
         self.status_pub.publish(msg)
 
-    # ------------ Логирование и графики ------------
+    # ------------------- Логирование -------------------
 
     def prepare_new_run_logging(self):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -317,6 +375,7 @@ class RoomAlignNode(Node):
                 filename = os.path.join(self.run_dir, f'front_{state_name}.jpg')
                 plt.savefig(filename, dpi=150)
                 plt.close()
+
                 self.get_logger().info(f"Saved plot for state {state_name}: {filename}")
             except Exception as e:
                 self.get_logger().error(f"Failed to save plot for {state_name}: {e}")
@@ -330,12 +389,12 @@ class RoomAlignNode(Node):
         self.publish_status(1 if success else 2)
         self.save_plots()
 
-    # ------------ Обработка сообщений ------------
+    # ------------------- Callbacks -------------------
 
     def lidar_callback(self, msg: String):
         """
         Принимаем JSON: { "angle_deg": distance_m, ... }.
-        Сохраняем как self.current_obstacles без обработки 0° здесь.
+        Сохраняем как self.current_obstacles.
         """
         try:
             data = json.loads(msg.data)
@@ -403,25 +462,21 @@ class RoomAlignNode(Node):
         self.prepare_new_run_logging()
         self.set_state(self.STATE_ROTATE_CW)
 
-    # ------------ Передний луч (усреднение по секторам) ------------
+    # ------------------- Передний луч (по секторам) -------------------
 
     def compute_front_distance_windowed(self):
         """
-        Возвращает расстояние "вперёд" как среднее
-        по front_window_size соседним секторам вокруг 0°.
-
-        Берём сектор, угол которого ближе всего к 0° по кругу,
-        и несколько соседних по ИНДЕКСУ (не по самому значению угла).
+        Берём "передний луч" как среднее по front_window_size соседним секторам
+        вокруг угла, который ближе всего к 0° (по кругу).
         """
         obstacles = self.current_obstacles
         if not obstacles:
             return None
 
-        keys = sorted(obstacles.keys())  # например, [0, 10, 20, ..., 350]
+        keys = sorted(obstacles.keys())
         if not keys:
             return None
 
-        # функция "насколько близко к 0°" по кругу
         def circular_abs(a: int) -> float:
             a_norm = ((a + 180) % 360) - 180
             return abs(a_norm)
@@ -446,7 +501,7 @@ class RoomAlignNode(Node):
 
         return float(sum(values) / len(values))
 
-    # ------------ Основной цикл ------------
+    # ------------------- Главный цикл -------------------
 
     def main_loop(self):
         now = time.time()
@@ -455,7 +510,7 @@ class RoomAlignNode(Node):
             dt = self.dt_nominal
         self.last_loop_time = now
 
-        # Обновляем передний луч и EMA
+        # обновляем передний луч и EMA
         front_spatial = self.compute_front_distance_windowed()
         if front_spatial is not None:
             self.last_front_spatial = front_spatial
@@ -467,10 +522,10 @@ class RoomAlignNode(Node):
                     (1.0 - self.filter_alpha) * self.front_filtered
                 )
 
-        # Логируем front_filtered
+        # лог front_filtered
         self.log_front_distance(now)
 
-        # Контроль таймаута лидара в активных фазах
+        # проверка таймаута лидара в активных фазах
         if self.state in [self.STATE_ROTATE_CW, self.STATE_FORWARD,
                           self.STATE_ROTATE_CCW, self.STATE_BACKWARD]:
             if not self.lidar_is_fresh():
@@ -501,11 +556,11 @@ class RoomAlignNode(Node):
         elif self.state == self.STATE_ERROR:
             self.publish_twist(0.0, 0.0)
 
-    # ------------ Этапы движения ------------
+    # ------------------- Этапы движения -------------------
 
     def step_rotate_cw(self):
         """
-        ФАЗА 1: Поворот ПО ЧАСОВОЙ до перпендикуляра по однолучевому детектору.
+        ФАЗА 1: поворот ПО ЧАСОВОЙ до паттерна "максимум → минимум" по d_front.
         """
         elapsed = time.time() - self.state_start_time
         if elapsed > self.max_rotate_time:
@@ -516,7 +571,7 @@ class RoomAlignNode(Node):
 
         d = self.last_front_spatial
         if d is None:
-            # нет дистанции — крутимся в надежде, что данные появятся
+            # нет данных — просто крутимся, надеясь, что появятся
             self.publish_twist(0.0, -self.angular_speed)
             return
 
@@ -531,12 +586,12 @@ class RoomAlignNode(Node):
             self.set_state(self.STATE_FORWARD)
             return
 
-        # продолжаем крутиться ПО ЧАСОВОЙ
+        # продолжаем крутиться по часовой
         self.publish_twist(0.0, -self.angular_speed)
 
     def step_forward(self):
         """
-        ФАЗА 2: Движение вперёд до target_front_dist.
+        ФАЗА 2: движение вперёд до target_front_dist.
         """
         elapsed = time.time() - self.state_start_time
         if elapsed > self.max_forward_time:
@@ -556,7 +611,7 @@ class RoomAlignNode(Node):
         if d > (target + tol):
             lin_x = self.linear_speed
         elif d < (target - tol):
-            lin_x = -self.linear_speed * 0.5  # чуть отъехать, если переехали
+            lin_x = -self.linear_speed * 0.5  # если слишком близко — чуть отъезжаем
         else:
             self.publish_twist(0.0, 0.0)
             self.get_logger().info(f"FORWARD finished: d_front = {d:.3f} m")
@@ -567,7 +622,8 @@ class RoomAlignNode(Node):
 
     def step_rotate_ccw(self):
         """
-        ФАЗА 3: Поворот ПРОТИВ ЧАСОВОЙ до перпендикуляра по однолучевому детектору.
+        ФАЗА 3: поворот ПРОТИВ ЧАСОВОЙ до паттерна "максимум → минимум" по d_front.
+        Логика детектора идентична CW — он смотрит только на форму d(t).
         """
         elapsed = time.time() - self.state_start_time
         if elapsed > self.max_rotate_time:
@@ -592,12 +648,12 @@ class RoomAlignNode(Node):
             self.set_state(self.STATE_BACKWARD)
             return
 
-        # продолжаем крутиться ПРОТИВ ЧАСОВОЙ
+        # продолжаем крутиться ПРОТИВ часовой
         self.publish_twist(0.0, self.angular_speed)
 
     def step_backward(self):
         """
-        ФАЗА 4: Движение назад до target_back_dist.
+        ФАЗА 4: движение назад до target_back_dist.
         """
         elapsed = time.time() - self.state_start_time
         if elapsed > self.max_backward_time:
