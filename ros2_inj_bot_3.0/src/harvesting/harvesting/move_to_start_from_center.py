@@ -49,16 +49,20 @@ class MaxMinDetector:
         self.max_stable = 0
         self.min_stable = 0
 
-    def update(self, d: float) -> bool:
+    def update(self, d: float) -> str:
         """
         Обновление детектора.
-        Возвращает True в момент, когда, по нашему мнению, был пройден минимум.
+
+        Возвращает:
+          "none"      — ничего не произошло;
+          "max_done"  — устойчивый максимум выявлен (переход в фазу DOWN);
+          "min_done"  — устойчивый минимум выявлен (детектор закончил работу).
         """
         if not self.active:
-            return False
+            return "none"
 
         if d is None or math.isnan(d) or math.isinf(d):
-            return False
+            return "none"
 
         d = float(d)
 
@@ -76,7 +80,9 @@ class MaxMinDetector:
                 self.stage = "DOWN"
                 self.current_min = d
                 self.min_stable = 0
-            return False
+                return "max_done"
+
+            return "none"
 
         elif self.stage == "DOWN":
             # Фаза падения: обновляем минимум, пока видим новые значения.
@@ -90,11 +96,11 @@ class MaxMinDetector:
             if self.min_stable >= self.stable_samples:
                 self.stage = "FINISHED"
                 self.active = False
-                return True
+                return "min_done"
 
-            return False
+            return "none"
 
-        return False
+        return "none"
 
 
 class RoomAlignNode(Node):
@@ -121,6 +127,12 @@ class RoomAlignNode(Node):
     Логи:
       - для каждого состояния свой график front_filtered(t):
         ~/Inj_Bot_3.0/logs/room_align/<timestamp>/front_<STATE>.jpg
+
+      На графиках для ROTATE_CW/ROTATE_CCW дополнительно:
+        - зелёные пунктирные вертикальные линии — моменты, когда детектор
+          решил, что максимум пройден;
+        - красные сплошные вертикальные линии — моменты, когда детектор
+          решил, что минимум пройден (точка остановки поворота).
     """
 
     def __init__(self):
@@ -128,7 +140,7 @@ class RoomAlignNode(Node):
 
         # --------- Параметры движения ---------
         self.linear_speed = 0.15    # м/с
-        self.angular_speed = 0.6    # рад/с (по модулю; >0.6 как ты просил минимум)
+        self.angular_speed = 0.6    # рад/с
 
         self.target_front_dist = 0.30
         self.target_back_dist = 1.10
@@ -197,6 +209,13 @@ class RoomAlignNode(Node):
         self.run_dir = None
         self.global_start_time = None
         self.phase_logs = {}  # {state_name: {'t': [], 'front': []}}
+
+        # временные метки событий max/min для поворотов
+        # время — относительно global_start_time
+        self.rotate_events = {
+            self.STATE_ROTATE_CW:   {'max': [], 'min': []},
+            self.STATE_ROTATE_CCW:  {'max': [], 'min': []},
+        }
 
         # --------- ROS-интерфейсы ---------
         self.lidar_sub = self.create_subscription(
@@ -278,6 +297,12 @@ class RoomAlignNode(Node):
         for name in self.state_names.values():
             self.phase_logs[name] = {'t': [], 'front': []}
 
+        # обнуляем события поворотов
+        self.rotate_events = {
+            self.STATE_ROTATE_CW:   {'max': [], 'min': []},
+            self.STATE_ROTATE_CCW:  {'max': [], 'min': []},
+        }
+
         self.run_active = True
         self.get_logger().info(f"Logging for run in '{self.run_dir}'")
 
@@ -310,6 +335,26 @@ class RoomAlignNode(Node):
                 plt.ylabel('front distance, m')
                 plt.title(f'RoomAlign: {state_name}')
                 plt.grid(True)
+
+                # Отрисовка вертикальных линий событий для фаз поворота
+                if state_name == self.state_names[self.STATE_ROTATE_CW]:
+                    ev = self.rotate_events[self.STATE_ROTATE_CW]
+                    # max — зелёные пунктирные
+                    if ev['max']:
+                        for x in ev['max']:
+                            plt.axvline(x=x, linestyle='--', linewidth=1.2)
+                    # min — красные сплошные
+                    if ev['min']:
+                        for x in ev['min']:
+                            plt.axvline(x=x, linewidth=1.5)
+                elif state_name == self.state_names[self.STATE_ROTATE_CCW]:
+                    ev = self.rotate_events[self.STATE_ROTATE_CCW]
+                    if ev['max']:
+                        for x in ev['max']:
+                            plt.axvline(x=x, linestyle='--', linewidth=1.2)
+                    if ev['min']:
+                        for x in ev['min']:
+                            plt.axvline(x=x, linewidth=1.5)
 
                 filename = os.path.join(self.run_dir, f'front_{state_name}.jpg')
                 plt.savefig(filename, dpi=150)
@@ -477,16 +522,16 @@ class RoomAlignNode(Node):
             self.publish_twist(0.0, 0.0)
 
         elif self.state == self.STATE_ROTATE_CW:
-            self.step_rotate_cw()
+            self.step_rotate_cw(now)
 
         elif self.state == self.STATE_FORWARD:
-            self.step_forward()
+            self.step_forward(now)
 
         elif self.state == self.STATE_ROTATE_CCW:
-            self.step_rotate_ccw()
+            self.step_rotate_ccw(now)
 
         elif self.state == self.STATE_BACKWARD:
-            self.step_backward()
+            self.step_backward(now)
 
         elif self.state == self.STATE_DONE:
             self.finish_run(True)
@@ -497,7 +542,7 @@ class RoomAlignNode(Node):
 
     # ------------------- Этапы движения -------------------
 
-    def step_rotate_cw(self):
+    def step_rotate_cw(self, now: float):
         """
         ФАЗА 1: поворот ПО ЧАСОВОЙ.
         Останавливаемся по детектору max→min на front_filtered.
@@ -519,15 +564,32 @@ class RoomAlignNode(Node):
             self.detector_cw_started = True
             self.get_logger().info(f"ROTATE_CW detector started at d0={d:.3f} m")
 
-        if self.detector_cw.update(d):
+        event = self.detector_cw.update(d)
+
+        if self.global_start_time is not None:
+            t_rel = now - self.global_start_time
+        else:
+            t_rel = 0.0
+
+        if event == "max_done":
+            self.rotate_events[self.STATE_ROTATE_CW]['max'].append(t_rel)
+            self.get_logger().info(
+                f"ROTATE_CW: MAX confirmed at t={t_rel:.2f}s, d={d:.3f} m"
+            )
+
+        if event == "min_done":
+            self.rotate_events[self.STATE_ROTATE_CW]['min'].append(t_rel)
             self.publish_twist(0.0, 0.0)
-            self.get_logger().info(f"Perpendicular (CW) at d_front={d:.3f} m")
+            self.get_logger().info(
+                f"ROTATE_CW: MIN confirmed (perpendicular) at t={t_rel:.2f}s, d={d:.3f} m"
+            )
             self.set_state(self.STATE_FORWARD)
             return
 
+        # продолжаем крутиться по часовой
         self.publish_twist(0.0, -self.angular_speed)
 
-    def step_forward(self):
+    def step_forward(self, now: float):
         """
         ФАЗА 2: движение вперёд до target_front_dist по front_filtered.
         """
@@ -558,7 +620,7 @@ class RoomAlignNode(Node):
 
         self.publish_twist(lin_x, 0.0)
 
-    def step_rotate_ccw(self):
+    def step_rotate_ccw(self, now: float):
         """
         ФАЗА 3: поворот ПРОТИВ ЧАСОВОЙ.
         Останавливаемся по детектору max→min на front_filtered.
@@ -580,15 +642,31 @@ class RoomAlignNode(Node):
             self.detector_ccw_started = True
             self.get_logger().info(f"ROTATE_CCW detector started at d0={d:.3f} m")
 
-        if self.detector_ccw.update(d):
+        event = self.detector_ccw.update(d)
+
+        if self.global_start_time is not None:
+            t_rel = now - self.global_start_time
+        else:
+            t_rel = 0.0
+
+        if event == "max_done":
+            self.rotate_events[self.STATE_ROTATE_CCW]['max'].append(t_rel)
+            self.get_logger().info(
+                f"ROTATE_CCW: MAX confirmed at t={t_rel:.2f}s, d={d:.3f} m"
+            )
+
+        if event == "min_done":
+            self.rotate_events[self.STATE_ROTATE_CCW]['min'].append(t_rel)
             self.publish_twist(0.0, 0.0)
-            self.get_logger().info(f"Perpendicular (CCW) at d_front={d:.3f} m")
+            self.get_logger().info(
+                f"ROTATE_CCW: MIN confirmed (perpendicular) at t={t_rel:.2f}s, d={d:.3f} m"
+            )
             self.set_state(self.STATE_BACKWARD)
             return
 
         self.publish_twist(0.0, self.angular_speed)
 
-    def step_backward(self):
+    def step_backward(self, now: float):
         """
         ФАЗА 4: движение назад до target_back_dist по front_filtered.
         """
