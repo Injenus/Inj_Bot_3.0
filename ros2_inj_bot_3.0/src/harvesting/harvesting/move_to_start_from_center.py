@@ -154,7 +154,7 @@ class RoomAlignNode(Node):
         self.max_backward_time = 20.0
 
         # --------- Детекторы max→min ---------
-        self.perp_stable_samples = 10  # сколько раз подряд без нового max/min
+        self.perp_stable_samples = 50  # сколько раз подряд без нового max/min
         self.detector_cw = MaxMinDetector(stable_samples=self.perp_stable_samples)
         self.detector_ccw = MaxMinDetector(stable_samples=self.perp_stable_samples)
         self.detector_cw_started = False
