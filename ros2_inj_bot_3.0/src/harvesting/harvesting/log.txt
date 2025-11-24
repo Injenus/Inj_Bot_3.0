@@ -106,3 +106,18 @@
 06:05:20 Start..
 06:05:20 Prestart move !!! 
 06:05:33 Prestart fail !!! 
+
+
+06:45:41 Start..
+06:45:41 Prestart move !!! 
+06:45:54 Prestart fail !!! 
+
+
+06:51:20 Start..
+06:51:20 Prestart move !!! 
+06:51:35 Prestart fail !!! 
+
+
+06:53:12 Start..
+06:53:12 Prestart move !!! 
+06:53:43 Prestart fail !!! 

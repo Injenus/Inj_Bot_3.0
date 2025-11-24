@@ -46,7 +46,7 @@ class RoomAlignNode(Node):
 
         # --- Параметры движения и геометрии ---
         self.linear_speed = 0.1              # м/с
-        self.angular_speed_max = 0.4          # рад/с (максимальная угловая скорость)
+        self.angular_speed_max = 3.0        # рад/с (максимальная угловая скорость)
         self.angular_kp = 1.5                 # коэффициент P-регулятора по углу
 
         self.target_front_dist = 0.30         # цель: расстояние спереди после подъезда к стене
@@ -57,18 +57,18 @@ class RoomAlignNode(Node):
         self.max_valid_range = 6.0            # максимальная валидная дальность для контроля
         self.max_fit_range = 4.0              # максимально используемое расстояние для оценки ориентации
 
-        self.front_fov_deg = 30.0             # половина сектора перед роботом, где ищем стену
-        self.min_points_for_fit = 5           # минимальное число точек для PCA
+        self.front_fov_deg = 40.0             # половина сектора перед роботом, где ищем стену
+        self.min_points_for_fit = 4           # минимальное число точек для PCA
         self.max_line_rms = 0.15              # максимально допустимое RMS-отклонение точек от найденной линии (м)
         self.angle_tolerance_rad = math.radians(2.0)  # точность выравнивания по углу (≈2°)
 
         self.filter_alpha = 0.3               # сглаживание расстояния спереди (EMA)
-        self.lidar_timeout = 5.0              # таймаут данных лидара (с)
+        self.lidar_timeout = 1.0              # таймаут данных лидара (с)
 
         # Ограничения по времени этапов (с)
-        self.max_align_time = 12.0
-        self.max_forward_time = 10.0
-        self.max_backward_time = 12.0
+        self.max_align_time = 15.0
+        self.max_forward_time = 15.0
+        self.max_backward_time = 15.0
 
         # --- Состояния машины ---
         self.STATE_IDLE = 0
@@ -480,7 +480,7 @@ class RoomAlignNode(Node):
 
         if angle_error is None:
             # Пока ориентация не оценена, медленно крутимся, чтобы собрать больше точек.
-            self.publish_twist(0.0, 0.2)
+            self.publish_twist(0.0, -0.9)
             return
 
         if abs(angle_error) < self.angle_tolerance_rad:
