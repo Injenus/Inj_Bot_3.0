@@ -72,7 +72,7 @@ class PerpendicularDetector:
 
 class RoomAlignNode(Node):
     def __init__(self):
-        super().__init__('room_align_node')
+        super().__init__('move_to_start_from_center')
 
         # --- Параметры движения / фильтра ---
         self.linear_speed = 0.15
@@ -99,7 +99,7 @@ class RoomAlignNode(Node):
         self.front_raw = None
         self.front_filtered = None
         self.last_lidar_time = 0.0
-        self.lidar_timeout = 0.5
+        self.lidar_timeout = 5.5
 
         # --- машина состояний ---
         self.STATE_IDLE = 0

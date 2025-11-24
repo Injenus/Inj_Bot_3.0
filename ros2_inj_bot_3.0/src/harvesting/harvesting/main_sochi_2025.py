@@ -1,6 +1,9 @@
 
 
 import rclpy
+from rclpy.signals import SignalHandlerOptions
+from rclpy.executors import SingleThreadedExecutor
+import signal
 from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import UInt8
@@ -117,12 +120,12 @@ class Coordinator(Node):
         self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 10)
         self.emergency_stop_publ = self.create_publisher(Twist, '/cmd_vel', 100)
         self.cam_state = self.create_publisher(UInt8, 'neural_state', 100)
-        self.prestart_publ = self.create_publisher(Int8, 'room_align_cmd', 10)
+        self.prestart_publ = self.create_publisher(UInt8, 'room_align_cmd', 10)
         
         self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
         self.classific_subs = self.create_subscription(String, 'img_classif', self.friut_callback, 10)
         self.call_init = self.create_subscription(UInt8, 'main_run', self.init_callback, 42)
-        self.prestart_subs = self.create_subscription(Int8, 'room_align_status', self.prestart_callback, 10)
+        self.prestart_subs = self.create_subscription(UInt8, 'room_align_status', self.prestart_callback, 10)
 
         # Разделяемые ресурсы
         self.fruit_classif = {}
@@ -178,7 +181,7 @@ class Coordinator(Node):
         self.get_logger().info(f'Node {node_name} is ready.')
         self.ready_nodes.add(node_name)
 
-        if len(self.ready_nodes) >= len(self.expected_nodes) - 3:
+        if len(self.ready_nodes) >= len(self.expected_nodes):
             self.get_logger().info('All nodes are ready!')
             self.ready = True       
 
@@ -240,11 +243,6 @@ class Coordinator(Node):
         while not self.ready and False:
             time.sleep(1.0)
             self.get_logger().info(f'Waiting for Nodes ...')
-
-        # while True:
-        #         with self.init_lock:
-        #             if self.init_command == 1:
-        #                 break
                     
         while thread.running and rclpy.ok():
 
@@ -299,6 +297,7 @@ class Coordinator(Node):
                         #thread.paused.wait()
                         self.was_finish = True
                         self.arm_default()
+                        time.sleep(3)
                         thread.stop()
                         break
 
@@ -330,13 +329,15 @@ class Coordinator(Node):
             pass
     
     def arm_default(self):
+        return
         write_log(log_string = f"\n{get_time()} Start Arm Def!!! ")
         self.send_arm_action('default')
         write_log(f"\n{get_time()} start sleep.. default")
-        time.sleep(conf.st_delay * 5)
+        #time.sleep(conf.st_delay * 5)
         write_log(f"\n{get_time()} finish sleep.. default")
     
     def arm_init(self):
+        return
         write_log(log_string = f"\n{get_time()} Start Arm Init!!! ")
         self.send_arm_action('init')
         write_log(f"\n{get_time()} start sleep.. init")
@@ -403,7 +404,7 @@ class Coordinator(Node):
     
     def prestart_move(self, thread):
         write_log(f"\n{get_time()} Prestart move !!! ")
-        self.prestart_publ.publish(Int8(data=1))
+        self.prestart_publ.publish(UInt8(data=1))
         while True:
             with self.prestart_lock:
                 if self.prestart_status != 0:
@@ -444,13 +445,30 @@ class Coordinator(Node):
 
 
 def main(args=None):
-    rclpy.init(args=args)
+    # ВАЖНО: отключаем внутренние обработчики сигнала в rclpy
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
+
     node = Coordinator()
     node.main_thread.start()
-    rclpy.spin(node)
-    node.main_thread.stop()
-    node.destroy_node()
-    rclpy.shutdown()
 
+    executor = SingleThreadedExecutor()
+    executor.add_node(node)
+
+    try:
+        # Сами крутим executor, чтобы KeyboardInterrupt ловился тут
+        while rclpy.ok():
+            executor.spin_once(timeout_sec=0.1)
+    except KeyboardInterrupt:
+        node.get_logger().info("Ctrl+C caught, calling arm_default()")
+        try:
+            node.arm_default()      # тут ещё живой контекст → publish можно
+            time.sleep(3)          # даём манипулятору доехать
+            node.main_thread.stop()
+        except Exception as e:
+            node.get_logger().error(f"Error in shutdown arm_default: {e}")
+    finally:
+        executor.shutdown()
+        node.destroy_node()
+        rclpy.shutdown()
 if __name__ == '__main__':
     main()
