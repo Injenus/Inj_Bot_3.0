@@ -192,3 +192,85 @@
 
 18:07:03 Start..
 18:07:03 Prestart move !!! 
+
+
+18:17:25 Start..
+18:17:25 Prestart move !!! 
+
+
+18:17:37 Start..
+18:17:37 Prestart move !!! 
+18:17:55 Prestart success !!! 
+
+
+18:19:26 Start..
+18:19:26 Prestart move !!! 
+18:19:44 Prestart success !!! 
+
+
+18:20:59 Start..
+18:20:59 Prestart move !!! 
+18:21:19 Prestart success !!! 
+
+
+18:21:58 Start..
+18:21:58 Prestart move !!! 
+
+
+18:24:04 Start..
+18:24:04 Prestart move !!! 
+
+
+18:24:15 Start..
+18:24:15 Prestart move !!! 
+
+
+18:26:46 Start..
+18:26:46 Prestart move !!! 
+
+
+18:26:58 Start..
+18:26:58 Prestart move !!! 
+18:27:18 Prestart fail !!! 
+
+
+18:29:02 Start..
+18:29:02 Prestart move !!! 
+
+
+18:29:23 Start..
+18:29:23 Prestart move !!! 
+
+
+18:29:40 Start..
+18:29:41 Prestart move !!! 
+
+
+18:30:48 Start..
+18:30:48 Prestart move !!! 
+
+
+18:30:57 Start..
+18:30:57 Prestart move !!! 
+
+
+18:32:07 Start..
+18:32:07 Prestart move !!! 
+
+
+18:32:21 Start..
+18:32:21 Prestart move !!! 
+18:32:32 Prestart fail !!! 
+
+
+18:34:03 Start..
+18:34:03 Prestart move !!! 
+
+
+18:34:14 Start..
+18:34:14 Prestart move !!! 
+
+
+18:35:20 Start..
+18:35:20 Prestart move !!! 
+18:35:31 Prestart fail !!! 

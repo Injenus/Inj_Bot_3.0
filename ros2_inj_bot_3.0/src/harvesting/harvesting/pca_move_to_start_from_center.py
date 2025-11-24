@@ -54,7 +54,7 @@ class RoomAlignNode(Node):
         # ---------------- Параметры движения ----------------
         self.linear_speed = 0.11               # м/с
         self.angular_speed = 0.6               # рад/с (по модулю, минимум чтобы реально крутился)
-        self.angular_corr_max = 0.5            # макс. угловая коррекция при езде
+        self.angular_corr_max = 0.5           # макс. угловая коррекция при езде
 
         self.target_front_dist = 0.30          # цель: передняя дистанция после FORWARD
         self.target_back_dist = 1.10           # цель: передняя дистанция после BACKWARD
@@ -65,12 +65,12 @@ class RoomAlignNode(Node):
         self.max_valid_range = 6.0             # макс. валидное расстояние для фильтра
         self.max_fit_range = 4.0               # макс. расстояние точек для оценки стены
 
-        self.front_fov_deg = 60.0              # половина фронтального сектора для PCA
-        self.min_points_for_fit = 8            # минимум точек для PCA
+        self.front_fov_deg = 30.0              # половина фронтального сектора для PCA
+        self.min_points_for_fit = 6            # минимум точек для PCA
         self.max_line_rms = 0.2               # макс. RMS отклонение точек от линии (м)
 
         # точность перпендикуляра
-        self.angle_tolerance_rad = math.radians(3.0)    # |θ| ≤ 3° считаем перпендикуляром
+        self.angle_tolerance_rad = math.radians(25.0)    # |θ| ≤ 3° считаем перпендикуляром
         # сколько надо уйти от начальной ориентации, чтобы "разрешить" ловить новый перпендикуляр
         self.angle_arming_min_rad = math.radians(30.0)  # ≈ 20°
 
@@ -78,9 +78,9 @@ class RoomAlignNode(Node):
         self.filter_alpha = 0.3                # EMA для front_filtered
         self.lidar_timeout = 0.5               # таймаут лидара (с)
 
-        self.max_rotate_time = 20.0            # макс. время каждого поворота (с)
-        self.max_forward_time = 15.0           # макс. время движения вперёд (с)
-        self.max_backward_time = 20.0          # макс. время движения назад (с)
+        self.max_rotate_time = 10.0            # макс. время каждого поворота (с)
+        self.max_forward_time = 10.0           # макс. время движения вперёд (с)
+        self.max_backward_time = 15.0          # макс. время движения назад (с)
 
         # ---------------- Машина состояний ----------------
         self.STATE_IDLE        = 0
@@ -152,7 +152,7 @@ class RoomAlignNode(Node):
             10
         )
 
-        self.dt_nominal = 0.05
+        self.dt_nominal = 0.01
         self.timer = self.create_timer(self.dt_nominal, self.main_loop)
         self.last_loop_time = time.time()
 
