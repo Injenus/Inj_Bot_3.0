@@ -31,9 +31,9 @@ class OneBeamPerpDetector:
     """
 
     def __init__(self,
-                 leave_threshold: float = 0.08,
-                 delta_eps: float = 0.005,
-                 min_increase_samples: int = 4):
+                 leave_threshold,
+                 delta_eps,
+                 min_increase_samples):
         self.leave_threshold = leave_threshold
         self.delta_eps = delta_eps
         self.min_increase_samples = min_increase_samples
@@ -119,8 +119,8 @@ class RoomAlignNode(Node):
         super().__init__('move_to_start_from_center')
 
         # ------------ Параметры движения ------------
-        self.linear_speed = 0.15                # м/с
-        self.angular_speed = 0.6                # рад/с (по модулю)
+        self.linear_speed = 0.11                # м/с
+        self.angular_speed = 0.42                # рад/с (по модулю)
 
         self.target_front_dist = 0.30           # цель после подъезда к стене
         self.target_back_dist = 1.10            # цель после отъезда назад
@@ -132,7 +132,7 @@ class RoomAlignNode(Node):
         self.lidar_timeout = 0.5                # таймаут данных лидара
 
         # Окно по секторам для "переднего луча"
-        self.front_window_size = 3              # 3, 5 или 7 (нечётное)
+        self.front_window_size = 7              # 3, 5 или 7 (нечётное)
         if self.front_window_size % 2 == 0:
             self.front_window_size += 1
         self.front_window_half = (self.front_window_size - 1) // 2
@@ -141,14 +141,14 @@ class RoomAlignNode(Node):
         self.filter_alpha = 0.4                 # EMA для front_filtered
 
         # Ограничения по времени этапов
-        self.max_rotate_time = 10.0             # макс. время поворота (с)
+        self.max_rotate_time = 15.0             # макс. время поворота (с)
         self.max_forward_time = 15.0            # макс. время движения вперёд (с)
         self.max_backward_time = 20.0           # макс. время движения назад (с)
 
         # ------------ Детекторы перпендикуляра ------------
-        self.perp_leave_threshold = 0.08        # сколько уйти от d0, чтобы начать искать новый минимум
+        self.perp_leave_threshold = 0.02        # сколько уйти от d0, чтобы начать искать новый минимум
         self.perp_delta_eps = 0.005             # порог различимости по расстоянию (м)
-        self.perp_min_increase_samples = 4      # сколько шагов роста после минимума
+        self.perp_min_increase_samples = 40      # сколько шагов роста после минимума
 
         self.detector_cw = OneBeamPerpDetector(
             leave_threshold=self.perp_leave_threshold,
