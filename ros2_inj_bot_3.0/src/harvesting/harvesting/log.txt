@@ -134,3 +134,12 @@
 16:10:01 Start..
 16:10:01 Prestart move !!! 
 16:10:08 Prestart success !!! 
+
+
+16:33:05 Start..
+16:33:05 Prestart move !!! 
+
+
+16:33:17 Start..
+16:33:18 Prestart move !!! 
+16:33:32 Prestart success !!! 
