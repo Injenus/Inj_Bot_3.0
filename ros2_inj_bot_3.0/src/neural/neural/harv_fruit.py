@@ -134,8 +134,10 @@ class NeuralHarvFruit(Node):
         self.last_time = None
         self.fps = 0.0
 
-        self.state = 1 # 0
-        self.locker =Lock()
+        self.state = 0 # 0
+        self.locker = Lock()
+
+        self.global_counter = 0
 
     def control(self, msg):
         with self.locker:
@@ -143,6 +145,7 @@ class NeuralHarvFruit(Node):
             print('get', self.state, msg.data)
     
     def image_callback(self, msg):
+        self.global_counter += 1
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
         #frame = invert_image(frame)
         if self.collect_dataset == 1:
@@ -179,13 +182,15 @@ class NeuralHarvFruit(Node):
         
         cv2.putText(frame, f"FPS: {self.fps:.1f}", (10, 30), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        print('fps', self.fps)
         
         with self.locker:
             if self.state == 0:
                 print(f"NNNEEUUURALLL {self.state}")
             if self.state == 1:
-                cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
-                cv2.waitKey(1)
+                if self.global_counter % 6 == 0:
+                    cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
+                    cv2.waitKey(1)
 
                 if len(results) == 1:
                     if last_class != "unknown":
