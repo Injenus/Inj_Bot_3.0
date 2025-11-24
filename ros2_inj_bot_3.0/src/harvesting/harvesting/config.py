@@ -14,6 +14,7 @@ delay_1_pick,delay_2_pick,delay_3_pick, delay_4_pick = 1.0, 1.2, 2.0, 2.0
 delay_throw_short = 2.5
 delay_throw_long = 2.5
 arm_states_table = {
+        'default': -42,
         'init_safe': -2, # тупо ввкрх
         'init': -1, # вбок наблюдение
         'knock_down': 0, #сбитие

@@ -134,7 +134,7 @@ class NeuralHarvFruit(Node):
         self.last_time = None
         self.fps = 0.0
 
-        self.state = 0 # 0
+        self.state = 1 # 0
         self.locker = Lock()
 
         self.global_counter = 0
@@ -182,13 +182,12 @@ class NeuralHarvFruit(Node):
         
         cv2.putText(frame, f"FPS: {self.fps:.1f}", (10, 30), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-        print('fps', self.fps)
         
         with self.locker:
             if self.state == 0:
                 print(f"NNNEEUUURALLL {self.state}")
             if self.state == 1:
-                if self.global_counter % 6 == 0:
+                if self.global_counter % 5 == 0:
                     cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
                     cv2.waitKey(1)
 

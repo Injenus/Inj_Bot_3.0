@@ -34,7 +34,7 @@ class BinocularCameraPublisher(Node):
             rclpy.try_shutdown() 
             sys.exit(0) 
         
-        self.timer = self.create_timer(0.15, self.publish_imge)
+        self.timer = self.create_timer(0.034, self.publish_imge)
 
         self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
         msg = String(data = self.get_name())

@@ -250,6 +250,7 @@ class Coordinator(Node):
 
             if not self.was_start:
                 self.cam_send(0)
+                self.arm_init()
                 thread.start_child(target_function=lambda t: self.prestart_move(t))
                 with self.prestart_lock:
                     if self.prestart_status == 1:
@@ -297,6 +298,7 @@ class Coordinator(Node):
                         thread.start_child(target_function=lambda t: self.finish_move(t))
                         #thread.paused.wait()
                         self.was_finish = True
+                        self.arm_default()
                         thread.stop()
                         break
 
@@ -326,13 +328,27 @@ class Coordinator(Node):
         else:
             print('unknow')
             pass
+    
+    def arm_default(self):
+        write_log(log_string = f"\n{get_time()} Start Arm Def!!! ")
+        self.send_arm_action('default')
+        write_log(f"\n{get_time()} start sleep.. default")
+        time.sleep(conf.st_delay * 5)
+        write_log(f"\n{get_time()} finish sleep.. default")
+    
+    def arm_init(self):
+        write_log(log_string = f"\n{get_time()} Start Arm Init!!! ")
+        self.send_arm_action('init')
+        write_log(f"\n{get_time()} start sleep.. init")
+        #time.sleep(conf.st_delay * 5)
+        write_log(f"\n{get_time()} finish sleep.. init")
 
 
     def knock_down_fruit(self, thread):
         write_log(log_string = f"\n{get_time()} Start knock down !!! ")
         self.send_arm_action('knock_down')
         write_log(f"\n{get_time()} start sleep.. knock_down")
-        time.sleep(conf.st_delay * 15)
+        time.sleep(conf.st_delay * 13)
         write_log(f"\n{get_time()} finish sleep.. knock_down")
         # with self.fruit_lock:
         #     self.fruit_classif = {}
