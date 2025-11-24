@@ -143,3 +143,52 @@
 16:33:17 Start..
 16:33:18 Prestart move !!! 
 16:33:32 Prestart success !!! 
+
+
+17:15:47 Start..
+17:15:47 Prestart move !!! 
+
+
+17:15:56 Start..
+17:15:56 Prestart move !!! 
+17:16:34 Prestart success !!! 
+
+
+17:24:34 Start..
+17:24:34 Prestart move !!! 
+17:24:54 Prestart success !!! 
+
+
+17:43:39 Start..
+17:43:39 Prestart move !!! 
+17:44:11 Prestart success !!! 
+
+
+17:46:50 Start..
+17:46:50 Prestart move !!! 
+
+
+17:50:17 Start..
+17:50:17 Prestart move !!! 
+
+
+17:50:31 Start..
+17:50:31 Prestart move !!! 
+
+
+17:52:41 Start..
+17:52:41 Prestart move !!! 
+
+
+17:54:06 Start..
+17:54:06 Prestart move !!! 
+17:54:40 Prestart success !!! 
+
+
+17:59:23 Start..
+17:59:23 Prestart move !!! 
+17:59:44 Prestart fail !!! 
+
+
+18:07:03 Start..
+18:07:03 Prestart move !!! 

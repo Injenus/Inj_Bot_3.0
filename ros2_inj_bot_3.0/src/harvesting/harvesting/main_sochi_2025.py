@@ -115,12 +115,12 @@ class Coordinator(Node):
         super().__init__('coordinator')
 
         self.border_publ = self.create_publisher(Int8, 'border_mode', 3)
-        self.arm_publ = self.create_publisher(String, 'arm_action', 10)
+        self.arm_publ = self.create_publisher(String, 'arm_action', 100)
         self.throw_short_publ = self.create_publisher(UInt8MultiArray, 'throw_short_mode', 10)
         self.start_finish_publ = self.create_publisher(Int8, 'start_finish', 10)
         self.emergency_stop_publ = self.create_publisher(Twist, '/cmd_vel', 100)
         self.cam_state = self.create_publisher(UInt8, 'neural_state', 100)
-        self.prestart_publ = self.create_publisher(UInt8, 'room_align_cmd', 10)
+        self.prestart_publ = self.create_publisher(UInt8, 'room_align_cmd', 100)
         
         self.throw_short_subs = self.create_subscription(UInt8, 'short_throw_status', self.throw_short_callback, 10)
         self.classific_subs = self.create_subscription(String, 'img_classif', self.friut_callback, 10)
