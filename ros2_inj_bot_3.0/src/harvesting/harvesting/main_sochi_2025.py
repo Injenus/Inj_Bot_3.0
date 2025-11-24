@@ -160,7 +160,7 @@ class Coordinator(Node):
                                'twist_to_rpm_with_feedback',
                                'border_move',
                                'debug_keyboard',
-                               'move_to_box_short',
+                               'move_to_box_short_side',
                                'start_finish',
                                'arm_actions',
                                'lut_control',
@@ -249,6 +249,7 @@ class Coordinator(Node):
         while thread.running and rclpy.ok():
 
             if not self.was_start:
+                self.cam_send(0)
                 thread.start_child(target_function=lambda t: self.prestart_move(t))
                 with self.prestart_lock:
                     if self.prestart_status == 1:
@@ -257,6 +258,8 @@ class Coordinator(Node):
                         write_log(f"\n{get_time()} Prestart fail !!! ")
                         thread.stop()
                         break
+                thread.stop()
+                break
 
                 thread.start_child(target_function=lambda t: self.start_move(t))
                 self.was_start = True

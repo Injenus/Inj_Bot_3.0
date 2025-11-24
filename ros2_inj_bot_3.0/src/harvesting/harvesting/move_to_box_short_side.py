@@ -34,7 +34,7 @@ import config as conf
 
 class MoveToBox(Node):
     def __init__(self):
-        super().__init__('move_to_box_short')
+        super().__init__('move_to_box_short_side')
 
         self.subs_mode = self.create_subscription(UInt8MultiArray, 'throw_short_mode', self.update_mode, 10)
         self.subs_lidar = self.create_subscription(String, 'lidar/obstacles', self.update_distances, 3)

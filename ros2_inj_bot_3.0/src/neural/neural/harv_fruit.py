@@ -119,7 +119,8 @@ class NeuralHarvFruit(Node):
 
         self.collect_dataset = self.get_parameter('collect_dataset').value
         self.save_path = f'/home/inj/Inj_Bot_3.0/harv_dataset_{datetime.now().strftime("%H_%M_%S_%f")[:-3]}'
-        os.makedirs(self.save_path, exist_ok=True)
+        if self.collect_dataset:
+            os.makedirs(self.save_path, exist_ok=True)
 
         self.bridge = CvBridge()
         self.subscription = self.create_subscription(Image, self.cam_topic, self.image_callback, 2)
@@ -133,7 +134,7 @@ class NeuralHarvFruit(Node):
         self.last_time = None
         self.fps = 0.0
 
-        self.state = 0
+        self.state = 1 # 0
         self.locker =Lock()
 
     def control(self, msg):
