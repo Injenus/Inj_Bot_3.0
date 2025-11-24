@@ -500,12 +500,19 @@ class RoomAlignNode(Node):
         if front_spatial is not None:
             self.last_front_spatial = front_spatial
             if self.front_filtered is None:
-                self.front_filtered = front_spatial
+                filtered = front_spatial
             else:
-                self.front_filtered = round((
+                filtered = (
                     self.filter_alpha * front_spatial +
                     (1.0 - self.filter_alpha) * self.front_filtered
-                ), 2)
+                )
+
+            # квантование с шагом 0.005 м
+            step = 0.005
+            quant = round(filtered / step) * step
+            # опционально — слегка округлить для красоты логов
+            self.front_filtered = round(quant, 3)
+
 
         # лог для графиков
         self.log_front_distance(now)
