@@ -27,8 +27,9 @@ class MaxMinDetector:
       максимума/минимума нужно, чтобы считать, что максимум/минимум пройден.
     """
 
-    def __init__(self, stable_samples: int = 10):
+    def __init__(self, stable_samples):
         self.stable_samples = stable_samples
+        self.delta = 0.01
         self.reset()
 
     def reset(self):
@@ -68,7 +69,7 @@ class MaxMinDetector:
 
         if self.stage == "UP":
             # Фаза роста: обновляем максимум, пока видим новые значения.
-            if d > self.current_max:
+            if d >= self.current_max:
                 self.current_max = d
                 self.max_stable = 0
             else:
@@ -86,7 +87,7 @@ class MaxMinDetector:
 
         elif self.stage == "DOWN":
             # Фаза падения: обновляем минимум, пока видим новые значения.
-            if d < self.current_min:
+            if d <= self.current_min:
                 self.current_min = d
                 self.min_stable = 0
             else:
@@ -139,8 +140,8 @@ class RoomAlignNode(Node):
         super().__init__('move_to_start_from_center')
 
         # --------- Параметры движения ---------
-        self.linear_speed = 0.15    # м/с
-        self.angular_speed = 0.6    # рад/с
+        self.linear_speed = 0.12    # м/с
+        self.angular_speed = 0.5    # рад/с
 
         self.target_front_dist = 0.30
         self.target_back_dist = 1.10
@@ -166,7 +167,7 @@ class RoomAlignNode(Node):
         self.max_backward_time = 20.0
 
         # --------- Детекторы max→min ---------
-        self.perp_stable_samples = 50  # сколько раз подряд без нового max/min
+        self.perp_stable_samples = 4  # сколько раз подряд без нового max/min
         self.detector_cw = MaxMinDetector(stable_samples=self.perp_stable_samples)
         self.detector_ccw = MaxMinDetector(stable_samples=self.perp_stable_samples)
         self.detector_cw_started = False
@@ -501,10 +502,10 @@ class RoomAlignNode(Node):
             if self.front_filtered is None:
                 self.front_filtered = front_spatial
             else:
-                self.front_filtered = (
+                self.front_filtered = round((
                     self.filter_alpha * front_spatial +
                     (1.0 - self.filter_alpha) * self.front_filtered
-                )
+                ), 2)
 
         # лог для графиков
         self.log_front_distance(now)
