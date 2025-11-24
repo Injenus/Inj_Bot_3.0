@@ -104,6 +104,120 @@ class MaxMinDetector:
         return "none"
 
 
+class MinMaxMinDetector:
+    """
+    Детектор паттерна для CCW-поворота:
+      1) сначала расстояние падает (до первого минимума),
+      2) потом растёт (до максимума),
+      3) потом снова падает (до второго минимума),
+      4) в момент второго минимума сигналим "готово".
+
+    Интерфейс как у MaxMinDetector:
+      update(d) -> "none" / "max_done" / "min_done"
+    При этом:
+      - первый минимум внутренний (можем логировать отдельно при желании),
+      - "max_done" — после устойчивого максимума,
+      - "min_done" — после устойчивого второго минимума.
+    """
+
+    def __init__(self, stable_samples: int):
+        self.stable_samples = stable_samples
+        self.reset()
+
+    def reset(self):
+        self.active = False
+        # 'IDLE', 'DOWN1', 'UP', 'DOWN2', 'FINISHED'
+        self.stage = "IDLE"
+
+        self.min1 = None
+        self.min1_stable = 0
+
+        self.max_val = None
+        self.max_stable = 0
+
+        self.min2 = None
+        self.min2_stable = 0
+
+    def start(self, d0: float):
+        self.reset()
+        self.active = True
+        self.stage = "DOWN1"
+        d0 = float(d0)
+        self.min1 = d0
+        self.min1_stable = 0
+        self.max_val = d0
+        self.max_stable = 0
+        self.min2 = d0
+        self.min2_stable = 0
+
+    def update(self, d: float) -> str:
+        """
+        Возвращает:
+          "none"      — ничего не произошло;
+          "max_done"  — устойчивый максимум (в середине паттерна);
+          "min_done"  — устойчивый второй минимум (конец поворота).
+        """
+        if not self.active:
+            return "none"
+
+        if d is None or math.isnan(d) or math.isinf(d):
+            return "none"
+
+        d = float(d)
+
+        # 1. Первая нисходящая фаза (поиск первого минимума)
+        if self.stage == "DOWN1":
+            if d <= self.min1:
+                self.min1 = d
+                self.min1_stable = 0
+            else:
+                self.min1_stable += 1
+
+            if self.min1_stable >= self.stable_samples:
+                # первый минимум найден, переходим к фазе роста
+                self.stage = "UP"
+                self.max_val = d
+                self.max_stable = 0
+                # первый минимум нам для внешней логики не нужен
+                return "none"
+
+            return "none"
+
+        # 2. Фаза роста (поиск максимума)
+        if self.stage == "UP":
+            if d >= self.max_val:
+                self.max_val = d
+                self.max_stable = 0
+            else:
+                self.max_stable += 1
+
+            if self.max_stable >= self.stable_samples:
+                # максимум найден, переходим ко второму минимуму
+                self.stage = "DOWN2"
+                self.min2 = d
+                self.min2_stable = 0
+                return "max_done"
+
+            return "none"
+
+        # 3. Вторая нисходящая фаза (поиск второго минимума)
+        if self.stage == "DOWN2":
+            if d <= self.min2:
+                self.min2 = d
+                self.min2_stable = 0
+            else:
+                self.min2_stable += 1
+
+            if self.min2_stable >= self.stable_samples:
+                self.stage = "FINISHED"
+                self.active = False
+                return "min_done"
+
+            return "none"
+
+        return "none"
+
+
 class RoomAlignNode(Node):
     """
     4 фазы движения:
@@ -111,29 +225,10 @@ class RoomAlignNode(Node):
       0) IDLE
       1) ROTATE_CW   — поворот ПО ЧАСОВОЙ до паттерна max→min по сглаженной фронтовой дистанции.
       2) FORWARD     — движение вперёд до target_front_dist.
-      3) ROTATE_CCW  — поворот ПРОТИВ ЧАСОВОЙ до паттерна max→min.
+      3) ROTATE_CCW  — поворот ПРОТИВ ЧАСОВОЙ по паттерну min→max→min.
       4) BACKWARD    — движение назад до target_back_dist.
       5) DONE        — завершение, статус 1, возврат в IDLE.
       6) ERROR       — ошибка, статус 2.
-
-    Вход:
-      - 'lidar/obstacles' (String, JSON: "angle_deg" -> distance_m, 0° — вперёд),
-      - 'room_align_cmd' (UInt8): 0 = сброс, !=0 = запуск.
-
-    Выход:
-      - '/cmd_vel' (Twist),
-      - 'room_align_status' (UInt8),
-      - '/nodes_ready' (String).
-
-    Логи:
-      - для каждого состояния свой график front_filtered(t):
-        ~/Inj_Bot_3.0/logs/room_align/<timestamp>/front_<STATE>.jpg
-
-      На графиках для ROTATE_CW/ROTATE_CCW дополнительно:
-        - зелёные пунктирные вертикальные линии — моменты, когда детектор
-          решил, что максимум пройден;
-        - красные сплошные вертикальные линии — моменты, когда детектор
-          решил, что минимум пройден (точка остановки поворота).
     """
 
     def __init__(self):
@@ -166,10 +261,10 @@ class RoomAlignNode(Node):
         self.max_forward_time = 12.0
         self.max_backward_time = 20.0
 
-        # --------- Детекторы max→min ---------
-        self.perp_stable_samples = 4  # сколько раз подряд без нового max/min
+        # --------- Детекторы ---------
+        self.perp_stable_samples = 4  # сколько раз подряд без обновления экстремума
         self.detector_cw = MaxMinDetector(stable_samples=self.perp_stable_samples)
-        self.detector_ccw = MaxMinDetector(stable_samples=self.perp_stable_samples)
+        self.detector_ccw = MinMaxMinDetector(stable_samples=self.perp_stable_samples)
         self.detector_cw_started = False
         self.detector_ccw_started = False
 
@@ -252,7 +347,7 @@ class RoomAlignNode(Node):
         self.ready_pub = self.create_publisher(String, '/nodes_ready', 10)
         self.ready_pub.publish(String(data=self.get_name()))
 
-        self.get_logger().info("RoomAlignNode (max→min one-beam) initialized (IDLE)")
+        self.get_logger().info("RoomAlignNode (CW max→min, CCW min→max→min) initialized (IDLE)")
 
     # ------------------- Служебные методы -------------------
 
@@ -513,7 +608,6 @@ class RoomAlignNode(Node):
             # опционально — слегка округлить для красоты логов
             self.front_filtered = round(quant, 3)
 
-
         # лог для графиков
         self.log_front_distance(now)
 
@@ -631,7 +725,7 @@ class RoomAlignNode(Node):
     def step_rotate_ccw(self, now: float):
         """
         ФАЗА 3: поворот ПРОТИВ ЧАСОВОЙ.
-        Останавливаемся по детектору max→min на front_filtered.
+        Паттерн min→max→min по front_filtered.
         """
         elapsed = time.time() - self.state_start_time
         if elapsed > self.max_rotate_time:
@@ -648,7 +742,7 @@ class RoomAlignNode(Node):
         if not self.detector_ccw_started:
             self.detector_ccw.start(d)
             self.detector_ccw_started = True
-            self.get_logger().info(f"ROTATE_CCW detector started at d0={d:.3f} m")
+            self.get_logger().info(f"ROTATE_CCW detector (min→max→min) started at d0={d:.3f} m")
 
         event = self.detector_ccw.update(d)
 
@@ -667,7 +761,7 @@ class RoomAlignNode(Node):
             self.rotate_events[self.STATE_ROTATE_CCW]['min'].append(t_rel)
             self.publish_twist(0.0, 0.0)
             self.get_logger().info(
-                f"ROTATE_CCW: MIN confirmed (perpendicular) at t={t_rel:.2f}s, d={d:.3f} m"
+                f"ROTATE_CCW: second MIN confirmed (perpendicular) at t={t_rel:.2f}s, d={d:.3f} m"
             )
             self.set_state(self.STATE_BACKWARD)
             return
