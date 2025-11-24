@@ -404,8 +404,8 @@ class Coordinator(Node):
     
     def prestart_move(self, thread):
         write_log(f"\n{get_time()} Prestart move !!! ")
-        self.prestart_publ.publish(UInt8(data=1))
         while True:
+            self.prestart_publ.publish(UInt8(data=1))
             with self.prestart_lock:
                 if self.prestart_status != 0:
                     break

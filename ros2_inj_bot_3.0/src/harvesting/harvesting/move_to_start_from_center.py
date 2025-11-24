@@ -245,7 +245,7 @@ class RoomAlignNode(Node):
         # --------- Лидар ---------
         self.min_valid_range = 0.05
         self.max_valid_range = 6.0
-        self.lidar_timeout = 0.5
+        self.lidar_timeout = 5.
 
         # Окно по секторам для "переднего луча"
         self.front_window_size = 5  # 3 / 5 / 7 — нечётное
@@ -269,10 +269,13 @@ class RoomAlignNode(Node):
         self.detector_ccw_started = False
 
         # --------- Машина состояний ---------
+        self.was_idle = False
         self.STATE_IDLE        = 0
         self.STATE_ROTATE_CW   = 1
+        self.pre_forw = True
         self.STATE_FORWARD     = 2
         self.STATE_ROTATE_CCW  = 3
+        self.pre_back = True
         self.STATE_BACKWARD    = 4
         self.STATE_DONE        = 5
         self.STATE_ERROR       = 6
@@ -519,8 +522,10 @@ class RoomAlignNode(Node):
             self.get_logger().info(f"Command {cmd} ignored: state != IDLE")
             return
 
-        self.get_logger().info(f"Start command received: {cmd}")
-        self.start_algorithm()
+        if not self.was_idle:
+            self.get_logger().info(f"Start command received: {cmd}")
+            self.start_algorithm()
+            self.was_idle = True
 
     def start_algorithm(self):
         if not self.lidar_is_fresh() or not self.current_obstacles:
@@ -627,12 +632,22 @@ class RoomAlignNode(Node):
             self.step_rotate_cw(now)
 
         elif self.state == self.STATE_FORWARD:
+            if self.pre_forw:
+                self.publish_twist(0.0, 1.2)
+                time.sleep(0.55)
+                self.publish_twist(0.0, 0.0)
+                self.pre_forw = False
             self.step_forward(now)
 
         elif self.state == self.STATE_ROTATE_CCW:
             self.step_rotate_ccw(now)
 
         elif self.state == self.STATE_BACKWARD:
+            if self.pre_back:
+                self.publish_twist(0.0, -1.2)
+                time.sleep(0.55)
+                self.publish_twist(0.0, 0.0)
+                self.pre_back = False
             self.step_backward(now)
 
         elif self.state == self.STATE_DONE:

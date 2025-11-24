@@ -437,3 +437,93 @@
 
 22:58:36 Start..
 22:58:36 Prestart move !!! 
+
+
+23:06:15 Start..
+23:06:16 Prestart move !!! 
+
+
+23:06:26 Start..
+23:06:26 Prestart move !!! 
+23:06:46 Prestart success !!! 
+
+
+23:13:17 Start..
+23:13:18 Prestart move !!! 
+
+
+23:13:28 Start..
+23:13:28 Prestart move !!! 
+23:13:46 Prestart success !!! 
+
+
+23:16:15 Start..
+23:16:15 Prestart move !!! 
+23:16:34 Prestart success !!! 
+
+
+23:18:30 Start..
+23:18:30 Prestart move !!! 
+23:18:48 Prestart success !!! 
+
+
+23:24:01 Start..
+23:24:01 Prestart move !!! 
+23:24:21 Prestart success !!! 
+
+
+23:25:32 Start..
+23:25:32 Prestart move !!! 
+23:25:48 Prestart success !!! 
+
+
+23:29:29 Start..
+23:29:29 Prestart move !!! 
+23:29:36 Prestart fail !!! 
+
+
+23:31:34 Start..
+23:31:34 Prestart move !!! 
+23:31:42 Prestart fail !!! 
+
+
+23:33:28 Start..
+23:33:28 Prestart move !!! 
+23:33:47 Prestart success !!! 
+
+
+23:35:11 Start..
+23:35:11 Prestart move !!! 
+23:35:31 Prestart success !!! 
+
+
+23:39:15 Start..
+23:39:15 Prestart move !!! 
+23:39:34 Prestart success !!! 
+23:39:34 Start move start !!! 
+23:39:34 start sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+23:39:34 finish sleep.. start
+
+
+23:45:58 Start..
+23:45:58 Prestart move !!! 
+23:46:17 Prestart success !!! 
+
+
+23:48:10 Start..
+23:48:10 Prestart move !!! 
+23:48:21 Prestart success !!! 
+
+
+23:54:51 Start..
+23:54:51 Prestart move !!! 
+23:55:11 Prestart success !!! 
