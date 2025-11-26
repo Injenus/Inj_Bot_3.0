@@ -249,6 +249,7 @@ class Coordinator(Node):
             if not self.was_start:
                 self.cam_send(0)
                 self.arm_init()
+                
                 thread.start_child(target_function=lambda t: self.prestart_move(t))
                 with self.prestart_lock:
                     if self.prestart_status == 1:
@@ -260,7 +261,7 @@ class Coordinator(Node):
                 # thread.stop()
                 # break
 
-                thread.start_child(target_function=lambda t: self.start_move(t))
+                #thread.start_child(target_function=lambda t: self.start_move(t))
                 self.was_start = True
                 self.cam_send(1)
 
@@ -291,7 +292,7 @@ class Coordinator(Node):
                         self.cam_send(1)
                         print('send 1')
                         print('main_end_th')
-                        #thread.paused.wait()
+                        #thread.paused.wait()emergency_stop_publ
 
             with self.count_blocks_lock:
                 if self.count_blocks == 6:
@@ -332,7 +333,7 @@ class Coordinator(Node):
             pass
     
     def arm_default(self):
-        #return
+        return
         write_log(log_string = f"\n{get_time()} Start Arm Def!!! ")
         self.send_arm_action('default')
         write_log(f"\n{get_time()} start sleep.. default")
@@ -406,6 +407,13 @@ class Coordinator(Node):
         thread.start_child(target_function=lambda t: self.throw_fruit(t))
     
     def prestart_move(self, thread):
+        # write_log(f"\n{get_time()} PRE Prestart move !!! ")
+        # msg = Twist()
+        # msg.linear.x = float(0.16)
+        # msg.angular.z = float(0.0)
+        # self.emergency_stop_publ.publish(msg)
+        # time.sleep(5.)
+        # self.emergency_stop_publ.publish(Twist())
         write_log(f"\n{get_time()} Prestart move !!! ")
         while True:
             self.prestart_publ.publish(UInt8(data=1))

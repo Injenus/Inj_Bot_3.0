@@ -113,7 +113,7 @@ class NeuralHarvFruit(Node):
 
         self.declare_parameter('neural_id', 1)
         self.declare_parameter('cam_topic', 'cam/binocular')
-        self.declare_parameter('collect_dataset', 1)
+        self.declare_parameter('collect_dataset', 0)
         self.neural_id = self.get_parameter('neural_id').value
         self.cam_topic = self.get_parameter('cam_topic').value
 
@@ -188,9 +188,9 @@ class NeuralHarvFruit(Node):
             if self.state == 0:
                 print(f"NNNEEUUURALLL {self.state}")
             if self.state == 1:
-                # if self.global_counter % 5 == 0:
-                #     cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
-                #     cv2.waitKey(1)
+                if self.global_counter % 5 == 0:
+                    cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
+                    cv2.waitKey(1)
 
                 if len(results) == 1:
                     if last_class != "unknown":

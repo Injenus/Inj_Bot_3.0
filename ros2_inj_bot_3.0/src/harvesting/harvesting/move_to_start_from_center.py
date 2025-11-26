@@ -239,13 +239,13 @@ class RoomAlignNode(Node):
         self.angular_speed = 0.5    # рад/с
 
         self.target_front_dist = 0.30
-        self.target_back_dist = 2.3
+        self.target_back_dist = 2.4
         self.distance_tolerance = 0.02
 
         # --------- Лидар ---------
         self.min_valid_range = 0.05
         self.max_valid_range = 6.0
-        self.lidar_timeout = 5.
+        self.lidar_timeout = 10.
 
         # Окно по секторам для "переднего луча"
         self.front_window_size = 5  # 3 / 5 / 7 — нечётное
@@ -257,8 +257,8 @@ class RoomAlignNode(Node):
         self.filter_alpha = 0.4
 
         # Лимиты по времени
-        self.max_rotate_time = 10.0
-        self.max_forward_time = 12.0
+        self.max_rotate_time = 20.0
+        self.max_forward_time = 15.0
         self.max_backward_time = 20.0
 
         # --------- Детекторы ---------
@@ -271,6 +271,7 @@ class RoomAlignNode(Node):
         # --------- Машина состояний ---------
         self.was_idle = False
         self.STATE_IDLE        = 0
+        self.pre_cw = True
         self.STATE_ROTATE_CW   = 1
         self.pre_forw = True
         self.STATE_FORWARD     = 2
@@ -629,6 +630,16 @@ class RoomAlignNode(Node):
             self.publish_twist(0.0, 0.0)
 
         elif self.state == self.STATE_ROTATE_CW:
+            # if self.pre_cw:
+            #     self.publish_twist(0.2, 0.0)
+            #     time.sleep(4.)
+            #     self.publish_twist(0.0, 0.0)
+            #     time.sleep(1.0)
+            #     self.publish_twist(0.2, 0.0)
+            #     time.sleep(1.)
+            #     self.publish_twist(0.0, 0.0)
+            #     time.sleep(0.2)
+            #     self.pre_cw = False
             self.step_rotate_cw(now)
 
         elif self.state == self.STATE_FORWARD:

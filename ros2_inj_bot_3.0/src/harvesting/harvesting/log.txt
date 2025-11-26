@@ -599,3 +599,211 @@
 13:24:50 Start Arm Def!!! 
 13:24:50 start sleep.. default
 13:24:50 finish sleep.. default
+
+
+13:54:06 Start..
+13:54:06 Start Arm Init!!! 
+13:54:06 start sleep.. init
+13:54:06 finish sleep.. init
+13:54:06 Prestart move !!! 
+13:54:19 Prestart success !!! 
+13:54:19 Start move start !!! 
+13:54:19 start sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+13:54:19 finish sleep.. start
+
+
+13:56:14 Start..
+13:56:14 Start Arm Init!!! 
+13:56:14 start sleep.. init
+13:56:14 finish sleep.. init
+13:56:14 Prestart move !!! 
+13:56:33 Prestart success !!! 
+13:56:33 Start move start !!! 
+13:56:33 start sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:33 finish sleep.. start
+13:56:34 Detect lemon_ok !!!!!!! 
+13:57:08 Detect pear_ok !!!!!!! 
+13:57:32 Detect tomato_bad !!!!!!! 
+13:57:41 Detect pear_ok !!!!!!! 
+
+
+14:39:45 Start..
+14:39:45 Start Arm Init!!! 
+14:39:45 start sleep.. init
+14:39:45 finish sleep.. init
+14:39:45 Prestart move !!! 
+14:40:08 Prestart success !!! 
+14:40:08 Start move start !!! 
+14:40:08 start sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 finish sleep.. start
+14:40:08 Detect tomato_ok !!!!!!! 
+
+
+14:43:12 Start..
+14:43:12 Start Arm Init!!! 
+14:43:12 start sleep.. init
+14:43:12 finish sleep.. init
+14:43:12 Prestart move !!! 
+14:43:38 Prestart success !!! 
+14:43:38 Start move start !!! 
+14:43:38 start sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+14:43:38 finish sleep.. start
+
+
+15:18:09 Start..
+15:18:09 Start Arm Init!!! 
+15:18:09 start sleep.. init
+15:18:09 finish sleep.. init
+15:18:09 Prestart move !!! 
+15:18:20 Prestart fail !!! 
+
+
+15:20:45 Start..
+15:20:45 Start Arm Init!!! 
+15:20:45 start sleep.. init
+15:20:45 finish sleep.. init
+15:20:45 Prestart move !!! 
+15:21:02 Prestart fail !!! 
+
+
+15:22:52 Start..
+15:22:52 Start Arm Init!!! 
+15:22:52 start sleep.. init
+15:22:52 finish sleep.. init
+15:22:52 Prestart move !!! 
+
+
+15:27:28 Start..
+15:27:28 Start Arm Init!!! 
+15:27:28 start sleep.. init
+15:27:28 finish sleep.. init
+15:27:28 Prestart move !!! 
+15:27:30 Prestart fail !!! 
+
+
+15:28:18 Start..
+15:28:18 Start Arm Init!!! 
+15:28:18 start sleep.. init
+15:28:18 finish sleep.. init
+15:28:19 Prestart move !!! 
+15:28:40 Prestart success !!! 
+15:28:40 Start move start !!! 
+15:28:40 start sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+15:28:40 finish sleep.. start
+
+
+15:38:16 Start..
+15:38:16 Start Arm Init!!! 
+15:38:16 start sleep.. init
+15:38:16 finish sleep.. init
+
+
+15:41:48 Start..
+15:41:48 Start Arm Init!!! 
+15:41:48 start sleep.. init
+15:41:48 finish sleep.. init
+
+
+15:43:33 Start..
+15:43:33 Start Arm Init!!! 
+15:43:33 start sleep.. init
+15:43:33 finish sleep.. init
+15:43:38 Prestart move !!! 
+
+
+15:45:37 Start..
+15:45:37 Start Arm Init!!! 
+15:45:37 start sleep.. init
+15:45:37 finish sleep.. init
+15:45:37 PRE Prestart move !!! 
+15:45:42 Prestart move !!! 
+15:45:57 Prestart fail !!! 
+
+
+15:48:36 Start..
+15:48:36 Start Arm Init!!! 
+15:48:36 start sleep.. init
+15:48:36 finish sleep.. init
+15:48:36 Prestart move !!! 
+15:48:56 Prestart success !!! 
+15:48:56 Start move start !!! 
+15:48:56 start sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+15:48:56 finish sleep.. start
+
+
+15:59:06 Start..
+15:59:06 Start Arm Init!!! 
+15:59:06 start sleep.. init
+15:59:06 finish sleep.. init
+15:59:06 Prestart move !!! 
+15:59:48 Prestart fail !!! 
+
+
+16:01:19 Start..
+16:01:19 Start Arm Init!!! 
+16:01:19 start sleep.. init
+16:01:19 finish sleep.. init
+16:01:19 Prestart move !!! 
+16:01:43 Prestart success !!! 
+
+
+16:04:28 Start..
+16:04:28 Start Arm Init!!! 
+16:04:28 start sleep.. init
+16:04:28 finish sleep.. init
+16:04:28 Prestart move !!! 
+16:04:48 Prestart success !!! 
