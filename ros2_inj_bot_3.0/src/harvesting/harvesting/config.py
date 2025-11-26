@@ -53,11 +53,11 @@ target_back_dist_finish = 2.3
 
     ### cv  ###
 all_classes = ['yellow_pepper_ok','yellow_pepper_bad',
-               'red_pepper_ok','red_pepper_bad',
-               'lemon_ok','lemon_bad',
-               'tomato_ok','tomato_bad',
-               'eggplant_ok','eggplant_bad',
-               'pear_ok','pear_bad',
+               'red_pepper_ok','red_pepper_bad',  #
+               'lemon_ok','lemon_bad',  #
+               'tomato_ok','tomato_bad',  # 
+               'eggplant_ok','eggplant_bad', #
+               'pear_ok','pear_bad',  #
                ]
 """
 ignore

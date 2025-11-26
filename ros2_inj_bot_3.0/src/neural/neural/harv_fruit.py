@@ -113,7 +113,7 @@ class NeuralHarvFruit(Node):
 
         self.declare_parameter('neural_id', 1)
         self.declare_parameter('cam_topic', 'cam/binocular')
-        self.declare_parameter('collect_dataset', 0)
+        self.declare_parameter('collect_dataset', 1)
         self.neural_id = self.get_parameter('neural_id').value
         self.cam_topic = self.get_parameter('cam_topic').value
 
@@ -149,7 +149,8 @@ class NeuralHarvFruit(Node):
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
         #frame = invert_image(frame)
         if self.collect_dataset == 1:
-            cv2.imwrite(os.path.join(self.save_path, f'{datetime.now().strftime("%H_%M_%S_%f")[:-2]}.png'), frame)
+            #cv2.imwrite(os.path.join(self.save_path, f'{datetime.now().strftime("%H_%M_%S_%f")[:-2]}.png'), frame)
+            cv2.imwrite(os.path.join(self.save_path, f'{self.global_counter}.png'), frame)
 
         current_time = self.get_clock().now()
         if self.last_time is not None:
@@ -187,9 +188,9 @@ class NeuralHarvFruit(Node):
             if self.state == 0:
                 print(f"NNNEEUUURALLL {self.state}")
             if self.state == 1:
-                if self.global_counter % 5 == 0:
-                    cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
-                    cv2.waitKey(1)
+                # if self.global_counter % 5 == 0:
+                #     cv2.imshow(f'{self.cam_topic}_{self.neural_id}_Harvesting', resize(0.75, frame))
+                #     cv2.waitKey(1)
 
                 if len(results) == 1:
                     if last_class != "unknown":

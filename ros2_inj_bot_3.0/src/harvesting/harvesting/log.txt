@@ -527,3 +527,75 @@
 23:54:51 Start..
 23:54:51 Prestart move !!! 
 23:55:11 Prestart success !!! 
+
+
+01:05:23 Start..
+01:05:23 Start Arm Init!!! 
+01:05:23 start sleep.. init
+01:05:23 finish sleep.. init
+01:05:23 Prestart move !!! 
+13:06:34 Start Arm Def!!! 
+13:06:34 start sleep.. default
+13:06:34 finish sleep.. default
+
+
+13:06:39 Start..
+13:06:39 Start Arm Init!!! 
+13:06:39 start sleep.. init
+13:06:39 finish sleep.. init
+13:06:39 Prestart move !!! 
+13:06:49 Start Arm Def!!! 
+13:06:49 start sleep.. default
+13:06:49 finish sleep.. default
+13:06:50 Prestart fail !!! 
+
+
+13:07:08 Start..
+13:07:08 Start Arm Init!!! 
+13:07:08 start sleep.. init
+13:07:08 finish sleep.. init
+13:07:08 Prestart move !!! 
+13:07:27 Prestart success !!! 
+13:07:27 Start move start !!! 
+13:07:27 start sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:07:27 finish sleep.. start
+13:09:36 Detect tomato_bad !!!!!!! 
+13:09:36 Action pick !!! 
+13:09:36 Start pick up !!! 
+13:09:36 start sleep.. pick
+13:09:46 finish sleep.. pick
+13:09:46 Start dual.. pick
+13:10:51 Start Arm Def!!! 
+13:10:51 start sleep.. default
+13:10:51 finish sleep.. default
+
+
+13:19:15 Start..
+13:19:15 Start Arm Init!!! 
+13:19:15 start sleep.. init
+13:19:15 finish sleep.. init
+13:19:15 Prestart move !!! 
+13:19:28 Prestart fail !!! 
+13:23:19 Start Arm Def!!! 
+13:23:19 start sleep.. default
+13:23:19 finish sleep.. default
+
+
+13:24:07 Start..
+13:24:07 Start Arm Init!!! 
+13:24:07 start sleep.. init
+13:24:07 finish sleep.. init
+13:24:07 Prestart move !!! 
+13:24:20 Prestart fail !!! 
+13:24:50 Start Arm Def!!! 
+13:24:50 start sleep.. default
+13:24:50 finish sleep.. default

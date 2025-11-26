@@ -257,8 +257,8 @@ class Coordinator(Node):
                         write_log(f"\n{get_time()} Prestart fail !!! ")
                         thread.stop()
                         break
-                thread.stop()
-                break
+                # thread.stop()
+                # break
 
                 thread.start_child(target_function=lambda t: self.start_move(t))
                 self.was_start = True
@@ -282,9 +282,12 @@ class Coordinator(Node):
                         write_log(f"\n{get_time()} Detect {self.fruit_classif['class']} !!!!!!! ")
                         self.count_blocks += 1
                         self.last_fruit = self.fruit_classif['class']
-                        thread.start_child(
-                            target_function=lambda t: self.process_fruit(t)
-                        )
+                        
+                        # thread.start_child(
+                        #     target_function=lambda t: self.process_fruit(t)
+                        # )
+                        time.sleep(3.)
+
                         self.cam_send(1)
                         print('send 1')
                         print('main_end_th')
@@ -329,7 +332,7 @@ class Coordinator(Node):
             pass
     
     def arm_default(self):
-        return
+        #return
         write_log(log_string = f"\n{get_time()} Start Arm Def!!! ")
         self.send_arm_action('default')
         write_log(f"\n{get_time()} start sleep.. default")
@@ -337,7 +340,7 @@ class Coordinator(Node):
         write_log(f"\n{get_time()} finish sleep.. default")
     
     def arm_init(self):
-        return
+        #return
         write_log(log_string = f"\n{get_time()} Start Arm Init!!! ")
         self.send_arm_action('init')
         write_log(f"\n{get_time()} start sleep.. init")

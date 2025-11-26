@@ -239,7 +239,7 @@ class RoomAlignNode(Node):
         self.angular_speed = 0.5    # рад/с
 
         self.target_front_dist = 0.30
-        self.target_back_dist = 1.10
+        self.target_back_dist = 2.3
         self.distance_tolerance = 0.02
 
         # --------- Лидар ---------
